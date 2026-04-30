@@ -2,12 +2,11 @@ package com.artereal.swing.ui.panels;
 
 import com.artereal.swing.dao.FrequenciaDAO;
 import com.artereal.swing.model.Frequencia;
+import com.artereal.swing.ui.layout.PadraoLayout;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -64,28 +63,71 @@ public class FrequenciaPanel extends JPanel {
         percentualLabel.setFont(new Font("Arial", Font.BOLD, 16));
         percentualLabel.setForeground(Color.BLUE);
         
-        // Botões
-        registrarPresencaButton = new JButton("Registrar Presença");
-        registrarFaltaButton = new JButton("Registrar Falta");
-        novoButton = new JButton("Novo");
-        salvarButton = new JButton("Salvar");
-        excluirButton = new JButton("Excluir");
-        atualizarButton = new JButton("Atualizar");
+        // Botões usando PadraoLayout com cores pastéis
+        registrarPresencaButton = PadraoLayout.criarBotao("Registrar Presença", new Color(152, 251, 152)); // Verde menta
+        registrarFaltaButton = PadraoLayout.criarBotao("Registrar Falta", new Color(255, 182, 193)); // Rosa pastel
+        novoButton = PadraoLayout.criarBotaoNovo();
+        salvarButton = PadraoLayout.criarBotaoSalvar();
+        excluirButton = PadraoLayout.criarBotaoExcluir();
+        atualizarButton = PadraoLayout.criarBotao("Atualizar", new Color(173, 216, 230)); // Azul pastel
         
         frequenciaAtual = null;
     }
     
     private void setupLayout() {
-        setLayout(new BorderLayout());
+        // Aplicar layout padrão usando PadraoLayout
+        PadraoLayout.aplicarLayoutPadrao(this);
         
-        // Título
-        JLabel titleLabel = new JLabel("Controle de Frequência", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+        // Header estilizado usando PadraoLayout
+        JPanel headerPanel = PadraoLayout.criarHeader("📊 Controle de Frequência", "Gestão de presenças e estatísticas");
+        add(headerPanel, BorderLayout.NORTH);
+        
+        // Painel principal usando PadraoLayout
+        JSplitPane splitPane = PadraoLayout.criarSplitPaneVertical(null, null);
+        
+        // Painel esquerdo - Tabela e estatísticas
+        JPanel leftPanel = new JPanel(new BorderLayout());
+        leftPanel.setBackground(Color.WHITE);
+        leftPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        // Painel de pesquisa
+        JPanel pesquisaPanel = new JPanel(new BorderLayout());
+        pesquisaPanel.setBackground(new Color(245, 245, 250));
+        pesquisaPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 210)),
+            BorderFactory.createEmptyBorder(10, 15, 10, 15)
+        ));
+        
+        JPanel searchContainer = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        searchContainer.setBackground(new Color(245, 245, 250));
+        
+        JLabel searchLabel = new JLabel("🔍 Pesquisar:");
+        searchLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        searchLabel.setForeground(new Color(100, 100, 120));
+        
+        JTextField pesquisarField = new JTextField();
+        pesquisarField.setPreferredSize(new Dimension(200, 30));
+        pesquisarField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(180, 180, 190)),
+            BorderFactory.createEmptyBorder(5, 8, 5, 8)
+        ));
+        
+        JButton pesquisarButton = PadraoLayout.criarBotaoPesquisar();
+        pesquisarButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+        pesquisarButton.setFocusPainted(false);
+        
+        searchContainer.add(searchLabel);
+        searchContainer.add(pesquisarField);
+        searchContainer.add(pesquisarButton);
+        pesquisaPanel.add(searchContainer, BorderLayout.CENTER);
         
         // Painel de estatísticas
         JPanel statsPanel = new JPanel(new GridLayout(2, 3, 10, 10));
-        statsPanel.setBorder(BorderFactory.createTitledBorder("Estatísticas Gerais"));
+        statsPanel.setBackground(new Color(245, 245, 250));
+        statsPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 210)),
+            BorderFactory.createEmptyBorder(15, 20, 15, 20)
+        ));
         
         try {
             List<Object[]> estatisticas = frequenciaDAO.getEstatisticasPorGrau();
@@ -95,108 +137,174 @@ public class FrequenciaPanel extends JPanel {
                 double media = (Double) est[2];
                 
                 JPanel grauPanel = new JPanel(new BorderLayout());
+                grauPanel.setBackground(new Color(240, 240, 245));
                 grauPanel.setBorder(BorderFactory.createEtchedBorder());
-                grauPanel.add(new JLabel(grau + " (" + total + ")", SwingConstants.CENTER), BorderLayout.NORTH);
-                grauPanel.add(new JLabel(String.format("%.1f%%", media), SwingConstants.CENTER), BorderLayout.CENTER);
+                
+                JLabel grauLabel = new JLabel(grau + " (" + total + ")", SwingConstants.CENTER);
+                grauLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+                grauLabel.setForeground(new Color(70, 130, 180));
+                grauPanel.add(grauLabel, BorderLayout.NORTH);
+                
+                JLabel mediaLabel = new JLabel(String.format("%.1f%%", media), SwingConstants.CENTER);
+                mediaLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+                mediaLabel.setForeground(new Color(46, 125, 50));
+                grauPanel.add(mediaLabel, BorderLayout.CENTER);
+                
                 statsPanel.add(grauPanel);
             }
         } catch (SQLException e) {
             statsPanel.add(new JLabel("Erro ao carregar estatísticas"));
         }
         
+        // Tabela estilizada
+        JScrollPane tableScrollPane = new JScrollPane(frequenciaTable);
+        tableScrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 210)));
+        tableScrollPane.getViewport().setBackground(Color.WHITE);
+        
+        // Tabela estilizada usando PadraoLayout
+        PadraoLayout.configurarTabela(frequenciaTable);
+        
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBackground(Color.WHITE);
+        topPanel.add(pesquisaPanel, BorderLayout.NORTH);
+        topPanel.add(statsPanel, BorderLayout.CENTER);
+        topPanel.add(tableScrollPane, BorderLayout.SOUTH);
+        
+        leftPanel.add(topPanel, BorderLayout.CENTER);
+        
+        // Painel direito - Formulário (padrão SessoesPanel)
+        JPanel rightPanel = new JPanel(new BorderLayout());
+        rightPanel.setBackground(Color.WHITE);
+        rightPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 10));
+        
+        // Título do formulário
+        JPanel formHeaderPanel = new JPanel(new BorderLayout());
+        formHeaderPanel.setBackground(new Color(245, 245, 250));
+        formHeaderPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        
+        JLabel formTitleLabel = new JLabel("📝 Dados da Frequência", SwingConstants.LEFT);
+        formTitleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        formTitleLabel.setForeground(new Color(70, 130, 180));
+        
+        formHeaderPanel.add(formTitleLabel, BorderLayout.CENTER);
+        rightPanel.add(formHeaderPanel, BorderLayout.NORTH);
+        
         // Painel de formulário
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBorder(BorderFactory.createTitledBorder("Dados da Frequência"));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.anchor = GridBagConstraints.WEST;
+        JPanel formularioPanel = new JPanel(new BorderLayout());
+        formularioPanel.setBackground(Color.WHITE);
+        formularioPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
         
-        // Nome
-        gbc.gridx = 0; gbc.gridy = 0;
-        formPanel.add(new JLabel("Irmão:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(nomeField, gbc);
+        JLabel formTitle = new JLabel("📝 Dados da Frequência");
+        formTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        formTitle.setForeground(new Color(70, 130, 180));
         
-        // Grau
-        gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Grau:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(grauField, gbc);
+        // Container principal para todos os grupos
+        JPanel formContainer = new JPanel(new BorderLayout());
+        formContainer.setBackground(Color.WHITE);
         
-        // Contadores
-        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Presenças:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(presencasField, gbc);
+        // Grupo 1: Dados Básicos
+        JPanel dadosBasicosPanel = createFormGroup("📅 Dados Básicos");
+        JPanel dadosBasicosContent = new JPanel(PadraoLayout.criarLayoutFormulario());
+        dadosBasicosContent.setBackground(Color.WHITE);
         
-        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Faltas:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(faltasField, gbc);
+        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Irmão:"));
+        PadraoLayout.estilizarCampoTexto(nomeField);
+        dadosBasicosContent.add(nomeField);
         
-        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Total Sessões:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(totalField, gbc);
+        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Grau:"));
+        PadraoLayout.estilizarCampoTexto(grauField);
+        dadosBasicosContent.add(grauField);
         
-        // Percentual
-        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.CENTER;
-        formPanel.add(new JLabel("Percentual de Presença:"), gbc);
-        gbc.gridy = 6;
-        formPanel.add(percentualLabel, gbc);
+        dadosBasicosPanel.add(dadosBasicosContent);
         
-        // Botões do formulário
-        JPanel botoesFormPanel = new JPanel(new FlowLayout());
-        botoesFormPanel.add(registrarPresencaButton);
-        botoesFormPanel.add(registrarFaltaButton);
-        botoesFormPanel.add(novoButton);
-        botoesFormPanel.add(salvarButton);
-        botoesFormPanel.add(excluirButton);
-        botoesFormPanel.add(atualizarButton);
+        // Grupo 2: Controle de Frequência
+        JPanel controlePanel = createFormGroup("📊 Controle de Frequência");
+        JPanel controleContent = new JPanel(PadraoLayout.criarLayoutFormulario());
+        controleContent.setBackground(Color.WHITE);
         
-        gbc.gridx = 0; gbc.gridy = 7; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        formPanel.add(botoesFormPanel, gbc);
+        controleContent.add(PadraoLayout.criarLabelFormulario("Presenças:"));
+        PadraoLayout.estilizarCampoTexto(presencasField);
+        controleContent.add(presencasField);
         
-        // Painel da tabela
-        JPanel tabelaPanel = new JPanel(new BorderLayout());
-        tabelaPanel.setBorder(BorderFactory.createTitledBorder("Registros de Frequência"));
-        tabelaPanel.add(new JScrollPane(frequenciaTable), BorderLayout.CENTER);
+        controleContent.add(PadraoLayout.criarLabelFormulario("Faltas:"));
+        PadraoLayout.estilizarCampoTexto(faltasField);
+        controleContent.add(faltasField);
         
-        // Painel de baixa frequência
-        JPanel baixaFrequenciaPanel = new JPanel(new BorderLayout());
-        baixaFrequenciaPanel.setBorder(BorderFactory.createTitledBorder("Alerta - Baixa Frequência (< 75%)"));
+        controleContent.add(PadraoLayout.criarLabelFormulario("Total:"));
+        PadraoLayout.estilizarCampoTexto(totalField);
+        controleContent.add(totalField);
         
-        try {
-            List<Frequencia> baixaFreq = frequenciaDAO.findBaixaAssiduidade(75.0);
-            DefaultTableModel baixaModel = new DefaultTableModel(new Object[]{"Irmão", "Grau", "% Presença"}, 0);
-            
-            for (Frequencia freq : baixaFreq) {
-                Object[] row = {
-                    freq.getNomeIrmao(),
-                    freq.getGrau(),
-                    String.format("%.1f%%", freq.getPercentualPresenca())
-                };
-                baixaModel.addRow(row);
-            }
-            
-            JTable baixaTable = new JTable(baixaModel);
-            baixaFrequenciaPanel.add(new JScrollPane(baixaTable), BorderLayout.CENTER);
-        } catch (SQLException e) {
-            baixaFrequenciaPanel.add(new JLabel("Erro ao carregar alertas"), BorderLayout.CENTER);
-        }
+        controlePanel.add(controleContent);
         
-        // Layout principal
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formPanel, tabelaPanel);
-        splitPane.setDividerLocation(300);
+        // Grupo 3: Estatísticas
+        JPanel estatisticasPanel = createFormGroup("📈 Estatísticas");
+        JPanel estatisticasContent = new JPanel(new BorderLayout());
+        estatisticasContent.setBackground(Color.WHITE);
         
-        JPanel centerPanel = new JPanel(new BorderLayout());
-        centerPanel.add(splitPane, BorderLayout.CENTER);
-        centerPanel.add(baixaFrequenciaPanel, BorderLayout.SOUTH);
+        JPanel percentualPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        percentualPanel.setBackground(Color.WHITE);
+        percentualPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 210), 1),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        percentualPanel.add(new JLabel("Percentual de Presença:"));
+        percentualPanel.add(percentualLabel);
         
-        add(titleLabel, BorderLayout.NORTH);
-        add(statsPanel, BorderLayout.WEST);
-        add(centerPanel, BorderLayout.CENTER);
+        estatisticasContent.add(percentualPanel, BorderLayout.CENTER);
+        estatisticasPanel.add(estatisticasContent);
+        
+        // Organizar grupos verticalmente usando PadraoLayout
+        JPanel allGroups = PadraoLayout.criarFormularioMultiplosGrupos(
+            dadosBasicosPanel, controlePanel, estatisticasPanel
+        );
+        
+        // Adicionar scroll ao formulário usando PadraoLayout
+        JScrollPane formScroll = PadraoLayout.criarFormularioComScroll(allGroups);
+        
+        formContainer.add(formScroll, BorderLayout.CENTER);
+        
+        // Painel de botões
+        JPanel botoesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        botoesPanel.setBackground(Color.WHITE);
+        
+        botoesPanel.add(createStyledButton("Registrar Presença", new Color(144, 238, 144)));
+        botoesPanel.add(createStyledButton("Registrar Falta", new Color(255, 182, 193)));
+        botoesPanel.add(createStyledButton("Novo", new Color(173, 216, 230)));
+        botoesPanel.add(createStyledButton("Salvar", new Color(255, 250, 205)));
+        botoesPanel.add(createStyledButton("Excluir", new Color(255, 218, 185)));
+        botoesPanel.add(createStyledButton("Atualizar", new Color(240, 240, 240)));
+        
+        formularioPanel.add(formTitle, BorderLayout.NORTH);
+        formularioPanel.add(formContainer, BorderLayout.CENTER);
+        formularioPanel.add(botoesPanel, BorderLayout.SOUTH);
+        
+        rightPanel.add(formularioPanel, BorderLayout.CENTER);
+        
+        splitPane.setLeftComponent(leftPanel);
+        splitPane.setRightComponent(rightPanel);
+        
+        add(splitPane, BorderLayout.CENTER);
+    }
+    
+    private JButton createStyledButton(String text, Color bgColor) {
+        return PadraoLayout.criarBotao(text, bgColor);
+    }
+    
+    private JPanel createFormGroup(String title) {
+        JPanel groupPanel = new JPanel(new BorderLayout());
+        groupPanel.setBackground(Color.WHITE);
+        groupPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(220, 220, 230), 1),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        titleLabel.setForeground(new Color(70, 130, 180));
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 8, 0));
+        
+        groupPanel.add(titleLabel, BorderLayout.NORTH);
+        return groupPanel;
     }
     
     private void setupEvents() {

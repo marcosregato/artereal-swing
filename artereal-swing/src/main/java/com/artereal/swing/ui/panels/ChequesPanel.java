@@ -2,12 +2,11 @@ package com.artereal.swing.ui.panels;
 
 import com.artereal.swing.dao.ChequeDAO;
 import com.artereal.swing.model.Cheque;
+import com.artereal.swing.ui.layout.PadraoLayout;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
@@ -67,14 +66,14 @@ public class ChequesPanel extends JPanel {
         historicoField = new JTextField(40);
         situacaoComboBox = new JComboBox<>(new String[]{"ABERTO", "PAGO", "CANCELADO", "DEVOLVIDO"});
         
-        // Botões
-        salvarButton = new JButton("Salvar");
-        novoButton = new JButton("Novo");
-        excluirButton = new JButton("Excluir");
-        compensarButton = new JButton("Compensar");
-        cancelarButton = new JButton("Cancelar");
-        devolverButton = new JButton("Devolver");
-        relatorioButton = new JButton("Relatório");
+        // Botões usando PadraoLayout com cores pastéis
+        salvarButton = PadraoLayout.criarBotaoSalvar();
+        novoButton = PadraoLayout.criarBotaoNovo();
+        excluirButton = PadraoLayout.criarBotaoExcluir();
+        compensarButton = PadraoLayout.criarBotao("Compensar", new Color(152, 251, 152)); // Verde menta
+        cancelarButton = PadraoLayout.criarBotao("Cancelar", new Color(255, 182, 193)); // Rosa pastel
+        devolverButton = PadraoLayout.criarBotao("Devolver", new Color(255, 218, 185)); // Laranja pastel
+        relatorioButton = PadraoLayout.criarBotao("Relatório", new Color(200, 200, 255)); // Azul claro
         
         // Data atual como padrão
         dataEmissaoField.setText(LocalDate.now().toString());
@@ -157,100 +156,78 @@ public class ChequesPanel extends JPanel {
             alertasPanel.add(new JLabel("Erro ao carregar alertas"));
         }
         
-        // Painel de formulário
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBorder(BorderFactory.createTitledBorder("Dados do Cheque"));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.anchor = GridBagConstraints.WEST;
+        // Painel de formulário usando PadraoLayout
+        JPanel formPanel = PadraoLayout.criarGrupoFormulario("💰 Dados do Cheque");
+        JPanel formContent = new JPanel(PadraoLayout.criarLayoutFormulario());
+        formContent.setBackground(Color.WHITE);
         
         // Fatura
-        gbc.gridx = 0; gbc.gridy = 0;
-        formPanel.add(new JLabel("Fatura:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(faturaField, gbc);
+        formContent.add(PadraoLayout.criarLabelFormulario("Fatura:"));
+        PadraoLayout.estilizarCampoTexto(faturaField);
+        formContent.add(faturaField);
         
         // Sacado
-        gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Sacado:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(sacadoField, gbc);
+        formContent.add(PadraoLayout.criarLabelFormulario("Sacado:"));
+        PadraoLayout.estilizarCampoTexto(sacadoField);
+        formContent.add(sacadoField);
         
         // Valor e Datas
-        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Valor:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        JPanel valorDatasPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        valorDatasPanel.add(valorField);
-        valorDatasPanel.add(new JLabel("Emissão:"));
-        valorDatasPanel.add(dataEmissaoField);
-        valorDatasPanel.add(new JLabel("Vencimento:"));
-        valorDatasPanel.add(dataVencimentoField);
-        formPanel.add(valorDatasPanel, gbc);
+        formContent.add(PadraoLayout.criarLabelFormulario("Valor:"));
+        PadraoLayout.estilizarCampoTexto(valorField);
+        formContent.add(valorField);
         
-        // Banco e Grupo
-        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Banco:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        JPanel bancoGrupoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        bancoGrupoPanel.add(bancoField);
-        bancoGrupoPanel.add(new JLabel("Grupo:"));
-        bancoGrupoPanel.add(grupoField);
-        formPanel.add(bancoGrupoPanel, gbc);
+        formContent.add(PadraoLayout.criarLabelFormulario("Emissão:"));
+        PadraoLayout.estilizarCampoTexto(dataEmissaoField);
+        formContent.add(dataEmissaoField);
         
-        // Histórico e Situação
-        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Histórico:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        JPanel historicoSituacaoPanel = new JPanel(new BorderLayout());
-        historicoSituacaoPanel.add(historicoField, BorderLayout.CENTER);
-        historicoSituacaoPanel.add(situacaoComboBox, BorderLayout.EAST);
-        formPanel.add(historicoSituacaoPanel, gbc);
+        formContent.add(PadraoLayout.criarLabelFormulario("Vencimento:"));
+        PadraoLayout.estilizarCampoTexto(dataVencimentoField);
+        formContent.add(dataVencimentoField);
         
-        // Botões do formulário
-        JPanel botoesFormPanel = new JPanel(new FlowLayout());
-        botoesFormPanel.add(salvarButton);
-        botoesFormPanel.add(novoButton);
-        botoesFormPanel.add(excluirButton);
+        // Situação
+        formContent.add(PadraoLayout.criarLabelFormulario("Situação:"));
+        PadraoLayout.estilizarComboBox(situacaoComboBox);
+        formContent.add(situacaoComboBox);
         
-        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        formPanel.add(botoesFormPanel, gbc);
+        // Banco
+        formContent.add(PadraoLayout.criarLabelFormulario("Banco:"));
+        PadraoLayout.estilizarCampoTexto(bancoField);
+        formContent.add(bancoField);
+        
+        // Grupo
+        formContent.add(PadraoLayout.criarLabelFormulario("Grupo:"));
+        PadraoLayout.estilizarCampoTexto(grupoField);
+        formContent.add(grupoField);
+        
+        // Histórico
+        formContent.add(PadraoLayout.criarLabelFormulario("Histórico:"));
+        PadraoLayout.estilizarCampoTexto(historicoField);
+        formContent.add(historicoField);
+        
+        formPanel.add(formContent);
+        
+        // Botões usando PadraoLayout
+        JPanel botoesPanel = PadraoLayout.criarPainelBotoes(
+            PadraoLayout.criarBotao("Salvar", PadraoLayout.COR_BOTAO_SALVAR),
+            PadraoLayout.criarBotao("Novo", PadraoLayout.COR_BOTAO_NOVO),
+            PadraoLayout.criarBotao("Excluir", PadraoLayout.COR_BOTAO_EXCLUIR),
+            PadraoLayout.criarBotao("Compensar", PadraoLayout.COR_BOTAO_EDITAR)
+        );
+        formPanel.add(botoesPanel, BorderLayout.SOUTH);
         
         // Botões de ações
         JPanel acoesPanel = new JPanel(new FlowLayout());
         acoesPanel.setBorder(BorderFactory.createTitledBorder("Ações do Cheque"));
-        acoesPanel.add(compensarButton);
-        acoesPanel.add(cancelarButton);
-        acoesPanel.add(devolverButton);
-        acoesPanel.add(relatorioButton);
-        
-        gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        formPanel.add(acoesPanel, gbc);
-        
-        // Painel da tabela
-        JPanel tabelaPanel = new JPanel(new BorderLayout());
-        tabelaPanel.setBorder(BorderFactory.createTitledBorder("Cheques Cadastrados"));
-        tabelaPanel.add(new JScrollPane(chequesTable), BorderLayout.CENTER);
-        
-        // Layout principal
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formPanel, tabelaPanel);
-        splitPane.setDividerLocation(350);
-        
-        JPanel centerPanel = new JPanel(new BorderLayout());
-        centerPanel.add(splitPane, BorderLayout.CENTER);
-        centerPanel.add(alertasPanel, BorderLayout.SOUTH);
-        
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.add(statsPanel, BorderLayout.NORTH);
-        mainPanel.add(centerPanel, BorderLayout.CENTER);
-        
-        add(titleLabel, BorderLayout.NORTH);
-        add(mainPanel, BorderLayout.CENTER);
     }
-    
-    private void setupEvents() {
-        salvarButton.addActionListener(e -> salvarCheque());
-        novoButton.addActionListener(e -> limparFormulario());
+
+private void setupEvents() {
+    salvarButton.addActionListener(e -> salvarCheque());
+    novoButton.addActionListener(e -> limparFormulario());
+    excluirButton.addActionListener(e -> excluirCheque());
+    compensarButton.addActionListener(e -> compensarCheque());
+    cancelarButton.addActionListener(e -> cancelarCheque());
+    devolverButton.addActionListener(e -> devolverCheque());
+    relatorioButton.addActionListener(e -> gerarRelatorio());
         excluirButton.addActionListener(e -> excluirCheque());
         compensarButton.addActionListener(e -> compensarCheque());
         cancelarButton.addActionListener(e -> cancelarCheque());

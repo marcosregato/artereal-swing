@@ -2,12 +2,11 @@ package com.artereal.swing.ui.panels;
 
 import com.artereal.swing.dao.UsuarioDAO;
 import com.artereal.swing.model.Usuario;
+import com.artereal.swing.ui.layout.PadraoLayout;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -56,44 +55,48 @@ public class UsuariosPanel extends JPanel {
         permissaoReceberCheckBox = new JCheckBox("Receber");
         permissaoBackupCheckBox = new JCheckBox("Backup");
         
-        // Botões
-        salvarButton = new JButton("Salvar");
-        novoButton = new JButton("Novo");
-        excluirButton = new JButton("Excluir");
+        // Botões usando PadraoLayout com cores pastéis
+        salvarButton = PadraoLayout.criarBotaoSalvar();
+        novoButton = PadraoLayout.criarBotaoNovo();
+        excluirButton = PadraoLayout.criarBotaoExcluir();
         
         usuarioAtual = null;
     }
     
     private void setupLayout() {
-        setLayout(new BorderLayout());
+        // Aplicar layout padrão usando PadraoLayout - CORREÇÃO EM LOTE
+        this.setBorder(PadraoLayout.BORDA_PAINEL);
+        this.setBackground(PadraoLayout.COR_FUNDO);
         
-        // Título
-        JLabel titleLabel = new JLabel("Gestão de Usuários", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+        // Header estilizado usando PadraoLayout
+        JPanel headerPanel = PadraoLayout.criarHeader("👤 Gestão de Usuários", "Administração de contas e permissões");
+        add(headerPanel, BorderLayout.NORTH);
         
-        // Painel de formulário
+        // Painel de formulário usando PadraoLayout - CORREÇÃO EM LOTE
         JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBorder(BorderFactory.createTitledBorder("Dados do Usuário"));
+        formPanel.setBackground(PadraoLayout.COR_PAINEL);
+        formPanel.setBorder(PadraoLayout.BORDA_GRUPO);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.anchor = GridBagConstraints.WEST;
         
-        // Nome
+        // Nome usando PadraoLayout
         gbc.gridx = 0; gbc.gridy = 0;
-        formPanel.add(new JLabel("Nome:"), gbc);
+        formPanel.add(PadraoLayout.criarLabelFormulario("Nome:"), gbc);
         gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
+        PadraoLayout.estilizarCampoTexto(nomeField);
         formPanel.add(nomeField, gbc);
         
-        // Senha
+        // Senha usando PadraoLayout
         gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Senha:"), gbc);
+        formPanel.add(PadraoLayout.criarLabelFormulario("Senha:"), gbc);
         gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
+        PadraoLayout.estilizarCampoTexto(senhaField);
         formPanel.add(senhaField, gbc);
         
-        // Permissões
+        // Permissões usando PadraoLayout
         gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Permissões:"), gbc);
+        formPanel.add(PadraoLayout.criarLabelFormulario("Permissões:"), gbc);
         
         JPanel permissoesPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         permissoesPanel.add(adminCheckBox);
@@ -113,17 +116,25 @@ public class UsuariosPanel extends JPanel {
         gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
         formPanel.add(botoesFormPanel, gbc);
         
-        // Painel da tabela
+        // Tabela estilizada usando PadraoLayout - CORREÇÃO EM LOTE
+        PadraoLayout.configurarTabela(usuariosTable);
+        
+        // Painel da tabela usando PadraoLayout - CORREÇÃO EM LOTE
         JPanel tabelaPanel = new JPanel(new BorderLayout());
-        tabelaPanel.setBorder(BorderFactory.createTitledBorder("Usuários Cadastrados"));
+        tabelaPanel.setBackground(PadraoLayout.COR_PAINEL);
+        tabelaPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
+        tabelaPanel.setBackground(Color.WHITE);
+        tabelaPanel.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
         tabelaPanel.add(new JScrollPane(usuariosTable), BorderLayout.CENTER);
         
-        // Layout principal
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formPanel, tabelaPanel);
-        splitPane.setDividerLocation(200);
+        // Layout principal com split
+        JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        mainSplitPane.setLeftComponent(formPanel);
+        mainSplitPane.setRightComponent(tabelaPanel);
+        mainSplitPane.setDividerLocation(400);
         
-        add(titleLabel, BorderLayout.NORTH);
-        add(splitPane, BorderLayout.CENTER);
+        add(headerPanel, BorderLayout.NORTH);
+        add(mainSplitPane, BorderLayout.CENTER);
     }
     
     private void setupEvents() {

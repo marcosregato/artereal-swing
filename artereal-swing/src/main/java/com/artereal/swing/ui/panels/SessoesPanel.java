@@ -2,33 +2,29 @@ package com.artereal.swing.ui.panels;
 
 import com.artereal.swing.dao.SessaoDAO;
 import com.artereal.swing.model.Sessao;
-import com.artereal.swing.ui.components.MasonicLogo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.artereal.swing.ui.layout.PadraoLayout;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
- * Painel de gestão de Sessões Maçônicas
+ * Painel de gestão de Sessões Maçônicas - Layout padrão RelatoriosPanel
  */
 public class SessoesPanel extends JPanel {
     
-    private static final Logger logger = LoggerFactory.getLogger(SessoesPanel.class);
     private SessaoDAO sessaoDAO;
     private DefaultTableModel tableModel;
     private JTable sessoesTable;
     private Sessao sessaoAtual;
+    private JTextField pesquisarField;
     
     // Formulário
     private JTextField codigoField;
-    private JTextField tipoField;
     private JTextField dataHoraField;
     private JTextField localField;
     private JTextField presidenteField;
@@ -38,7 +34,6 @@ public class SessoesPanel extends JPanel {
     private JTextField temaField;
     private JTextArea pautaArea;
     private JTextArea observacoesArea;
-    private JTextField statusField;
     private JTextField presentesField;
     private JTextField visitantesField;
     
@@ -49,7 +44,6 @@ public class SessoesPanel extends JPanel {
     private JButton excluirButton;
     private JButton limparButton;
     private JButton pesquisarButton;
-    private JTextField pesquisarField;
     
     // Combos para seleção
     private JComboBox<String> tipoCombo;
@@ -68,7 +62,7 @@ public class SessoesPanel extends JPanel {
     private void initializeComponents() {
         // Tabela
         tableModel = new DefaultTableModel(new Object[]{
-            "Código", "Tipo", "Data/Hora", "Local", "Status", "Presentes"
+            "ID", "Tipo", "Data/Hora", "Local", "Presidente", "Status"
         }, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -79,436 +73,184 @@ public class SessoesPanel extends JPanel {
         
         // Formulário
         codigoField = new JTextField(10);
-        codigoField.setEditable(false);
-        
-        tipoCombo = new JComboBox<>(new String[]{
-            "MAGNA", "BRANCA", "ELEICAO", "INSTRUCAO", "ADMINISTRATIVA", "FESTIVA"
-        });
-        
-        dataHoraField = new JTextField(16);
+        dataHoraField = new JTextField(20);
         localField = new JTextField(30);
-        presidenteField = new JTextField(25);
-        secretarioField = new JTextField(25);
-        tesoureiroField = new JTextField(25);
-        oradorField = new JTextField(25);
+        presidenteField = new JTextField(30);
+        secretarioField = new JTextField(30);
+        tesoureiroField = new JTextField(30);
+        oradorField = new JTextField(30);
         temaField = new JTextField(40);
+        pautaArea = new JTextArea(3, 30);
+        observacoesArea = new JTextArea(3, 30);
+        presentesField = new JTextField(10);
+        visitantesField = new JTextField(10);
         
-        pautaArea = new JTextArea(4, 40);
-        pautaArea.setLineWrap(true);
-        pautaArea.setWrapStyleWord(true);
+        // Combos
+        tipoCombo = new JComboBox<>(new String[]{"Sessão Magna", "Sessão Ordinária", "Sessão Administrativa", "Sessão de Iniciação", "Sessão de Elevação", "Sessão Fúnebre"});
+        statusCombo = new JComboBox<>(new String[]{"Planejada", "Realizada", "Cancelada", "Adiada"});
         
-        observacoesArea = new JTextArea(3, 40);
-        observacoesArea.setLineWrap(true);
-        observacoesArea.setWrapStyleWord(true);
-        
-        statusCombo = new JComboBox<>(new String[]{
-            "PROGRAMADA", "REALIZADA", "CANCELADA", "ADIADA"
-        });
-        
-        presentesField = new JTextField(5);
-        visitantesField = new JTextField(5);
-        
-        // Botões
-        salvarButton = new JButton("Salvar");
-        novoButton = new JButton("Novo");
-        editarButton = new JButton("Editar");
-        excluirButton = new JButton("Excluir");
-        limparButton = new JButton("Limpar");
-        pesquisarButton = new JButton("Pesquisar");
+        // Botões usando PadraoLayout com cores pastéis
+        salvarButton = PadraoLayout.criarBotaoSalvar();
+        novoButton = PadraoLayout.criarBotaoNovo();
+        editarButton = PadraoLayout.criarBotaoEditar();
+        excluirButton = PadraoLayout.criarBotaoExcluir();
+        limparButton = PadraoLayout.criarBotaoLimpar();
+        pesquisarButton = PadraoLayout.criarBotaoPesquisar();
         pesquisarField = new JTextField(20);
     }
     
     private void setupLayout() {
-        setLayout(new BorderLayout());
-        setBackground(new Color(240, 240, 245));
+        // Aplicar layout padrão usando PadraoLayout - CORREÇÃO CRÍTICA
+        this.setBorder(PadraoLayout.BORDA_PAINEL);
+        this.setBackground(PadraoLayout.COR_FUNDO);
         
-        // Header com título
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(70, 130, 180));
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
-        
-        JLabel titleLabel = new JLabel("🏛️ Gestão de Sessões Maçônicas", SwingConstants.LEFT);
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        titleLabel.setForeground(Color.WHITE);
-        
-        JLabel subtitleLabel = new JLabel("Controle de sessões, reuniões e eventos maçônicos", SwingConstants.LEFT);
-        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        subtitleLabel.setForeground(new Color(220, 220, 230));
-        
-        // Adicionar logo maçônico discreto
-        JLabel logoLabel = MasonicLogo.createLogoLabel(32);
-        logoLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
-        
-        JPanel titleContainer = new JPanel(new GridLayout(2, 1, 0, 5));
-        titleContainer.setBackground(new Color(70, 130, 180));
-        titleContainer.add(titleLabel);
-        titleContainer.add(subtitleLabel);
-        
-        JPanel headerContent = new JPanel(new BorderLayout());
-        headerContent.setBackground(new Color(70, 130, 180));
-        headerContent.add(logoLabel, BorderLayout.WEST);
-        headerContent.add(titleContainer, BorderLayout.CENTER);
-        
-        headerPanel.add(headerContent, BorderLayout.CENTER);
+        // Header estilizado usando PadraoLayout
+        JPanel headerPanel = PadraoLayout.criarHeader("📝 Gestão de Sessões", "Cadastro e administração de sessões maçônicas");
         add(headerPanel, BorderLayout.NORTH);
         
-        // Painel principal com split
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        splitPane.setDividerLocation(600);
-        splitPane.setResizeWeight(0.6);
+        // Painel principal (padrão RelatoriosPanel)
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setBackground(new Color(245, 245, 250));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
         
-        // Painel esquerdo - Tabela
-        JPanel leftPanel = new JPanel(new BorderLayout());
-        leftPanel.setBackground(Color.WHITE);
-        leftPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        // Painel de pesquisa usando PadraoLayout
+        JPanel filtroPanel = PadraoLayout.criarPainelPesquisa(pesquisarField, pesquisarButton);
         
-        // Painel de pesquisa melhorado
-        JPanel pesquisaPanel = new JPanel(new BorderLayout());
-        pesquisaPanel.setBackground(new Color(245, 245, 250));
-        pesquisaPanel.setBorder(BorderFactory.createCompoundBorder(
+        // Painel de conteúdo com tabela e formulário
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBackground(Color.WHITE);
+        contentPanel.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(new Color(200, 200, 210)),
-            BorderFactory.createEmptyBorder(10, 15, 10, 15)
+            BorderFactory.createEmptyBorder(15, 15, 15, 15)
         ));
         
-        JPanel searchContainer = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        searchContainer.setBackground(new Color(245, 245, 250));
+        // Tabela de sessões usando PadraoLayout
+        JPanel tabelaPanel = new JPanel(new BorderLayout());
+        tabelaPanel.setBackground(Color.WHITE);
         
-        JLabel searchLabel = new JLabel("🔍 Pesquisar:");
-        searchLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        searchLabel.setForeground(new Color(100, 100, 120));
+        PadraoLayout.configurarTabela(sessoesTable);
+        tabelaPanel.add(new JScrollPane(sessoesTable), BorderLayout.CENTER);
         
-        pesquisarField.setPreferredSize(new Dimension(200, 30));
-        pesquisarField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
+        // Painel de formulário
+        JPanel formularioPanel = new JPanel(new BorderLayout());
+        formularioPanel.setBackground(Color.WHITE);
+        formularioPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
         
-        pesquisarButton.setBackground(new Color(70, 130, 180));
-        pesquisarButton.setForeground(Color.WHITE);
-        pesquisarButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        pesquisarButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
-        pesquisarButton.setFocusPainted(false);
+        JLabel formTitle = new JLabel("📝 Dados da Sessão");
+        formTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        formTitle.setForeground(new Color(70, 130, 180));
         
-        searchContainer.add(searchLabel);
-        searchContainer.add(pesquisarField);
-        searchContainer.add(pesquisarButton);
-        pesquisaPanel.add(searchContainer, BorderLayout.CENTER);
+        // Container principal para todos os grupos
+        JPanel formContainer = new JPanel(new BorderLayout());
+        formContainer.setBackground(Color.WHITE);
         
-        leftPanel.add(pesquisaPanel, BorderLayout.NORTH);
+        // Grupo 1: Dados Básicos usando PadraoLayout
+        JPanel dadosBasicosPanel = PadraoLayout.criarGrupoFormulario(" Dados Básicos");
+        JPanel dadosBasicosContent = new JPanel(PadraoLayout.criarLayoutGrupo());
+        dadosBasicosContent.setBackground(Color.WHITE);
         
-        // Tabela estilizada
-        JScrollPane tableScrollPane = new JScrollPane(sessoesTable);
-        tableScrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 210)));
-        tableScrollPane.getViewport().setBackground(Color.WHITE);
+        dadosBasicosContent.add(new JLabel("Código:"));
+        dadosBasicosContent.add(codigoField);
+        dadosBasicosContent.add(new JLabel("Data e Hora:"));
+        dadosBasicosContent.add(dataHoraField);
+        dadosBasicosContent.add(new JLabel("Local:"));
+        dadosBasicosContent.add(localField);
+        dadosBasicosContent.add(new JLabel("Tipo:"));
+        dadosBasicosContent.add(tipoCombo);
         
-        sessoesTable.setRowHeight(25);
-        sessoesTable.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        sessoesTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
-        sessoesTable.getTableHeader().setBackground(new Color(70, 130, 180));
-        sessoesTable.getTableHeader().setForeground(Color.WHITE);
-        sessoesTable.setSelectionBackground(new Color(135, 206, 250));
-        sessoesTable.setSelectionForeground(Color.WHITE);
+        dadosBasicosPanel.add(dadosBasicosContent);
         
-        leftPanel.add(tableScrollPane, BorderLayout.CENTER);
+        // Grupo 2: Diretoria usando PadraoLayout
+        JPanel diretoriaPanel = PadraoLayout.criarGrupoFormulario(" Diretoria da Sessão");
+        JPanel diretoriaContent = new JPanel(PadraoLayout.criarLayoutGrupo());
+        diretoriaContent.setBackground(Color.WHITE);
         
-        // Painel direito - Formulário
-        JPanel rightPanel = new JPanel(new BorderLayout());
-        rightPanel.setBackground(Color.WHITE);
-        rightPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 10));
+        diretoriaContent.add(new JLabel("Presidente:"));
+        diretoriaContent.add(presidenteField);
+        diretoriaContent.add(new JLabel("Secretário:"));
+        diretoriaContent.add(secretarioField);
+        diretoriaContent.add(new JLabel("Tesoureiro:"));
+        diretoriaContent.add(tesoureiroField);
+        diretoriaContent.add(new JLabel("Orador:"));
+        diretoriaContent.add(oradorField);
         
-        // Título do formulário
-        JPanel formHeaderPanel = new JPanel(new BorderLayout());
-        formHeaderPanel.setBackground(new Color(245, 245, 250));
-        formHeaderPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        diretoriaPanel.add(diretoriaContent);
         
-        JLabel formTitleLabel = new JLabel("📝 Detalhes da Sessão", SwingConstants.LEFT);
-        formTitleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        formTitleLabel.setForeground(new Color(70, 130, 180));
+        // Grupo 3: Participantes usando PadraoLayout
+        JPanel participantesPanel = PadraoLayout.criarGrupoFormulario(" Participantes");
+        JPanel participantesContent = new JPanel(PadraoLayout.criarLayoutGrupo());
+        participantesContent.setBackground(Color.WHITE);
         
-        formHeaderPanel.add(formTitleLabel, BorderLayout.CENTER);
-        rightPanel.add(formHeaderPanel, BorderLayout.NORTH);
+        participantesContent.add(new JLabel("Presentes:"));
+        participantesContent.add(presentesField);
+        participantesContent.add(new JLabel("Visitantes:"));
+        participantesContent.add(visitantesField);
         
-        // Formulário em grid
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBackground(Color.WHITE);
-        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 8, 8, 8);
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        participantesPanel.add(participantesContent);
         
-        // Estilizar labels
-        Font labelFont = new Font("Segoe UI", Font.BOLD, 12);
-        Color labelColor = new Color(70, 130, 180);
+        // Grupo 4: Conteúdo da Sessão usando PadraoLayout
+        JPanel conteudoPanel = PadraoLayout.criarGrupoFormulario(" Conteúdo da Sessão");
+        JPanel conteudoContent = new JPanel(new BorderLayout());
+        conteudoContent.setBackground(Color.WHITE);
         
-        // Código
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 1;
-        JLabel codigoLabel = new JLabel("🔢 Código:");
-        codigoLabel.setFont(labelFont);
-        codigoLabel.setForeground(labelColor);
-        formPanel.add(codigoLabel, gbc);
-        gbc.gridx = 1; gbc.gridwidth = 2;
-        codigoField.setEditable(false);
-        codigoField.setBackground(new Color(240, 240, 245));
-        codigoField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(codigoField, gbc);
+        JPanel pautaContainer = new JPanel(new BorderLayout());
+        pautaContainer.setBackground(Color.WHITE);
+        pautaContainer.add(new JLabel("Pauta:"), BorderLayout.NORTH);
+        pautaArea.setLineWrap(true);
+        pautaArea.setWrapStyleWord(true);
+        pautaArea.setBorder(PadraoLayout.BORDA_CAMPO);
+        pautaContainer.add(new JScrollPane(pautaArea), BorderLayout.CENTER);
         
-        // Tipo
-        gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 1;
-        JLabel tipoLabel = new JLabel("🏛️ Tipo:");
-        tipoLabel.setFont(labelFont);
-        tipoLabel.setForeground(labelColor);
-        formPanel.add(tipoLabel, gbc);
-        gbc.gridx = 1; gbc.gridwidth = 2;
-        tipoCombo.setBackground(Color.WHITE);
-        tipoCombo.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(tipoCombo, gbc);
+        JPanel obsContainer = new JPanel(new BorderLayout());
+        obsContainer.setBackground(Color.WHITE);
+        obsContainer.add(new JLabel("Observações:"), BorderLayout.NORTH);
+        observacoesArea.setLineWrap(true);
+        observacoesArea.setWrapStyleWord(true);
+        observacoesArea.setBorder(PadraoLayout.BORDA_CAMPO);
+        obsContainer.add(new JScrollPane(observacoesArea), BorderLayout.CENTER);
         
-        // Data/Hora
-        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 1;
-        JLabel dataLabel = new JLabel("📅 Data/Hora:");
-        dataLabel.setFont(labelFont);
-        dataLabel.setForeground(labelColor);
-        formPanel.add(dataLabel, gbc);
-        gbc.gridx = 1; gbc.gridwidth = 2;
-        dataHoraField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(dataHoraField, gbc);
+        conteudoContent.add(pautaContainer, BorderLayout.NORTH);
+        conteudoContent.add(obsContainer, BorderLayout.CENTER);
         
-        // Local
-        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 1;
-        JLabel localLabel = new JLabel("📍 Local:");
-        localLabel.setFont(labelFont);
-        localLabel.setForeground(labelColor);
-        formPanel.add(localLabel, gbc);
-        gbc.gridx = 1; gbc.gridwidth = 2;
-        localField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(localField, gbc);
+        conteudoPanel.add(conteudoContent);
         
-        // Presidente
-        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 1;
-        JLabel presidenteLabel = new JLabel("👑 Presidente:");
-        presidenteLabel.setFont(labelFont);
-        presidenteLabel.setForeground(labelColor);
-        formPanel.add(presidenteLabel, gbc);
-        gbc.gridx = 1; gbc.gridwidth = 1;
-        presidenteField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(presidenteField, gbc);
+        // Organizar grupos verticalmente usando PadraoLayout
+        JPanel allGroups = PadraoLayout.criarFormularioMultiplosGrupos(
+            dadosBasicosPanel, diretoriaPanel, participantesPanel, conteudoPanel
+        );
         
-        // Secretário
-        gbc.gridx = 2; gbc.gridy = 4; gbc.gridwidth = 1;
-        JLabel secretarioLabel = new JLabel("📝 Secretário:");
-        secretarioLabel.setFont(labelFont);
-        secretarioLabel.setForeground(labelColor);
-        formPanel.add(secretarioLabel, gbc);
-        gbc.gridx = 3;
-        secretarioField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(secretarioField, gbc);
+        // Adicionar scroll ao formulário usando PadraoLayout
+        JScrollPane formScroll = PadraoLayout.criarFormularioComScroll(allGroups);
         
-        // Tesoureiro
-        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 1;
-        JLabel tesoureiroLabel = new JLabel("💰 Tesoureiro:");
-        tesoureiroLabel.setFont(labelFont);
-        tesoureiroLabel.setForeground(labelColor);
-        formPanel.add(tesoureiroLabel, gbc);
-        gbc.gridx = 1;
-        tesoureiroField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(tesoureiroField, gbc);
+        formContainer.add(formScroll, BorderLayout.CENTER);
         
-        // Orador
-        gbc.gridx = 2; gbc.gridy = 5; gbc.gridwidth = 1;
-        JLabel oradorLabel = new JLabel("🎤 Orador:");
-        oradorLabel.setFont(labelFont);
-        oradorLabel.setForeground(labelColor);
-        formPanel.add(oradorLabel, gbc);
-        gbc.gridx = 3;
-        oradorField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(oradorField, gbc);
+        // Painel de botões usando PadraoLayout
+        JPanel botoesPanel = PadraoLayout.criarPainelBotoes(
+            PadraoLayout.criarBotao("Salvar", PadraoLayout.COR_BOTAO_SALVAR),
+            PadraoLayout.criarBotao("Novo", PadraoLayout.COR_BOTAO_NOVO),
+            PadraoLayout.criarBotao("Editar", PadraoLayout.COR_BOTAO_EDITAR),
+            PadraoLayout.criarBotao("Excluir", PadraoLayout.COR_BOTAO_EXCLUIR),
+            PadraoLayout.criarBotao("Limpar", PadraoLayout.COR_BOTAO_LIMPAR)
+        );
         
-        // Tema
-        gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 1;
-        JLabel temaLabel = new JLabel("🎯 Tema:");
-        temaLabel.setFont(labelFont);
-        temaLabel.setForeground(labelColor);
-        formPanel.add(temaLabel, gbc);
-        gbc.gridx = 1; gbc.gridwidth = 3;
-        temaField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(temaField, gbc);
+        formularioPanel.add(formTitle, BorderLayout.NORTH);
+        formularioPanel.add(formContainer, BorderLayout.CENTER);
+        formularioPanel.add(botoesPanel, BorderLayout.SOUTH);
         
-        // Pauta
-        gbc.gridx = 0; gbc.gridy = 7; gbc.gridwidth = 1;
-        JLabel pautaLabel = new JLabel("📋 Pauta:");
-        pautaLabel.setFont(labelFont);
-        pautaLabel.setForeground(labelColor);
-        formPanel.add(pautaLabel, gbc);
-        gbc.gridx = 1; gbc.gridwidth = 3; gbc.gridy = 8;
-        gbc.fill = GridBagConstraints.BOTH;
-        pautaArea.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        JScrollPane pautaScroll = new JScrollPane(pautaArea);
-        pautaScroll.setPreferredSize(new Dimension(300, 80));
-        formPanel.add(pautaScroll, gbc);
-        
-        // Status
-        gbc.gridx = 0; gbc.gridy = 9; gbc.gridwidth = 1; gbc.fill = GridBagConstraints.HORIZONTAL;
-        JLabel statusLabel = new JLabel("✅ Status:");
-        statusLabel.setFont(labelFont);
-        statusLabel.setForeground(labelColor);
-        formPanel.add(statusLabel, gbc);
-        gbc.gridx = 1;
-        statusCombo.setBackground(Color.WHITE);
-        statusCombo.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(statusCombo, gbc);
-        
-        // Presentes
-        gbc.gridx = 2;
-        JLabel presentesLabel = new JLabel("👥 Presentes:");
-        presentesLabel.setFont(labelFont);
-        presentesLabel.setForeground(labelColor);
-        formPanel.add(presentesLabel, gbc);
-        gbc.gridx = 3;
-        presentesField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(presentesField, gbc);
-        
-        // Visitantes
-        gbc.gridx = 0; gbc.gridy = 10;
-        JLabel visitantesLabel = new JLabel("👤 Visitantes:");
-        visitantesLabel.setFont(labelFont);
-        visitantesLabel.setForeground(labelColor);
-        formPanel.add(visitantesLabel, gbc);
-        gbc.gridx = 1;
-        visitantesField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(visitantesField, gbc);
-        
-        // Observações
-        gbc.gridx = 0; gbc.gridy = 11; gbc.gridwidth = 1;
-        JLabel observacoesLabel = new JLabel("📝 Observações:");
-        observacoesLabel.setFont(labelFont);
-        observacoesLabel.setForeground(labelColor);
-        formPanel.add(observacoesLabel, gbc);
-        gbc.gridx = 1; gbc.gridwidth = 3; gbc.gridy = 12;
-        gbc.fill = GridBagConstraints.BOTH;
-        observacoesArea.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        JScrollPane observacoesScroll = new JScrollPane(observacoesArea);
-        observacoesScroll.setPreferredSize(new Dimension(300, 60));
-        formPanel.add(observacoesScroll, gbc);
-        
-        // Botões do formulário estilizados
-        gbc.gridx = 0; gbc.gridy = 13; gbc.gridwidth = 4; gbc.fill = GridBagConstraints.HORIZONTAL;
-        JPanel botoesFormPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 15));
-        botoesFormPanel.setBackground(Color.WHITE);
-        
-        // Estilizar botões com cores pastéis
-        salvarButton.setBackground(new Color(144, 238, 144)); // Verde pastel suave
-        salvarButton.setForeground(new Color(34, 89, 34));
-        salvarButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        salvarButton.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(144, 238, 144), 2),
-            BorderFactory.createEmptyBorder(10, 20, 10, 20)
-        ));
-        salvarButton.setFocusPainted(false);
-        salvarButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        novoButton.setBackground(new Color(173, 216, 230)); // Azul pastel suave
-        novoButton.setForeground(new Color(25, 84, 123));
-        novoButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        novoButton.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(173, 216, 230), 2),
-            BorderFactory.createEmptyBorder(10, 20, 10, 20)
-        ));
-        novoButton.setFocusPainted(false);
-        novoButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        editarButton.setBackground(new Color(255, 239, 213)); // Amarelo pastel suave
-        editarButton.setForeground(new Color(180, 140, 45));
-        editarButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        editarButton.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(255, 239, 213), 2),
-            BorderFactory.createEmptyBorder(10, 20, 10, 20)
-        ));
-        editarButton.setFocusPainted(false);
-        editarButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        excluirButton.setBackground(new Color(255, 182, 193)); // Rosa pastel suave
-        excluirButton.setForeground(new Color(180, 82, 92));
-        excluirButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        excluirButton.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(255, 182, 193), 2),
-            BorderFactory.createEmptyBorder(10, 20, 10, 20)
-        ));
-        excluirButton.setFocusPainted(false);
-        excluirButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        limparButton.setBackground(new Color(211, 211, 211)); // Cinza pastel suave
-        limparButton.setForeground(new Color(84, 84, 84));
-        limparButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        limparButton.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(211, 211, 211), 2),
-            BorderFactory.createEmptyBorder(10, 20, 10, 20)
-        ));
-        limparButton.setFocusPainted(false);
-        limparButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        botoesFormPanel.add(salvarButton);
-        botoesFormPanel.add(novoButton);
-        botoesFormPanel.add(editarButton);
-        botoesFormPanel.add(excluirButton);
-        botoesFormPanel.add(limparButton);
-        
-        formPanel.add(botoesFormPanel, gbc);
-        
-        rightPanel.add(new JScrollPane(formPanel), BorderLayout.CENTER);
-        
-        // Configurar split pane
-        splitPane.setLeftComponent(leftPanel);
-        splitPane.setRightComponent(rightPanel);
-        splitPane.setDividerLocation(600);
+        // Split pane para tabela e formulário
+        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tabelaPanel, formularioPanel);
+        splitPane.setDividerLocation(300);
         splitPane.setResizeWeight(0.6);
         
-        add(titleLabel, BorderLayout.NORTH);
-        add(splitPane, BorderLayout.CENTER);
+        contentPanel.add(splitPane, BorderLayout.CENTER);
+        
+        mainPanel.add(filtroPanel, BorderLayout.NORTH);
+        mainPanel.add(contentPanel, BorderLayout.CENTER);
+        
+        add(mainPanel, BorderLayout.CENTER);
     }
     
+        
     private void setupEvents() {
         salvarButton.addActionListener(e -> salvarSessao());
         novoButton.addActionListener(e -> limparFormulario());
@@ -517,73 +259,90 @@ public class SessoesPanel extends JPanel {
         limparButton.addActionListener(e -> limparFormulario());
         pesquisarButton.addActionListener(e -> pesquisarSessoes());
         
-        // Seleção na tabela
         sessoesTable.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting() && sessoesTable.getSelectedRow() >= 0) {
+            if (!e.getValueIsAdjusting()) {
                 carregarSessaoSelecionada();
-            }
-        });
-        
-        // Duplo clique para editar
-        sessoesTable.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                if (evt.getClickCount() == 2) {
-                    carregarSessaoSelecionada();
-                }
             }
         });
     }
     
     private void salvarSessao() {
         try {
-            if (dataHoraField.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Data/Hora é obrigatória!", "Erro", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            
-            Sessao sessao = sessaoAtual != null ? sessaoAtual : new Sessao();
+            Sessao sessao = new Sessao();
             sessao.setTipo((String) tipoCombo.getSelectedItem());
-            
-            // Parse data/hora
-            try {
-                String dataHoraStr = dataHoraField.getText().trim();
-                sessao.setDataHora(LocalDateTime.parse(dataHoraStr, DATE_FORMATTER));
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Data/Hora inválida! Use formato dd/MM/yyyy HH:mm", "Erro", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            
-            sessao.setLocal(localField.getText().trim());
-            sessao.setPresidente(presidenteField.getText().trim());
-            sessao.setSecretario(secretarioField.getText().trim());
-            sessao.setTesoureiro(tesoureiroField.getText().trim());
-            sessao.setOrador(oradorField.getText().trim());
-            sessao.setTema(temaField.getText().trim());
-            sessao.setPauta(pautaArea.getText().trim());
-            sessao.setObservacoes(observacoesArea.getText().trim());
+            sessao.setDataHora(LocalDateTime.parse(dataHoraField.getText(), DATE_FORMATTER));
+            sessao.setLocal(localField.getText());
+            sessao.setPresidente(presidenteField.getText());
+            sessao.setSecretario(secretarioField.getText());
+            sessao.setTesoureiro(tesoureiroField.getText());
+            sessao.setOrador(oradorField.getText());
+            sessao.setTema(temaField.getText());
+            sessao.setPauta(pautaArea.getText());
+            sessao.setObservacoes(observacoesArea.getText());
+            sessao.setQuantidadePresentes(Integer.parseInt(presentesField.getText()));
+            sessao.setQuantidadeVisitantes(Integer.parseInt(visitantesField.getText()));
             sessao.setStatus((String) statusCombo.getSelectedItem());
             
-            try {
-                sessao.setQuantidadePresentes(Integer.parseInt(presentesField.getText().trim()));
-            } catch (NumberFormatException e) {
-                sessao.setQuantidadePresentes(0);
+            if (sessaoAtual == null) {
+                sessaoDAO.save(sessao);
+            } else {
+                sessao.setId(sessaoAtual.getId());
+                sessaoDAO.save(sessao);
             }
-            
-            try {
-                sessao.setQuantidadeVisitantes(Integer.parseInt(visitantesField.getText().trim()));
-            } catch (NumberFormatException e) {
-                sessao.setQuantidadeVisitantes(0);
-            }
-            
-            sessaoDAO.save(sessao);
             
             JOptionPane.showMessageDialog(this, "Sessão salva com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
             limparFormulario();
             refreshData();
-            
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao salvar sessão: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Erro ao salvar sessão: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void carregarSessaoSelecionada() {
+        int selectedRow = sessoesTable.getSelectedRow();
+        if (selectedRow >= 0) {
+            try {
+                Long id = (Long) tableModel.getValueAt(selectedRow, 0);
+                sessaoAtual = sessaoDAO.findById(id);
+                if (sessaoAtual != null) {
+                    preencherFormulario(sessaoAtual);
+                }
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, "Erro ao carregar sessão: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+    
+    private void preencherFormulario(Sessao sessao) {
+        codigoField.setText(sessao.getId() != null ? sessao.getId().toString() : "");
+        tipoCombo.setSelectedItem(sessao.getTipo());
+        dataHoraField.setText(sessao.getDataHora().format(DATE_FORMATTER));
+        localField.setText(sessao.getLocal());
+        presidenteField.setText(sessao.getPresidente());
+        secretarioField.setText(sessao.getSecretario());
+        tesoureiroField.setText(sessao.getTesoureiro());
+        oradorField.setText(sessao.getOrador());
+        temaField.setText(sessao.getTema());
+        pautaArea.setText(sessao.getPauta());
+        observacoesArea.setText(sessao.getObservacoes());
+        presentesField.setText(String.valueOf(sessao.getQuantidadePresentes()));
+        visitantesField.setText(String.valueOf(sessao.getQuantidadeVisitantes()));
+        statusCombo.setSelectedItem(sessao.getStatus());
+    }
+    
+    private void excluirSessao() {
+        if (sessaoAtual != null) {
+            int option = JOptionPane.showConfirmDialog(this, "Deseja realmente excluir esta sessão?", "Confirmação", JOptionPane.YES_NO_OPTION);
+            if (option == JOptionPane.YES_OPTION) {
+                try {
+                    sessaoDAO.delete(sessaoAtual.getId());
+                    JOptionPane.showMessageDialog(this, "Sessão excluída com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+                    limparFormulario();
+                    refreshData();
+                } catch (SQLException e) {
+                    JOptionPane.showMessageDialog(this, "Erro ao excluir sessão: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+                }
+            }
         }
     }
     
@@ -600,136 +359,51 @@ public class SessoesPanel extends JPanel {
         temaField.setText("");
         pautaArea.setText("");
         observacoesArea.setText("");
+        presentesField.setText("");
+        visitantesField.setText("");
         statusCombo.setSelectedIndex(0);
-        presentesField.setText("0");
-        visitantesField.setText("0");
-        dataHoraField.requestFocus();
-        atualizarBotoesAcao();
-    }
-    
-    private void excluirSessao() {
-        if (sessaoAtual == null) {
-            JOptionPane.showMessageDialog(this, "Selecione uma sessão para excluir!", "Aviso", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        int option = JOptionPane.showConfirmDialog(
-            this,
-            "Deseja realmente excluir a sessão " + sessaoAtual.getTipo() + " de " + sessaoAtual.getDataHora() + "?",
-            "Confirmar Exclusão",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.QUESTION_MESSAGE
-        );
-        
-        if (option == JOptionPane.YES_OPTION) {
-            try {
-                sessaoDAO.delete(sessaoAtual.getId());
-                JOptionPane.showMessageDialog(this, "Sessão excluída com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-                limparFormulario();
-                refreshData();
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Erro ao excluir sessão: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
-            }
-        }
+        sessoesTable.clearSelection();
     }
     
     private void pesquisarSessoes() {
-        try {
-            String termo = pesquisarField.getText().trim();
-            if (termo.isEmpty()) {
-                refreshData();
-                return;
-            }
-            
-            List<Sessao> sessoes = sessaoDAO.findAll();
-            tableModel.setRowCount(0);
-            
-            for (Sessao sessao : sessoes) {
-                if (sessao.getTipo().toLowerCase().contains(termo.toLowerCase()) ||
-                    sessao.getLocal().toLowerCase().contains(termo.toLowerCase()) ||
-                    sessao.getTema().toLowerCase().contains(termo.toLowerCase())) {
-                    Object[] row = {
-                        sessao.getId(),
-                        sessao.getTipo(),
-                        sessao.getDataHora() != null ? sessao.getDataHora().format(DATE_FORMATTER) : "",
-                        sessao.getLocal(),
-                        sessao.getStatus(),
-                        sessao.getQuantidadePresentes()
-                    };
-                    tableModel.addRow(row);
-                }
-            }
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao pesquisar: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-    
-    private void carregarSessaoSelecionada() {
-        int selectedRow = sessoesTable.getSelectedRow();
-        if (selectedRow >= 0) {
-            Long id = (Long) tableModel.getValueAt(selectedRow, 0);
+        String termo = pesquisarField.getText().trim();
+        if (termo.isEmpty()) {
+            refreshData();
+        } else {
             try {
-                sessaoAtual = sessaoDAO.findById(id);
-                if (sessaoAtual != null) {
-                    codigoField.setText(String.valueOf(sessaoAtual.getId()));
-                    tipoCombo.setSelectedItem(sessaoAtual.getTipo());
-                    dataHoraField.setText(sessaoAtual.getDataHora() != null ? sessaoAtual.getDataHora().format(DATE_FORMATTER) : "");
-                    localField.setText(sessaoAtual.getLocal());
-                    presidenteField.setText(sessaoAtual.getPresidente());
-                    secretarioField.setText(sessaoAtual.getSecretario());
-                    tesoureiroField.setText(sessaoAtual.getTesoureiro());
-                    oradorField.setText(sessaoAtual.getOrador());
-                    temaField.setText(sessaoAtual.getTema());
-                    pautaArea.setText(sessaoAtual.getPauta());
-                    observacoesArea.setText(sessaoAtual.getObservacoes());
-                    statusCombo.setSelectedItem(sessaoAtual.getStatus());
-                    presentesField.setText(String.valueOf(sessaoAtual.getQuantidadePresentes()));
-                    visitantesField.setText(String.valueOf(sessaoAtual.getQuantidadeVisitantes()));
-                    atualizarBotoesAcao();
-                }
-            } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(this, "Erro ao carregar sessão: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+                List<Sessao> sessoes = sessaoDAO.findAll();
+                // Filtrar localmente por tema
+                List<Sessao> filtradas = sessoes.stream()
+                    .filter(s -> s.getTema() != null && s.getTema().toLowerCase().contains(termo.toLowerCase()))
+                    .toList();
+                atualizarTabela(filtradas);
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, "Erro ao pesquisar sessões: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
     
-    private void atualizarBotoesAcao() {
-        boolean temSessao = sessaoAtual != null;
-        editarButton.setEnabled(temSessao);
-        excluirButton.setEnabled(temSessao);
+    private void atualizarTabela(List<Sessao> sessoes) {
+        tableModel.setRowCount(0);
+        for (Sessao sessao : sessoes) {
+            Object[] row = {
+                sessao.getId(),
+                sessao.getTipo(),
+                sessao.getDataHora().format(DATE_FORMATTER),
+                sessao.getLocal(),
+                sessao.getPresidente(),
+                sessao.getStatus()
+            };
+            tableModel.addRow(row);
+        }
     }
     
     public void refreshData() {
-        logger.info("Iniciando refreshData() no SessoesPanel");
         try {
-            logger.debug("Chamando sessaoDAO.findAll()");
             List<Sessao> sessoes = sessaoDAO.findAll();
-            logger.info("Recebidas {} sessões do DAO", sessoes.size());
-            
-            tableModel.setRowCount(0);
-            logger.debug("TableModel limpo, começando a adicionar linhas");
-            
-            int linha = 0;
-            for (Sessao sessao : sessoes) {
-                linha++;
-                Object[] row = {
-                    sessao.getId(),
-                    sessao.getTipo(),
-                    sessao.getDataHora() != null ? sessao.getDataHora().format(DATE_FORMATTER) : "",
-                    sessao.getPauta() != null ? sessao.getPauta() : "",
-                    sessao.getQuantidadePresentes(),
-                    sessao.getObservacoes() != null ? sessao.getObservacoes() : ""
-                };
-                tableModel.addRow(row);
-                logger.debug("Linha {} adicionada: ID={}, Tipo={}", linha, sessao.getId(), sessao.getTipo());
-            }
-            logger.info("refreshData() concluído com sucesso: {} linhas adicionadas", linha);
-        } catch (SQLException ex) {
-            logger.error("Erro ao carregar sessões no painel: {}", ex.getMessage(), ex);
-            JOptionPane.showMessageDialog(this, "Erro ao carregar sessões: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
-        } catch (Exception ex) {
-            logger.error("Erro inesperado ao carregar sessões: {}", ex.getMessage(), ex);
-            JOptionPane.showMessageDialog(this, "Erro inesperado: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            atualizarTabela(sessoes);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Erro ao carregar dados: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

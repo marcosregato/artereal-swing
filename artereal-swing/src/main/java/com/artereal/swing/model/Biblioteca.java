@@ -2,7 +2,6 @@ package com.artereal.swing.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 /**
  * Modelo de dados para Biblioteca (Livros e Empréstimos)

@@ -2,20 +2,18 @@ package com.artereal.swing.ui.panels;
 
 import com.artereal.swing.dao.CaixaDAO;
 import com.artereal.swing.model.Caixa;
-import com.artereal.swing.ui.components.MasonicLogo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.artereal.swing.ui.layout.PadraoLayout;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.math.BigDecimal;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Painel de gestão Financeira (Caixa)
@@ -104,137 +102,73 @@ public class CaixaPanel extends JPanel {
         observacoesArea.setLineWrap(true);
         observacoesArea.setWrapStyleWord(true);
         
-        // Botões
-        salvarButton = new JButton("Salvar");
-        novoButton = new JButton("Novo");
-        editarButton = new JButton("Editar");
-        excluirButton = new JButton("Excluir");
-        limparButton = new JButton("Limpar");
-        pesquisarButton = new JButton("Pesquisar");
-        relatorioButton = new JButton("Relatório");
+        // Botões usando PadraoLayout com cores pastéis
+        salvarButton = PadraoLayout.criarBotaoSalvar();
+        novoButton = PadraoLayout.criarBotaoNovo();
+        editarButton = PadraoLayout.criarBotaoEditar();
+        excluirButton = PadraoLayout.criarBotaoExcluir();
+        limparButton = PadraoLayout.criarBotaoLimpar();
+        pesquisarButton = PadraoLayout.criarBotaoPesquisar();
+        relatorioButton = PadraoLayout.criarBotao("Relatório", new Color(200, 200, 255)); // Azul claro pastel
         pesquisarField = new JTextField(20);
         
-        // Labels de resumo
-        saldoLabel = new JLabel("R$ 0,00");
-        receitasLabel = new JLabel("R$ 0,00");
-        despesasLabel = new JLabel("R$ 0,00");
+        // Labels de resumo usando PadraoLayout - META 100% CONFORMIDADE
+        saldoLabel = PadraoLayout.criarLabelFormulario("💰 Saldo: R$ 0,00");
+        receitasLabel = PadraoLayout.criarLabelFormulario("📈 Receitas: R$ 0,00");
+        despesasLabel = PadraoLayout.criarLabelFormulario("📉 Despesas: R$ 0,00");
     }
     
     private void setupLayout() {
-        setLayout(new BorderLayout());
-        setBackground(new Color(240, 240, 245));
+        // Aplicar layout padrão usando PadraoLayout - META 100% CONFORMIDADE
+        this.setBorder(PadraoLayout.BORDA_PAINEL);
+        this.setBackground(PadraoLayout.COR_FUNDO);
         
-        // Header com título
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(46, 125, 50));
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
-        
-        JLabel titleLabel = new JLabel("💰 Gestão Financeira (Caixa)", SwingConstants.LEFT);
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        titleLabel.setForeground(Color.WHITE);
-        
-        JLabel subtitleLabel = new JLabel("Controle de receitas, despesas e movimentações financeiras", SwingConstants.LEFT);
-        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        subtitleLabel.setForeground(new Color(220, 220, 230));
-        
-        // Adicionar logo maçônico discreto
-        JLabel logoLabel = MasonicLogo.createLogoLabel(32);
-        logoLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
-        
-        JPanel titleContainer = new JPanel(new GridLayout(2, 1, 0, 5));
-        titleContainer.setBackground(new Color(46, 125, 50));
-        titleContainer.add(titleLabel);
-        titleContainer.add(subtitleLabel);
-        
-        JPanel headerContent = new JPanel(new BorderLayout());
-        headerContent.setBackground(new Color(46, 125, 50));
-        headerContent.add(logoLabel, BorderLayout.WEST);
-        headerContent.add(titleContainer, BorderLayout.CENTER);
-        
-        headerPanel.add(headerContent, BorderLayout.CENTER);
+        // Header estilizado usando PadraoLayout
+        JPanel headerPanel = PadraoLayout.criarHeader("💰 Gestão Financeira (Caixa)", "Controle de receitas, despesas e movimentações financeiras");
         add(headerPanel, BorderLayout.NORTH);
         
-        // Painel principal com split
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        splitPane.setDividerLocation(650);
-        splitPane.setResizeWeight(0.6);
-        
-        // Painel esquerdo - Tabela e resumo
+                
+        // Painel esquerdo - Tabela e resumo usando PadraoLayout - META 100% CONFORMIDADE
         JPanel leftPanel = new JPanel(new BorderLayout());
-        leftPanel.setBackground(Color.WHITE);
-        leftPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        leftPanel.setBackground(PadraoLayout.COR_PAINEL);
+        leftPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
         
-        // Painel de pesquisa melhorado
-        JPanel pesquisaPanel = new JPanel(new BorderLayout());
-        pesquisaPanel.setBackground(new Color(245, 245, 250));
-        pesquisaPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(200, 200, 210)),
-            BorderFactory.createEmptyBorder(10, 15, 10, 15)
-        ));
+        // Painel de pesquisa usando PadraoLayout
+        JPanel pesquisaPanel = PadraoLayout.criarPainelPesquisa(pesquisarField, pesquisarButton);
         
-        JPanel searchContainer = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        searchContainer.setBackground(new Color(245, 245, 250));
-        
-        JLabel searchLabel = new JLabel("🔍 Pesquisar:");
-        searchLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        searchLabel.setForeground(new Color(100, 100, 120));
-        
-        pesquisarField.setPreferredSize(new Dimension(200, 30));
-        pesquisarField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        
-        pesquisarButton.setBackground(new Color(46, 125, 50));
-        pesquisarButton.setForeground(Color.WHITE);
-        pesquisarButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        pesquisarButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
-        pesquisarButton.setFocusPainted(false);
-        
-        searchContainer.add(searchLabel);
-        searchContainer.add(pesquisarField);
-        searchContainer.add(pesquisarButton);
-        pesquisaPanel.add(searchContainer, BorderLayout.CENTER);
-        
-        // Painel de resumo financeiro melhorado
+        // Painel de resumo financeiro usando PadraoLayout - META 100% CONFORMIDADE
         JPanel resumoPanel = new JPanel(new GridLayout(1, 3, 15, 10));
-        resumoPanel.setBackground(new Color(245, 245, 250));
-        resumoPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(200, 200, 210)),
-            BorderFactory.createEmptyBorder(15, 20, 15, 20)
-        ));
+        resumoPanel.setBackground(PadraoLayout.COR_PAINEL);
+        resumoPanel.setBorder(PadraoLayout.BORDA_GRUPO);
         
-        // Painel de receitas
+        // Painel de receitas usando PadraoLayout - META 100% CONFORMIDADE
         JPanel receitasPanel = new JPanel(new BorderLayout());
-        receitasPanel.setBackground(new Color(220, 255, 220));
-        receitasPanel.setBorder(BorderFactory.createLineBorder(new Color(46, 125, 50), 2));
-        JLabel receitasTitleLabel = new JLabel("📈 RECEITAS", SwingConstants.CENTER);
-        receitasTitleLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        receitasTitleLabel.setForeground(new Color(46, 125, 50));
-        receitasLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        receitasLabel.setForeground(new Color(46, 125, 50));
+        receitasPanel.setBackground(PadraoLayout.COR_PAINEL);
+        receitasPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
+        JLabel receitasTitleLabel = PadraoLayout.criarLabelFormulario("📈 RECEITAS");
+        receitasTitleLabel.setFont(PadraoLayout.FONTE_GRUPO);
+        receitasLabel = PadraoLayout.criarLabelFormulario("📈 RECEITAS");
+        receitasLabel.setFont(PadraoLayout.FONTE_GRUPO);
         receitasPanel.add(receitasTitleLabel, BorderLayout.NORTH);
         receitasPanel.add(receitasLabel, BorderLayout.CENTER);
         
-        // Painel de despesas
+        // Painel de despesas usando PadraoLayout - META 100% CONFORMIDADE
         JPanel despesasPanel = new JPanel(new BorderLayout());
-        despesasPanel.setBackground(new Color(255, 220, 220));
-        despesasPanel.setBorder(BorderFactory.createLineBorder(new Color(220, 53, 69), 2));
-        JLabel despesasTitleLabel = new JLabel("📉 DESPESAS", SwingConstants.CENTER);
-        despesasTitleLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        despesasTitleLabel.setForeground(new Color(220, 53, 69));
-        despesasLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        despesasLabel.setForeground(new Color(220, 53, 69));
+        despesasPanel.setBackground(PadraoLayout.COR_PAINEL);
+        despesasPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
+        JLabel despesasTitleLabel = PadraoLayout.criarLabelFormulario("📉 DESPESAS");
+        despesasTitleLabel.setFont(PadraoLayout.FONTE_GRUPO);
+        despesasLabel = PadraoLayout.criarLabelFormulario("📉 DESPESAS");
+        despesasLabel.setFont(PadraoLayout.FONTE_GRUPO);
         despesasPanel.add(despesasTitleLabel, BorderLayout.NORTH);
         despesasPanel.add(despesasLabel, BorderLayout.CENTER);
         
-        // Painel de saldo
+        // Painel de saldo usando PadraoLayout - META 100% CONFORMIDADE
         JPanel saldoPanel = new JPanel(new BorderLayout());
-        saldoPanel.setBackground(new Color(230, 240, 255));
-        saldoPanel.setBorder(BorderFactory.createLineBorder(new Color(70, 130, 180), 2));
-        JLabel saldoTitleLabel = new JLabel("💼 SALDO", SwingConstants.CENTER);
-        saldoTitleLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        saldoTitleLabel.setForeground(new Color(70, 130, 180));
+        saldoPanel.setBackground(PadraoLayout.COR_PAINEL);
+        saldoPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
+        JLabel saldoTitleLabel = PadraoLayout.criarLabelFormulario("💼 SALDO");
+        saldoTitleLabel.setFont(PadraoLayout.FONTE_GRUPO);
         saldoLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
         saldoLabel.setForeground(new Color(70, 130, 180));
         saldoPanel.add(saldoTitleLabel, BorderLayout.NORTH);
@@ -256,13 +190,8 @@ public class CaixaPanel extends JPanel {
         tableScrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 210)));
         tableScrollPane.getViewport().setBackground(Color.WHITE);
         
-        caixaTable.setRowHeight(25);
-        caixaTable.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        caixaTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
-        caixaTable.getTableHeader().setBackground(new Color(46, 125, 50));
-        caixaTable.getTableHeader().setForeground(Color.WHITE);
-        caixaTable.setSelectionBackground(new Color(144, 238, 144));
-        caixaTable.setSelectionForeground(Color.BLACK);
+        // Tabela estilizada usando PadraoLayout
+        PadraoLayout.configurarTabela(caixaTable);
         
         leftPanel.add(tableScrollPane, BorderLayout.CENTER);
         
@@ -283,254 +212,146 @@ public class CaixaPanel extends JPanel {
         formHeaderPanel.add(formTitleLabel, BorderLayout.CENTER);
         rightPanel.add(formHeaderPanel, BorderLayout.NORTH);
         
-        // Formulário em grid
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBackground(Color.WHITE);
-        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 8, 8, 8);
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        // Painel de formulário
+        JPanel formularioPanel = new JPanel(new BorderLayout());
+        formularioPanel.setBackground(Color.WHITE);
+        formularioPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
         
-        // Estilizar labels
-        Font labelFont = new Font("Segoe UI", Font.BOLD, 12);
-        Color labelColor = new Color(46, 125, 50);
+        JLabel formTitle = new JLabel("💳 Detalhes da Movimentação");
+        formTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        formTitle.setForeground(new Color(70, 130, 180));
+        // Container principal para todos os grupos
+        JPanel formContainer = new JPanel(new BorderLayout());
+        formContainer.setBackground(Color.WHITE);
         
-        // Código
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 1;
-        JLabel codigoLabel = new JLabel("🔢 Código:");
-        codigoLabel.setFont(labelFont);
-        codigoLabel.setForeground(labelColor);
-        formPanel.add(codigoLabel, gbc);
-        gbc.gridx = 1; gbc.gridwidth = 2;
-        codigoField.setEditable(false);
-        codigoField.setBackground(new Color(240, 240, 245));
-        codigoField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
+        // Grupo 1: Dados Básicos
+        System.out.println("[CAIXA_PANEL] Iniciando setupLayout do formulário CaixaPanel");
+        JPanel dadosBasicosPanel = createFormGroup("📅 Dados Básicos");
+        System.out.println("[CAIXA_PANEL] Grupo formulário criado: Dados Básicos");
+        JPanel dadosBasicosContent = new JPanel(PadraoLayout.criarLayoutFormulario());
+        dadosBasicosContent.setBackground(Color.WHITE);
+        System.out.println("[CAIXA_PANEL] Layout de formulário aplicado com criarLayoutFormulario()");
+        
+        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Código:"));
+        PadraoLayout.estilizarCampoTexto(codigoField);
+        dadosBasicosContent.add(codigoField);
+        
+        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Tipo:"));
+        PadraoLayout.estilizarComboBox(tipoCombo);
+        dadosBasicosContent.add(tipoCombo);
+        
+        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Categoria:"));
+        PadraoLayout.estilizarCampoTexto(categoriaField);
+        dadosBasicosContent.add(categoriaField);
+        
+        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Descrição:"));
+        PadraoLayout.estilizarCampoTexto(descricaoField);
+        dadosBasicosContent.add(descricaoField);
+        
+        dadosBasicosPanel.add(dadosBasicosContent);
+        
+        // Grupo 2: Valores e Datas
+        JPanel valoresPanel = createFormGroup("💰 Valores e Datas");
+        JPanel valoresContent = new JPanel(PadraoLayout.criarLayoutFormulario());
+        valoresContent.setBackground(Color.WHITE);
+        
+        valoresContent.add(PadraoLayout.criarLabelFormulario("Valor:"));
+        PadraoLayout.estilizarCampoTexto(valorField);
+        valoresContent.add(valorField);
+        
+        valoresContent.add(PadraoLayout.criarLabelFormulario("Data Movimentação:"));
+        PadraoLayout.estilizarCampoTexto(dataMovimentacaoField);
+        valoresContent.add(dataMovimentacaoField);
+        
+        valoresContent.add(PadraoLayout.criarLabelFormulario("Responsável:"));
+        PadraoLayout.estilizarCampoTexto(responsavelField);
+        valoresContent.add(responsavelField);
+        
+        valoresContent.add(PadraoLayout.criarLabelFormulario("Forma Pagamento:"));
+        PadraoLayout.estilizarComboBox(formaPagamentoCombo);
+        valoresContent.add(formaPagamentoCombo);
+        
+        valoresPanel.add(valoresContent);
+        
+        // Grupo 3: Documentação
+        JPanel documentacaoPanel = createFormGroup("📄 Documentação");
+        JPanel documentacaoContent = new JPanel(PadraoLayout.criarLayoutFormulario());
+        documentacaoContent.setBackground(Color.WHITE);
+        
+        documentacaoContent.add(PadraoLayout.criarLabelFormulario("Número Documento:"));
+        PadraoLayout.estilizarCampoTexto(numeroDocumentoField);
+        documentacaoContent.add(numeroDocumentoField);
+        
+        documentacaoContent.add(PadraoLayout.criarLabelFormulario("Status:"));
+        PadraoLayout.estilizarComboBox(statusCombo);
+        documentacaoContent.add(statusCombo);
+        
+        documentacaoPanel.add(documentacaoContent);
+        
+        // Grupo 4: Observações usando PadraoLayout
+        JPanel observacoesPanel = PadraoLayout.criarGrupoFormulario("📝 Observações");
+        JPanel observacoesContent = PadraoLayout.criarPainelTextArea("Observações:", observacoesArea);
+        observacoesPanel.add(observacoesContent);
+        
+        // Organizar grupos verticalmente usando PadraoLayout
+        JPanel allGroups = PadraoLayout.criarFormularioMultiplosGrupos(
+            dadosBasicosPanel, valoresPanel, documentacaoPanel, observacoesPanel
+        );
+        
+        // Adicionar scroll ao formulário usando PadraoLayout
+        JScrollPane formScroll = PadraoLayout.criarFormularioComScroll(allGroups);
+        
+        formContainer.add(formScroll, BorderLayout.CENTER);
+        
+        // Painel de botões
+        JPanel botoesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        botoesPanel.setBackground(Color.WHITE);
+        
+        botoesPanel.add(createStyledButton("Salvar", new Color(144, 238, 144)));
+        botoesPanel.add(createStyledButton("Novo", new Color(173, 216, 230)));
+        botoesPanel.add(createStyledButton("Editar", new Color(255, 250, 205)));
+        botoesPanel.add(createStyledButton("Excluir", new Color(255, 182, 193)));
+        botoesPanel.add(createStyledButton("Limpar", new Color(240, 240, 240)));
+        
+        formularioPanel.add(formTitle, BorderLayout.NORTH);
+        formularioPanel.add(formContainer, BorderLayout.CENTER);
+        formularioPanel.add(botoesPanel, BorderLayout.SOUTH);
+        
+        JPanel formPanel = new JPanel(new BorderLayout());
+        formPanel.add(formularioPanel, BorderLayout.CENTER);
+        
+        rightPanel.add(formPanel, BorderLayout.CENTER);
+        
+        // Painel principal com split (padrão SessoesPanel)
+        JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        mainSplitPane.setDividerLocation(650);
+        mainSplitPane.setResizeWeight(0.6);
+        
+        mainSplitPane.setLeftComponent(leftPanel);
+        mainSplitPane.setRightComponent(rightPanel);
+        
+        add(mainSplitPane, BorderLayout.CENTER);
+    }
+    
+    private JButton createStyledButton(String text, Color bgColor) {
+        return PadraoLayout.criarBotao(text, bgColor);
+    }
+    
+    private JPanel createFormGroup(String title) {
+        JPanel groupPanel = new JPanel(new BorderLayout());
+        groupPanel.setBackground(Color.WHITE);
+        groupPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(220, 220, 230), 1),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
         ));
-        formPanel.add(codigoField, gbc);
         
-        // Tipo
-        gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 1;
-        JLabel tipoLabel = new JLabel("💳 Tipo:");
-        tipoLabel.setFont(labelFont);
-        tipoLabel.setForeground(labelColor);
-        formPanel.add(tipoLabel, gbc);
-        gbc.gridx = 1; gbc.gridwidth = 2;
-        tipoCombo.setBackground(Color.WHITE);
-        tipoCombo.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(tipoCombo, gbc);
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        titleLabel.setForeground(new Color(70, 130, 180));
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 8, 0));
         
-        // Categoria
-        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 1;
-        JLabel categoriaLabel = new JLabel("📂 Categoria:");
-        categoriaLabel.setFont(labelFont);
-        categoriaLabel.setForeground(labelColor);
-        formPanel.add(categoriaLabel, gbc);
-        gbc.gridx = 1; gbc.gridwidth = 2;
-        categoriaField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(categoriaField, gbc);
-        
-        // Descrição
-        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 1;
-        JLabel descricaoLabel = new JLabel("📝 Descrição:");
-        descricaoLabel.setFont(labelFont);
-        descricaoLabel.setForeground(labelColor);
-        formPanel.add(descricaoLabel, gbc);
-        gbc.gridx = 1; gbc.gridwidth = 2;
-        descricaoField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(descricaoField, gbc);
-        
-        // Valor
-        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 1;
-        JLabel valorLabel = new JLabel("💰 Valor (R$):");
-        valorLabel.setFont(labelFont);
-        valorLabel.setForeground(labelColor);
-        formPanel.add(valorLabel, gbc);
-        gbc.gridx = 1;
-        valorField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(valorField, gbc);
-        
-        // Data Movimentação
-        gbc.gridx = 2; gbc.gridy = 4;
-        JLabel dataLabel = new JLabel("📅 Data:");
-        dataLabel.setFont(labelFont);
-        dataLabel.setForeground(labelColor);
-        formPanel.add(dataLabel, gbc);
-        gbc.gridx = 3;
-        dataMovimentacaoField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(dataMovimentacaoField, gbc);
-        
-        // Responsável
-        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 1;
-        JLabel responsavelLabel = new JLabel("👤 Responsável:");
-        responsavelLabel.setFont(labelFont);
-        responsavelLabel.setForeground(labelColor);
-        formPanel.add(responsavelLabel, gbc);
-        gbc.gridx = 1; gbc.gridwidth = 3;
-        responsavelField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(responsavelField, gbc);
-        
-        // Forma de Pagamento
-        gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 1;
-        JLabel formaPagamentoLabel = new JLabel("💳 Forma Pagto:");
-        formaPagamentoLabel.setFont(labelFont);
-        formaPagamentoLabel.setForeground(labelColor);
-        formPanel.add(formaPagamentoLabel, gbc);
-        gbc.gridx = 1;
-        formaPagamentoCombo.setBackground(Color.WHITE);
-        formaPagamentoCombo.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(formaPagamentoCombo, gbc);
-        
-        // Número Documento
-        gbc.gridx = 2; gbc.gridy = 6; gbc.gridwidth = 1;
-        JLabel documentoLabel = new JLabel("📄 Nº Doc:");
-        documentoLabel.setFont(labelFont);
-        documentoLabel.setForeground(labelColor);
-        formPanel.add(documentoLabel, gbc);
-        gbc.gridx = 3;
-        numeroDocumentoField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(numeroDocumentoField, gbc);
-        
-        // Status
-        gbc.gridx = 0; gbc.gridy = 7; gbc.gridwidth = 1;
-        JLabel statusLabel = new JLabel("✅ Status:");
-        statusLabel.setFont(labelFont);
-        statusLabel.setForeground(labelColor);
-        formPanel.add(statusLabel, gbc);
-        gbc.gridx = 1;
-        statusCombo.setBackground(Color.WHITE);
-        statusCombo.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(statusCombo, gbc);
-        
-        // Observações
-        gbc.gridx = 0; gbc.gridy = 8; gbc.gridwidth = 1;
-        JLabel observacoesLabel = new JLabel("📝 Observações:");
-        observacoesLabel.setFont(labelFont);
-        observacoesLabel.setForeground(labelColor);
-        formPanel.add(observacoesLabel, gbc);
-        gbc.gridx = 1; gbc.gridwidth = 3; gbc.gridy = 9;
-        gbc.fill = GridBagConstraints.BOTH;
-        observacoesArea.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        JScrollPane observacoesScroll = new JScrollPane(observacoesArea);
-        observacoesScroll.setPreferredSize(new Dimension(300, 60));
-        formPanel.add(observacoesScroll, gbc);
-        
-        // Botões do formulário estilizados
-        gbc.gridx = 0; gbc.gridy = 10; gbc.gridwidth = 4; gbc.fill = GridBagConstraints.HORIZONTAL;
-        JPanel botoesFormPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 15));
-        botoesFormPanel.setBackground(Color.WHITE);
-        
-        // Estilizar botões com cores pastéis
-        salvarButton.setBackground(new Color(144, 238, 144)); // Verde pastel suave
-        salvarButton.setForeground(new Color(34, 89, 34));
-        salvarButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        salvarButton.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(144, 238, 144), 2),
-            BorderFactory.createEmptyBorder(10, 20, 10, 20)
-        ));
-        salvarButton.setFocusPainted(false);
-        salvarButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        novoButton.setBackground(new Color(173, 216, 230)); // Azul pastel suave
-        novoButton.setForeground(new Color(25, 84, 123));
-        novoButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        novoButton.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(173, 216, 230), 2),
-            BorderFactory.createEmptyBorder(10, 20, 10, 20)
-        ));
-        novoButton.setFocusPainted(false);
-        novoButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        editarButton.setBackground(new Color(255, 239, 213)); // Amarelo pastel suave
-        editarButton.setForeground(new Color(180, 140, 45));
-        editarButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        editarButton.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(255, 239, 213), 2),
-            BorderFactory.createEmptyBorder(10, 20, 10, 20)
-        ));
-        editarButton.setFocusPainted(false);
-        editarButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        excluirButton.setBackground(new Color(255, 182, 193)); // Rosa pastel suave
-        excluirButton.setForeground(new Color(180, 82, 92));
-        excluirButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        excluirButton.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(255, 182, 193), 2),
-            BorderFactory.createEmptyBorder(10, 20, 10, 20)
-        ));
-        excluirButton.setFocusPainted(false);
-        excluirButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        limparButton.setBackground(new Color(211, 211, 211)); // Cinza pastel suave
-        limparButton.setForeground(new Color(84, 84, 84));
-        limparButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        limparButton.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(211, 211, 211), 2),
-            BorderFactory.createEmptyBorder(10, 20, 10, 20)
-        ));
-        limparButton.setFocusPainted(false);
-        limparButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        relatorioButton.setBackground(new Color(230, 230, 250)); // Lavanda pastel suave
-        relatorioButton.setForeground(new Color(72, 61, 139));
-        relatorioButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        relatorioButton.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(230, 230, 250), 2),
-            BorderFactory.createEmptyBorder(10, 20, 10, 20)
-        ));
-        relatorioButton.setFocusPainted(false);
-        relatorioButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        botoesFormPanel.add(salvarButton);
-        botoesFormPanel.add(novoButton);
-        botoesFormPanel.add(editarButton);
-        botoesFormPanel.add(excluirButton);
-        botoesFormPanel.add(limparButton);
-        botoesFormPanel.add(relatorioButton);
-        
-        formPanel.add(botoesFormPanel, gbc);
-        
-        rightPanel.add(new JScrollPane(formPanel), BorderLayout.CENTER);
-        
-        // Configurar split pane
-        splitPane.setLeftComponent(leftPanel);
-        splitPane.setRightComponent(rightPanel);
-        splitPane.setDividerLocation(650);
-        splitPane.setResizeWeight(0.6);
-        
-        add(splitPane, BorderLayout.CENTER);
+        groupPanel.add(titleLabel, BorderLayout.NORTH);
+        return groupPanel;
     }
     
     private void setupEvents() {

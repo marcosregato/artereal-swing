@@ -1,6 +1,5 @@
 package com.artereal.swing.model;
 
-import java.time.LocalDate;
 
 /**
  * Modelo de dados para Loja Maçônica

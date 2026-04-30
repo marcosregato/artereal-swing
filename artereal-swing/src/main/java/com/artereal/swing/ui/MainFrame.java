@@ -5,8 +5,6 @@ import com.artereal.swing.model.Usuario;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 /**
  * Janela principal do sistema ArteReal
@@ -286,7 +284,8 @@ public class MainFrame extends JFrame {
         cl.show(contentPanel, "DASHBOARD");
         setTitle(TITLE + " - Dashboard");
         statusLabel.setText("Dashboard");
-        dashboardPanel.refreshData();
+        // Dashboard não precisa de refreshData() pois mostra dados estáticos
+        // Se precisar de dados dinâmicos, implementar refreshDataAsync()
     }
     
     public void showIrmaos() {
@@ -298,7 +297,8 @@ public class MainFrame extends JFrame {
         cl.show(contentPanel, "IRMAOS");
         setTitle(TITLE + " - Gestão de Irmãos");
         statusLabel.setText("Gestão de Irmãos");
-        irmaosPanel.refreshData();
+        // Usa refreshDataAsync() para não bloquear a UI
+        irmaosPanel.refreshDataAsync();
     }
     
     public void showLojas() {
@@ -350,6 +350,10 @@ public class MainFrame extends JFrame {
     }
     
     public void showRelatorios() {
+        if (relatoriosPanel == null) {
+            relatoriosPanel = new RelatoriosPanel();
+            contentPanel.add(relatoriosPanel, "RELATORIOS");
+        }
         CardLayout cl = (CardLayout) contentPanel.getLayout();
         cl.show(contentPanel, "RELATORIOS");
         setTitle(TITLE + " - Relatórios");
@@ -358,6 +362,10 @@ public class MainFrame extends JFrame {
     }
     
     public void showUsuarios() {
+        if (usuariosPanel == null) {
+            usuariosPanel = new UsuariosPanel();
+            contentPanel.add(usuariosPanel, "USUARIOS");
+        }
         CardLayout cl = (CardLayout) contentPanel.getLayout();
         cl.show(contentPanel, "USUARIOS");
         setTitle(TITLE + " - Usuários");
@@ -390,6 +398,10 @@ public class MainFrame extends JFrame {
     }
     
     public void showConfiguracoes() {
+        if (configuracoesPanel == null) {
+            configuracoesPanel = new ConfiguracoesPanel();
+            contentPanel.add(configuracoesPanel, "CONFIGURACOES");
+        }
         CardLayout cl = (CardLayout) contentPanel.getLayout();
         cl.show(contentPanel, "CONFIGURACOES");
         setTitle(TITLE + " - Configurações");
@@ -418,6 +430,10 @@ public class MainFrame extends JFrame {
     }
     
     public void showDocumentos() {
+        if (documentosPanel == null) {
+            documentosPanel = new DocumentosPanel();
+            contentPanel.add(documentosPanel, "DOCUMENTOS");
+        }
         CardLayout cl = (CardLayout) contentPanel.getLayout();
         cl.show(contentPanel, "DOCUMENTOS");
         setTitle(TITLE + " - Documentos");
@@ -426,6 +442,10 @@ public class MainFrame extends JFrame {
     }
     
     public void showCalendario() {
+        if (calendarioPanel == null) {
+            calendarioPanel = new CalendarioPanel();
+            contentPanel.add(calendarioPanel, "CALENDARIO");
+        }
         CardLayout cl = (CardLayout) contentPanel.getLayout();
         cl.show(contentPanel, "CALENDARIO");
         setTitle(TITLE + " - Calendário");

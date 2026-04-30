@@ -3,11 +3,10 @@ package com.artereal.swing.ui;
 import com.artereal.swing.dao.UsuarioDAO;
 import com.artereal.swing.model.Usuario;
 import com.artereal.swing.ui.components.LogoMaconaria;
+import com.artereal.swing.ui.layout.PadraoLayout;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.sql.SQLException;
 
@@ -40,8 +39,8 @@ public class LoginDialog extends JDialog {
     private void initializeComponents() {
         usuarioField = new JTextField(20);
         senhaField = new JPasswordField(20);
-        entrarButton = new JButton("Entrar");
-        cancelarButton = new JButton("Cancelar");
+        entrarButton = PadraoLayout.criarBotao("Entrar", new Color(144, 238, 144)); // Verde pastel
+        cancelarButton = PadraoLayout.criarBotao("Cancelar", new Color(255, 182, 193)); // Rosa pastel
         
         // Configurar botão Enter como default
         getRootPane().setDefaultButton(entrarButton);
@@ -136,7 +135,7 @@ public class LoginDialog extends JDialog {
         mainPanel.add(botoesPanel, gbc);
         
         // Informações
-        JLabel infoLabel = new JLabel("<html><small>Usuário padrão: Administrador<br>Senha padrão: admin123</small></html>", SwingConstants.CENTER);
+        JLabel infoLabel = new JLabel("<html><small>Usuário padrão: admin<br>Senha padrão: admin123</small></html>", SwingConstants.CENTER);
         infoLabel.setForeground(Color.GRAY);
         gbc.gridy = 6; gbc.insets = new Insets(10, 5, 5, 5);
         mainPanel.add(infoLabel, gbc);
@@ -197,30 +196,6 @@ public class LoginDialog extends JDialog {
     private void cancelar() {
         autenticado = false;
         dispose();
-    }
-    
-    private ImageIcon createIcon() {
-        // Criar um ícone simples usando texto
-        return new ImageIcon(createIconImage());
-    }
-    
-    private Image createIconImage() {
-        BufferedImage image = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2d = image.createGraphics();
-        
-        // Desenhar um símbolo maçônico simples (esquadro e compasso)
-        g2d.setColor(Color.BLUE);
-        g2d.setStroke(new BasicStroke(2));
-        
-        // Esquadro
-        g2d.drawRect(8, 12, 16, 16);
-        
-        // Compasso
-        g2d.drawOval(10, 8, 12, 12);
-        g2d.drawLine(16, 14, 16, 20);
-        
-        g2d.dispose();
-        return image;
     }
     
     public boolean isAutenticado() {

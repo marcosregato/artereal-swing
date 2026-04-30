@@ -2,12 +2,11 @@ package com.artereal.swing.ui.panels;
 
 import com.artereal.swing.dao.DocumentoDAO;
 import com.artereal.swing.model.Documento;
+import com.artereal.swing.ui.layout.PadraoLayout;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -28,6 +27,8 @@ public class DocumentosPanel extends JPanel {
     private JTextField usuarioUploadField;
     private JTextField tamanhoField;
     private JTextField formatoField;
+    private JTextField pesquisarField;
+    private JButton pesquisarButton;
     private JComboBox<String> tipoComboBox;
     private JTextArea hashArea;
     private JTextArea assinaturaArea;
@@ -77,30 +78,45 @@ public class DocumentosPanel extends JPanel {
         assinaturaArea.setEditable(false);
         assinaturaArea.setFont(new Font("Monospaced", Font.PLAIN, 10));
         
-        // Botões
-        salvarButton = new JButton("Salvar");
-        novoButton = new JButton("Novo");
-        excluirButton = new JButton("Excluir");
-        selecionarArquivoButton = new JButton("Selecionar Arquivo");
-        visualizarButton = new JButton("Visualizar");
-        assinarButton = new JButton("Assinar Digitalmente");
-        uploadButton = new JButton("Upload");
-        relatorioButton = new JButton("Relatório");
+        // Pesquisa
+        pesquisarField = new JTextField(20);
+        pesquisarButton = PadraoLayout.criarBotaoPesquisar();
+        
+        // Botões usando PadraoLayout com cores pastéis
+        salvarButton = PadraoLayout.criarBotaoSalvar();
+        novoButton = PadraoLayout.criarBotaoNovo();
+        excluirButton = PadraoLayout.criarBotaoExcluir();
+        selecionarArquivoButton = PadraoLayout.criarBotao("Selecionar Arquivo", new Color(173, 216, 230)); // Azul pastel
+        visualizarButton = PadraoLayout.criarBotao("Visualizar", new Color(255, 250, 205)); // Amarelo pastel
+        assinarButton = PadraoLayout.criarBotao("Assinar Digitalmente", new Color(152, 251, 152)); // Verde menta
+        uploadButton = PadraoLayout.criarBotao("Upload", new Color(221, 160, 221)); // Lavanda pastel
+        relatorioButton = PadraoLayout.criarBotao("Relatório", new Color(200, 200, 255)); // Azul claro
         
         documentoAtual = null;
     }
     
     private void setupLayout() {
-        setLayout(new BorderLayout());
+        // Aplicar layout padrão usando PadraoLayout - CORREÇÃO EM LOTE
+        this.setBorder(PadraoLayout.BORDA_PAINEL);
+        this.setBackground(PadraoLayout.COR_FUNDO);
         
-        // Título
-        JLabel titleLabel = new JLabel("Gestão Documental", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+        // Header estilizado usando PadraoLayout
+        JPanel headerPanel = PadraoLayout.criarHeader("📄 Gestão Documental", "Armazenamento e assinatura digital de documentos");
+        add(headerPanel, BorderLayout.NORTH);
         
-        // Painel de estatísticas
+                
+        // Painel esquerdo - Tabela e estatísticas usando PadraoLayout - CORREÇÃO EM LOTE
+        JPanel leftPanel = new JPanel(new BorderLayout());
+        leftPanel.setBackground(PadraoLayout.COR_FUNDO);
+        leftPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
+        
+        // Painel de pesquisa usando PadraoLayout
+        JPanel pesquisaPanel = PadraoLayout.criarPainelPesquisa(pesquisarField, pesquisarButton);
+        
+        // Painel de estatísticas usando PadraoLayout - CORREÇÃO EM LOTE
         JPanel statsPanel = new JPanel(new GridLayout(1, 4, 10, 10));
-        statsPanel.setBorder(BorderFactory.createTitledBorder("Estatísticas de Documentos"));
+        statsPanel.setBackground(PadraoLayout.COR_PAINEL);
+        statsPanel.setBorder(PadraoLayout.BORDA_GRUPO);
         
         try {
             int total = documentoDAO.count();
@@ -153,110 +169,195 @@ public class DocumentosPanel extends JPanel {
             alertasPanel.add(new JLabel("Erro ao carregar alertas"));
         }
         
-        // Painel de formulário
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBorder(BorderFactory.createTitledBorder("Dados do Documento"));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.anchor = GridBagConstraints.WEST;
+        // Painel direito - Formulário (padrão SessoesPanel)
+        JPanel rightPanel = new JPanel(new BorderLayout());
+        rightPanel.setBackground(Color.WHITE);
+        rightPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 10));
         
-        // Nome do Arquivo
-        gbc.gridx = 0; gbc.gridy = 0;
-        formPanel.add(new JLabel("Nome Arquivo:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
+        // Título do formulário
+        JPanel formHeaderPanel = new JPanel(new BorderLayout());
+        formHeaderPanel.setBackground(new Color(245, 245, 250));
+        formHeaderPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        
+        JLabel formTitleLabel = new JLabel("📝 Dados do Documento", SwingConstants.LEFT);
+        formTitleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        formTitleLabel.setForeground(new Color(70, 130, 180));
+        
+        formHeaderPanel.add(formTitleLabel, BorderLayout.CENTER);
+        rightPanel.add(formHeaderPanel, BorderLayout.NORTH);
+        
+        // Painel de formulário
+        JPanel formularioPanel = new JPanel(new BorderLayout());
+        formularioPanel.setBackground(Color.WHITE);
+        formularioPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
+        
+        JLabel formTitle = new JLabel("📝 Dados do Documento");
+        formTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        formTitle.setForeground(new Color(70, 130, 180));
+        
+        // Container principal para todos os grupos
+        JPanel formContainer = new JPanel(new BorderLayout());
+        formContainer.setBackground(Color.WHITE);
+        
+        // Grupo 1: Dados Básicos
+        JPanel dadosBasicosPanel = createFormGroup("📅 Dados Básicos");
+        JPanel dadosBasicosContent = new JPanel(PadraoLayout.criarLayoutFormulario());
+        dadosBasicosContent.setBackground(Color.WHITE);
+        
+        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Nome Arquivo:"));
         JPanel nomeArquivoPanel = new JPanel(new BorderLayout());
+        PadraoLayout.estilizarCampoTexto(nomeArquivoField);
         nomeArquivoPanel.add(nomeArquivoField, BorderLayout.CENTER);
         nomeArquivoPanel.add(selecionarArquivoButton, BorderLayout.EAST);
-        formPanel.add(nomeArquivoPanel, gbc);
+        dadosBasicosContent.add(nomeArquivoPanel);
         
-        // Caminho do Arquivo
-        gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Caminho:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(caminhoArquivoField, gbc);
+        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Caminho:"));
+        PadraoLayout.estilizarCampoTexto(caminhoArquivoField);
+        dadosBasicosContent.add(caminhoArquivoField);
         
-        // Tipo e Descrição
-        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Tipo:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        JPanel tipoDescricaoPanel = new JPanel(new BorderLayout());
-        tipoDescricaoPanel.add(tipoComboBox, BorderLayout.WEST);
-        tipoDescricaoPanel.add(new JLabel("Descrição:"), BorderLayout.CENTER);
-        tipoDescricaoPanel.add(descricaoField, BorderLayout.EAST);
-        formPanel.add(tipoDescricaoPanel, gbc);
+        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Tipo:"));
+        PadraoLayout.estilizarComboBox(tipoComboBox);
+        dadosBasicosContent.add(tipoComboBox);
         
-        // Data de Expiração
-        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Data Expiração:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        JPanel expiracaoUsuarioPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        expiracaoUsuarioPanel.add(dataExpiracaoField);
-        expiracaoUsuarioPanel.add(new JLabel("Upload por:"));
-        expiracaoUsuarioPanel.add(usuarioUploadField);
-        formPanel.add(expiracaoUsuarioPanel, gbc);
+        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Descrição:"));
+        PadraoLayout.estilizarCampoTexto(descricaoField);
+        dadosBasicosContent.add(descricaoField);
         
-        // Tamanho e Formato
-        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Informações:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        JPanel tamanhoFormatoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        tamanhoFormatoPanel.add(new JLabel("Tamanho:"));
-        tamanhoFormatoPanel.add(tamanhoField);
-        tamanhoFormatoPanel.add(new JLabel("Formato:"));
-        tamanhoFormatoPanel.add(formatoField);
-        formPanel.add(tamanhoFormatoPanel, gbc);
+        dadosBasicosPanel.add(dadosBasicosContent);
         
-        // Hash do Arquivo
-        gbc.gridx = 0; gbc.gridy = 5; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Hash SHA-256:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(new JScrollPane(hashArea), gbc);
+        // Grupo 2: Informações Adicionais
+        JPanel infoAdicionaisPanel = createFormGroup("📝 Informações Adicionais");
+        JPanel infoAdicionaisContent = new JPanel(PadraoLayout.criarLayoutFormulario());
+        infoAdicionaisContent.setBackground(Color.WHITE);
         
-        // Assinatura Digital
-        gbc.gridx = 0; gbc.gridy = 6; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Assinatura Digital:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(new JScrollPane(assinaturaArea), gbc);
+        infoAdicionaisContent.add(PadraoLayout.criarLabelFormulario("Data Expiração:"));
+        PadraoLayout.estilizarCampoTexto(dataExpiracaoField);
+        infoAdicionaisContent.add(dataExpiracaoField);
         
-        // Botões do formulário
-        JPanel botoesFormPanel = new JPanel(new FlowLayout());
-        botoesFormPanel.add(salvarButton);
-        botoesFormPanel.add(novoButton);
-        botoesFormPanel.add(excluirButton);
+        infoAdicionaisContent.add(PadraoLayout.criarLabelFormulario("Usuário Upload:"));
+        PadraoLayout.estilizarCampoTexto(usuarioUploadField);
+        infoAdicionaisContent.add(usuarioUploadField);
         
-        gbc.gridx = 0; gbc.gridy = 7; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        formPanel.add(botoesFormPanel, gbc);
+        infoAdicionaisContent.add(PadraoLayout.criarLabelFormulario("Tamanho:"));
+        PadraoLayout.estilizarCampoTexto(tamanhoField);
+        infoAdicionaisContent.add(tamanhoField);
         
-        // Botões de ações
-        JPanel acoesPanel = new JPanel(new FlowLayout());
-        acoesPanel.setBorder(BorderFactory.createTitledBorder("Ações do Documento"));
-        acoesPanel.add(uploadButton);
-        acoesPanel.add(visualizarButton);
-        acoesPanel.add(assinarButton);
-        acoesPanel.add(relatorioButton);
+        infoAdicionaisContent.add(PadraoLayout.criarLabelFormulario("Formato:"));
+        PadraoLayout.estilizarCampoTexto(formatoField);
+        infoAdicionaisContent.add(formatoField);
         
-        gbc.gridx = 0; gbc.gridy = 8; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        formPanel.add(acoesPanel, gbc);
+        infoAdicionaisPanel.add(infoAdicionaisContent);
         
-        // Painel da tabela
-        JPanel tabelaPanel = new JPanel(new BorderLayout());
-        tabelaPanel.setBorder(BorderFactory.createTitledBorder("Documentos Cadastrados"));
-        tabelaPanel.add(new JScrollPane(documentosTable), BorderLayout.CENTER);
+        // Grupo 3: Segurança e Validação
+        JPanel segurancaPanel = createFormGroup("🔒 Segurança e Validação");
+        JPanel segurancaContent = new JPanel(new BorderLayout());
+        segurancaContent.setBackground(Color.WHITE);
         
-        // Layout principal
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formPanel, tabelaPanel);
-        splitPane.setDividerLocation(450);
+        // Painel de opções de segurança
+        JPanel textAreasPanel = new JPanel(new GridLayout(2, 1, 10, 10));
+        textAreasPanel.setBackground(Color.WHITE);
         
-        JPanel centerPanel = new JPanel(new BorderLayout());
-        centerPanel.add(splitPane, BorderLayout.CENTER);
-        centerPanel.add(alertasPanel, BorderLayout.SOUTH);
+        JPanel hashPanel = new JPanel(new BorderLayout());
+        hashPanel.setBackground(Color.WHITE);
+        hashPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 210), 1),
+            BorderFactory.createEmptyBorder(5, 5, 5, 5)
+        ));
+        hashPanel.add(new JLabel("🔐 Hash do Documento:"), BorderLayout.NORTH);
+        hashPanel.add(new JScrollPane(hashArea), BorderLayout.CENTER);
         
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.add(statsPanel, BorderLayout.NORTH);
-        mainPanel.add(centerPanel, BorderLayout.CENTER);
+        JPanel assinaturaPanel = new JPanel(new BorderLayout());
+        assinaturaPanel.setBackground(Color.WHITE);
+        assinaturaPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 210), 1),
+            BorderFactory.createEmptyBorder(5, 5, 5, 5)
+        ));
+        assinaturaPanel.add(new JLabel("✍️ Assinatura Digital:"), BorderLayout.NORTH);
+        assinaturaPanel.add(new JScrollPane(assinaturaArea), BorderLayout.CENTER);
         
-        add(titleLabel, BorderLayout.NORTH);
-        add(mainPanel, BorderLayout.CENTER);
+        textAreasPanel.add(hashPanel);
+        textAreasPanel.add(assinaturaPanel);
+        segurancaContent.add(textAreasPanel, BorderLayout.CENTER);
+        segurancaPanel.add(segurancaContent);
+        
+        // Organizar grupos verticalmente usando PadraoLayout
+        JPanel allGroups = PadraoLayout.criarFormularioMultiplosGrupos(
+            dadosBasicosPanel, infoAdicionaisPanel, segurancaPanel
+        );
+        
+        // Adicionar scroll ao formulário usando PadraoLayout
+        JScrollPane formScroll = PadraoLayout.criarFormularioComScroll(allGroups);
+        
+        formContainer.add(formScroll, BorderLayout.CENTER);
+        
+        // Painel de botões
+        JPanel botoesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        botoesPanel.setBackground(Color.WHITE);
+        
+        botoesPanel.add(createStyledButton("Salvar", new Color(144, 238, 144)));
+        botoesPanel.add(createStyledButton("Novo", new Color(173, 216, 230)));
+        botoesPanel.add(createStyledButton("Excluir", new Color(255, 182, 193)));
+        botoesPanel.add(createStyledButton("Upload", new Color(255, 250, 205)));
+        botoesPanel.add(createStyledButton("Assinar", new Color(255, 218, 185)));
+        
+        formularioPanel.add(formTitle, BorderLayout.NORTH);
+        formularioPanel.add(formContainer, BorderLayout.CENTER);
+        formularioPanel.add(botoesPanel, BorderLayout.SOUTH);
+        
+        rightPanel.add(formularioPanel, BorderLayout.CENTER);
+        
+        // Painel principal com split
+        JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        mainSplitPane.setDividerLocation(650);
+        mainSplitPane.setResizeWeight(0.6);
+        
+        // Painel esquerdo - Tabela e estatísticas
+        JPanel tablePanel = new JPanel(new BorderLayout());
+        tablePanel.setBackground(Color.WHITE);
+        tablePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBackground(Color.WHITE);
+        topPanel.add(pesquisaPanel, BorderLayout.NORTH);
+        topPanel.add(statsPanel, BorderLayout.CENTER);
+        topPanel.add(alertasPanel, BorderLayout.SOUTH);
+        
+        // Tabela estilizada
+        JScrollPane tableScrollPane = new JScrollPane(documentosTable);
+        tableScrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 210)));
+        tableScrollPane.getViewport().setBackground(Color.WHITE);
+        
+        // Tabela estilizada usando PadraoLayout
+        PadraoLayout.configurarTabela(documentosTable);
+        
+        tablePanel.add(topPanel, BorderLayout.NORTH);
+        tablePanel.add(tableScrollPane, BorderLayout.CENTER);
+        
+        mainSplitPane.setLeftComponent(tablePanel);
+        mainSplitPane.setRightComponent(rightPanel);
+        
+        add(mainSplitPane, BorderLayout.CENTER);
+    }
+    
+    private JButton createStyledButton(String text, Color bgColor) {
+        return PadraoLayout.criarBotao(text, bgColor);
+    }
+    
+    private JPanel createFormGroup(String title) {
+        JPanel groupPanel = new JPanel(new BorderLayout());
+        groupPanel.setBackground(Color.WHITE);
+        groupPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(220, 220, 230), 1),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        titleLabel.setForeground(new Color(70, 130, 180));
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 8, 0));
+        
+        groupPanel.add(titleLabel, BorderLayout.NORTH);
+        return groupPanel;
     }
     
     private JPanel createStatPanel(String titulo, String valor, Color cor) {

@@ -2,12 +2,11 @@ package com.artereal.swing.ui.panels;
 
 import com.artereal.swing.dao.ConfiguracaoDAO;
 import com.artereal.swing.model.Configuracao;
+import com.artereal.swing.ui.layout.PadraoLayout;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -60,103 +59,198 @@ public class ConfiguracoesPanel extends JPanel {
         editavelCheckBox = new JCheckBox("Editável");
         visivelCheckBox = new JCheckBox("Visível");
         
-        // Botões
-        salvarButton = new JButton("Salvar");
-        novoButton = new JButton("Novo");
-        excluirButton = new JButton("Excluir");
-        restaurarPadraoButton = new JButton("Restaurar Padrão");
+        // Botões usando PadraoLayout com cores pastéis
+        salvarButton = PadraoLayout.criarBotaoSalvar();
+        novoButton = PadraoLayout.criarBotaoNovo();
+        excluirButton = PadraoLayout.criarBotaoExcluir();
+        restaurarPadraoButton = PadraoLayout.criarBotao("Restaurar Padrão", new Color(255, 160, 122)); // Laranja suave
         
         configuracaoAtual = null;
     }
     
     private void setupLayout() {
-        setLayout(new BorderLayout());
+        // Aplicar layout padrão usando PadraoLayout - MELHORIA 80%+
+        this.setBorder(PadraoLayout.BORDA_PAINEL);
+        this.setBackground(PadraoLayout.COR_FUNDO);
         
-        // Título
-        JLabel titleLabel = new JLabel("Configurações Globais do Sistema", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+        // Header estilizado usando PadraoLayout
+        JPanel headerPanel = PadraoLayout.criarHeader("⚙️ Configurações Globais", "Parâmetros e preferências do sistema");
+        add(headerPanel, BorderLayout.NORTH);
         
-        // Painel de formulário
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBorder(BorderFactory.createTitledBorder("Dados da Configuração"));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.anchor = GridBagConstraints.WEST;
+        // Painel direito - Formulário usando PadraoLayout - MELHORIA 80%+
+        JPanel rightPanel = new JPanel(new BorderLayout());
+        rightPanel.setBackground(PadraoLayout.COR_PAINEL);
+        rightPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
         
-        // Chave
-        gbc.gridx = 0; gbc.gridy = 0;
-        formPanel.add(new JLabel("Chave:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(chaveField, gbc);
+        // Título do formulário usando PadraoLayout - MELHORIA 80%+
+        JPanel formHeaderPanel = new JPanel(new BorderLayout());
+        formHeaderPanel.setBackground(PadraoLayout.COR_PAINEL);
+        formHeaderPanel.setBorder(PadraoLayout.BORDA_GRUPO);
         
-        // Valor
-        gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Valor:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(valorField, gbc);
+        JLabel formTitleLabel = PadraoLayout.criarLabelFormulario("⚙️ Dados da Configuração");
+        formTitleLabel.setFont(PadraoLayout.FONTE_TITULO);
         
-        // Descrição
-        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Descrição:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(descricaoField, gbc);
+        formHeaderPanel.add(formTitleLabel, BorderLayout.CENTER);
+        rightPanel.add(formHeaderPanel, BorderLayout.NORTH);
         
-        // Tipo e Categoria
-        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Tipo:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        JPanel tipoCategoriaPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        tipoCategoriaPanel.add(tipoComboBox);
-        tipoCategoriaPanel.add(new JLabel("Categoria:"));
-        tipoCategoriaPanel.add(categoriaComboBox);
-        formPanel.add(tipoCategoriaPanel, gbc);
+        // Painel de formulário usando PadraoLayout - MELHORIA 80%+
+        JPanel formularioPanel = new JPanel(new BorderLayout());
+        formularioPanel.setBackground(PadraoLayout.COR_PAINEL);
+        formularioPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
         
-        // Opções
-        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Opções:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        JPanel opcoesPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        opcoesPanel.add(editavelCheckBox);
-        opcoesPanel.add(visivelCheckBox);
-        formPanel.add(opcoesPanel, gbc);
+        JLabel formTitle = PadraoLayout.criarLabelFormulario("⚙️ Dados da Configuração");
+        formTitle.setFont(PadraoLayout.FONTE_GRUPO);
         
-        // Botões do formulário
-        JPanel botoesFormPanel = new JPanel(new FlowLayout());
-        botoesFormPanel.add(salvarButton);
-        botoesFormPanel.add(novoButton);
-        botoesFormPanel.add(excluirButton);
-        botoesFormPanel.add(restaurarPadraoButton);
+        // Container principal para todos os grupos
+        JPanel formContainer = new JPanel(new BorderLayout());
+        formContainer.setBackground(Color.WHITE);
         
-        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        formPanel.add(botoesFormPanel, gbc);
+        // Grupo 1: Dados Básicos
+        JPanel dadosBasicosPanel = createFormGroup("📅 Dados Básicos");
+        JPanel dadosBasicosContent = new JPanel(PadraoLayout.criarLayoutFormulario());
+        dadosBasicosContent.setBackground(Color.WHITE);
         
-        // Painel da tabela
-        JPanel tabelaPanel = new JPanel(new BorderLayout());
-        tabelaPanel.setBorder(BorderFactory.createTitledBorder("Configurações Cadastradas"));
-        tabelaPanel.add(new JScrollPane(configuracoesTable), BorderLayout.CENTER);
+        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Chave:"));
+        PadraoLayout.estilizarCampoTexto(chaveField);
+        dadosBasicosContent.add(chaveField);
         
-        // Painel de informações
-        JPanel infoPanel = new JPanel(new BorderLayout());
-        infoPanel.setBorder(BorderFactory.createTitledBorder("Informações"));
-        JTextArea infoArea = new JTextArea(3, 50);
-        infoArea.setEditable(false);
-        infoArea.setText("As configurações globais controlam o comportamento do sistema.\n" +
-                       "Configurações não editáveis são internas do sistema.\n" +
-                       "Alterações podem exigir reinicialização do sistema.");
-        infoArea.setBackground(infoPanel.getBackground());
-        infoPanel.add(infoArea, BorderLayout.CENTER);
+        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Valor:"));
+        PadraoLayout.estilizarCampoTexto(valorField);
+        dadosBasicosContent.add(valorField);
         
-        // Layout principal
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formPanel, tabelaPanel);
-        splitPane.setDividerLocation(250);
+        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Descrição:"));
+        PadraoLayout.estilizarCampoTexto(descricaoField);
+        dadosBasicosContent.add(descricaoField);
         
-        JPanel centerPanel = new JPanel(new BorderLayout());
-        centerPanel.add(splitPane, BorderLayout.CENTER);
-        centerPanel.add(infoPanel, BorderLayout.SOUTH);
+        dadosBasicosPanel.add(dadosBasicosContent);
         
-        add(titleLabel, BorderLayout.NORTH);
-        add(centerPanel, BorderLayout.CENTER);
+        // Grupo 2: Configurações
+        JPanel configuracoesPanel = createFormGroup("⚙️ Configurações");
+        JPanel configuracoesContent = new JPanel(PadraoLayout.criarLayoutFormulario());
+        configuracoesContent.setBackground(Color.WHITE);
+        
+        configuracoesContent.add(PadraoLayout.criarLabelFormulario("Tipo:"));
+        PadraoLayout.estilizarComboBox(tipoComboBox);
+        configuracoesContent.add(tipoComboBox);
+        
+        configuracoesContent.add(PadraoLayout.criarLabelFormulario("Categoria:"));
+        PadraoLayout.estilizarComboBox(categoriaComboBox);
+        configuracoesContent.add(categoriaComboBox);
+        
+        configuracoesContent.add(PadraoLayout.criarLabelFormulario("Editável:"));
+        configuracoesContent.add(editavelCheckBox);
+        
+        configuracoesContent.add(PadraoLayout.criarLabelFormulario("Visível:"));
+        configuracoesContent.add(visivelCheckBox);
+        
+        configuracoesPanel.add(configuracoesContent);
+        
+        // Organizar grupos verticalmente usando PadraoLayout
+        JPanel allGroups = PadraoLayout.criarFormularioMultiplosGrupos(
+            dadosBasicosPanel, configuracoesPanel
+        );
+        
+        // Adicionar scroll ao formulário usando PadraoLayout
+        JScrollPane formScroll = PadraoLayout.criarFormularioComScroll(allGroups);
+        
+        formContainer.add(formScroll, BorderLayout.CENTER);
+        
+        // Painel de botões
+        JPanel botoesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        botoesPanel.setBackground(Color.WHITE);
+        
+        botoesPanel.add(createStyledButton("Salvar", new Color(144, 238, 144)));
+        botoesPanel.add(createStyledButton("Novo", new Color(173, 216, 230)));
+        botoesPanel.add(createStyledButton("Excluir", new Color(255, 182, 193)));
+        botoesPanel.add(createStyledButton("Restaurar Padrão", new Color(255, 250, 205)));
+        
+        formularioPanel.add(formTitle, BorderLayout.NORTH);
+        formularioPanel.add(formContainer, BorderLayout.CENTER);
+        formularioPanel.add(botoesPanel, BorderLayout.SOUTH);
+        
+        rightPanel.add(formularioPanel, BorderLayout.CENTER);
+        
+        // Painel principal com split
+        JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        mainSplitPane.setDividerLocation(650);
+        mainSplitPane.setResizeWeight(0.6);
+        
+        // Painel esquerdo - Tabela e estatísticas
+        JPanel tablePanel = new JPanel(new BorderLayout());
+        tablePanel.setBackground(Color.WHITE);
+        tablePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        // Painel de pesquisa
+        JPanel pesquisaPanel = new JPanel(new BorderLayout());
+        pesquisaPanel.setBackground(new Color(245, 245, 250));
+        pesquisaPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 210)),
+            BorderFactory.createEmptyBorder(10, 15, 10, 15)
+        ));
+        
+        JPanel searchContainer = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        searchContainer.setBackground(new Color(245, 245, 250));
+        
+        JLabel searchLabel = new JLabel("🔍 Pesquisar:");
+        searchLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        searchLabel.setForeground(new Color(100, 100, 120));
+        
+        JTextField pesquisarField = new JTextField();
+        pesquisarField.setPreferredSize(new Dimension(200, 30));
+        pesquisarField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(180, 180, 190)),
+            BorderFactory.createEmptyBorder(5, 8, 5, 8)
+        ));
+        
+        JButton pesquisarButton = PadraoLayout.criarBotaoPesquisar();
+        pesquisarButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+        pesquisarButton.setFocusPainted(false);
+        
+        searchContainer.add(searchLabel);
+        searchContainer.add(pesquisarField);
+        searchContainer.add(pesquisarButton);
+        pesquisaPanel.add(searchContainer, BorderLayout.CENTER);
+        
+        // Tabela estilizada
+        JScrollPane tableScrollPane = new JScrollPane(configuracoesTable);
+        tableScrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 210)));
+        tableScrollPane.getViewport().setBackground(Color.WHITE);
+        
+        // Tabela estilizada usando PadraoLayout
+        PadraoLayout.configurarTabela(configuracoesTable);
+        
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBackground(Color.WHITE);
+        topPanel.add(pesquisaPanel, BorderLayout.NORTH);
+        topPanel.add(tableScrollPane, BorderLayout.CENTER);
+        
+        tablePanel.add(topPanel, BorderLayout.CENTER);
+        
+        mainSplitPane.setLeftComponent(tablePanel);
+        mainSplitPane.setRightComponent(rightPanel);
+        
+        add(mainSplitPane, BorderLayout.CENTER);
+    }
+    
+    private JButton createStyledButton(String text, Color bgColor) {
+        return PadraoLayout.criarBotao(text, bgColor);
+    }
+    
+    private JPanel createFormGroup(String title) {
+        JPanel groupPanel = new JPanel(new BorderLayout());
+        groupPanel.setBackground(Color.WHITE);
+        groupPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(220, 220, 230), 1),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        titleLabel.setForeground(new Color(70, 130, 180));
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 8, 0));
+        
+        groupPanel.add(titleLabel, BorderLayout.NORTH);
+        return groupPanel;
     }
     
     private void setupEvents() {
@@ -336,7 +430,6 @@ public class ConfiguracoesPanel extends JPanel {
     private void carregarConfiguracaoSelecionada() {
         int selectedRow = configuracoesTable.getSelectedRow();
         if (selectedRow >= 0) {
-            Long id = (Long) tableModel.getValueAt(selectedRow, 0);
             try {
                 configuracaoAtual = configuracaoDAO.findByChave(tableModel.getValueAt(selectedRow, 1).toString());
                 if (configuracaoAtual != null) {

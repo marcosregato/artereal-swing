@@ -2,13 +2,11 @@ package com.artereal.swing.ui.panels;
 
 import com.artereal.swing.dao.VisitanteDAO;
 import com.artereal.swing.model.Visitante;
-import com.artereal.swing.ui.components.LogoMaconaria;
+import com.artereal.swing.ui.layout.PadraoLayout;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
@@ -74,15 +72,15 @@ public class VisitantesPanel extends JPanel {
         historicoArea.setLineWrap(true);
         historicoArea.setWrapStyleWord(true);
         
-        // Botões
-        salvarButton = new JButton("Salvar");
-        novoButton = new JButton("Novo");
-        excluirButton = new JButton("Excluir");
-        autorizarButton = new JButton("Autorizar");
-        negarButton = new JButton("Negar Autorização");
-        gerarCrachaButton = new JButton("Gerar Crachá");
-        relatorioButton = new JButton("Relatório");
-        imprimirCrachaButton = new JButton("Imprimir Crachá");
+        // Botões usando PadraoLayout com cores pastéis
+        salvarButton = PadraoLayout.criarBotaoSalvar();
+        novoButton = PadraoLayout.criarBotaoNovo();
+        excluirButton = PadraoLayout.criarBotaoExcluir();
+        autorizarButton = PadraoLayout.criarBotao("Autorizar", new Color(152, 251, 152)); // Verde menta
+        negarButton = PadraoLayout.criarBotao("Negar Autorização", new Color(255, 182, 193)); // Rosa pastel
+        gerarCrachaButton = PadraoLayout.criarBotao("Gerar Crachá", new Color(173, 216, 230)); // Azul pastel
+        relatorioButton = PadraoLayout.criarBotao("Relatório", new Color(200, 200, 255)); // Azul claro
+        imprimirCrachaButton = PadraoLayout.criarBotao("Imprimir Crachá", new Color(255, 250, 205)); // Amarelo pastel
         
         // Data atual como padrão
         dataVisitaField.setText(LocalDate.now().toString());
@@ -91,41 +89,14 @@ public class VisitantesPanel extends JPanel {
     }
     
     private void setupLayout() {
-        setLayout(new BorderLayout());
-        setBackground(new Color(245, 245, 250));
+        // Aplicar layout padrão usando PadraoLayout
+        PadraoLayout.aplicarLayoutPadrao(this);
         
-        // Header estilizado com logo
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(25, 25, 112)); // Azul marinho maçônico
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
-        
-        JLabel titleLabel = new JLabel("🚪 Controle de Visitantes", SwingConstants.LEFT);
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        titleLabel.setForeground(Color.WHITE);
-        
-        JLabel subtitleLabel = new JLabel("Gestão de acesso e autorizações para loja", SwingConstants.LEFT);
-        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        subtitleLabel.setForeground(new Color(173, 216, 230));
-        
-        // Logo maçônico
-        JLabel logoLabel = LogoMaconaria.createLogoLabel(32);
-        logoLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
-        
-        JPanel titleContainer = new JPanel(new GridLayout(2, 1, 0, 5));
-        titleContainer.setBackground(new Color(25, 25, 112));
-        titleContainer.add(titleLabel);
-        titleContainer.add(subtitleLabel);
-        
-        JPanel headerContent = new JPanel(new BorderLayout());
-        headerContent.setBackground(new Color(25, 25, 112));
-        headerContent.add(logoLabel, BorderLayout.WEST);
-        headerContent.add(titleContainer, BorderLayout.CENTER);
-        
-        headerPanel.add(headerContent, BorderLayout.CENTER);
+        // Header estilizado usando PadraoLayout
+        JPanel headerPanel = PadraoLayout.criarHeader("🚪 Controle de Visitantes", "Registro e controle de acesso de visitantes");
         add(headerPanel, BorderLayout.NORTH);
         
         // Painel principal com split
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         
         // Painel esquerdo - Tabela
         JPanel leftPanel = new JPanel(new BorderLayout());
@@ -147,10 +118,7 @@ public class VisitantesPanel extends JPanel {
             BorderFactory.createEmptyBorder(5, 8, 5, 8)
         ));
         
-        JButton pesquisarButton = new JButton("Buscar");
-        pesquisarButton.setBackground(new Color(221, 160, 221)); // Lila pastel suave
-        pesquisarButton.setForeground(new Color(102, 51, 153));
-        pesquisarButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        JButton pesquisarButton = PadraoLayout.criarBotaoPesquisar();
         pesquisarButton.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(new Color(221, 160, 221), 2),
             BorderFactory.createEmptyBorder(8, 15, 8, 15)
@@ -163,13 +131,8 @@ public class VisitantesPanel extends JPanel {
         pesquisaPanel.add(pesquisarButton);
         
         // Tabela estilizada
-        visitantesTable.setRowHeight(25);
-        visitantesTable.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        visitantesTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
-        visitantesTable.getTableHeader().setBackground(new Color(70, 130, 180));
-        visitantesTable.getTableHeader().setForeground(Color.WHITE);
-        visitantesTable.setSelectionBackground(new Color(173, 216, 230));
-        visitantesTable.setSelectionForeground(new Color(25, 84, 123));
+        // Tabela estilizada usando PadraoLayout
+        PadraoLayout.configurarTabela(visitantesTable);
         
         JPanel tabelaPanel = new JPanel(new BorderLayout());
         tabelaPanel.setBackground(Color.WHITE);
@@ -243,7 +206,7 @@ public class VisitantesPanel extends JPanel {
             pendentesPanel.add(pendentesLabel, BorderLayout.CENTER);
             
             if (pendentes > 0) {
-                JButton listarPendentesButton = new JButton("Listar Pendentes");
+                JButton listarPendentesButton = PadraoLayout.criarBotao("Listar Pendentes", new Color(255, 250, 205)); // Amarelo pastel
                 listarPendentesButton.addActionListener(e -> listarPendentes());
                 pendentesPanel.add(listarPendentesButton, BorderLayout.SOUTH);
             }
@@ -251,79 +214,64 @@ public class VisitantesPanel extends JPanel {
             pendentesPanel.add(new JLabel("Erro ao carregar pendentes"));
         }
         
-        // Painel de formulário
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBorder(BorderFactory.createTitledBorder("Dados do Visitante"));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.anchor = GridBagConstraints.WEST;
+        // Painel de formulário usando PadraoLayout
+        JPanel formPanel = PadraoLayout.criarGrupoFormulario("👤 Dados do Visitante");
+        JPanel formContent = new JPanel(PadraoLayout.criarLayoutFormulario());
+        formContent.setBackground(Color.WHITE);
         
-        // Nome
-        gbc.gridx = 0; gbc.gridy = 0;
-        formPanel.add(new JLabel("Nome:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(nomeField, gbc);
+        formContent.add(new JLabel("Nome:"));
+        formContent.add(nomeField);
+        formContent.add(new JLabel("Data Visita:"));
+        formContent.add(dataVisitaField);
+        formContent.add(new JLabel("Telefone:"));
+        formContent.add(telefoneField);
+        formContent.add(new JLabel("Email:"));
+        formContent.add(emailField);
         
-        // Tipo e Data
-        gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Tipo:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        JPanel tipoDataPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        tipoDataPanel.add(tipoComboBox);
-        tipoDataPanel.add(new JLabel("Data Visita:"));
-        tipoDataPanel.add(dataVisitaField);
-        formPanel.add(tipoDataPanel, gbc);
+        // Painel de observações usando PadraoLayout
+        JPanel obsPanel = PadraoLayout.criarPainelTextArea("📝 Observações:", new JTextArea(3, 40));
         
-        // Grau Secreto e Loja Origem
-        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Grau Secreto:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        JPanel grauLojaPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        grauLojaPanel.add(grauSecretoField);
-        grauLojaPanel.add(new JLabel("Loja Origem:"));
-        grauLojaPanel.add(lojaOrigemField);
-        formPanel.add(grauLojaPanel, gbc);
+        JPanel formContainer = new JPanel(new BorderLayout());
+        formContainer.setBackground(Color.WHITE);
+        formContainer.add(formContent, BorderLayout.NORTH);
+        formContainer.add(obsPanel, BorderLayout.CENTER);
         
-        // Telefone e Email
-        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Contato:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        JPanel contatoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        contatoPanel.add(telefoneField);
-        contatoPanel.add(new JLabel("Email:"));
-        contatoPanel.add(emailField);
-        formPanel.add(contatoPanel, gbc);
+        formPanel.add(formContainer);
         
-        // Número Crachá
-        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Crachá:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
+        // Adicionar campos adicionais ao formulário
+        JPanel camposAdicionais = new JPanel(PadraoLayout.criarLayoutFormulario());
+        camposAdicionais.setBackground(Color.WHITE);
+        
+        camposAdicionais.add(new JLabel("Grau Secreto:"));
+        camposAdicionais.add(grauSecretoField);
+        camposAdicionais.add(new JLabel("Loja Origem:"));
+        camposAdicionais.add(lojaOrigemField);
+        
+        // Painel de crachá
         JPanel crachaPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        crachaPanel.add(new JLabel("Crachá:"));
         crachaPanel.add(numeroCrachaField);
         crachaPanel.add(gerarCrachaButton);
         crachaPanel.add(imprimirCrachaButton);
-        formPanel.add(crachaPanel, gbc);
         
-        // Histórico
-        gbc.gridx = 0; gbc.gridy = 5; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Histórico:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(new JScrollPane(historicoArea), gbc);
+        // Painel de histórico
+        JPanel historicoPanel = PadraoLayout.criarPainelTextArea("📋 Histórico:", historicoArea);
         
-        // Observações
-        gbc.gridx = 0; gbc.gridy = 6; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Observações:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(observacoesField, gbc);
+        // Organizar todos os componentes
+        JPanel todosCampos = new JPanel(new BorderLayout());
+        todosCampos.setBackground(Color.WHITE);
+        todosCampos.add(camposAdicionais, BorderLayout.NORTH);
+        todosCampos.add(crachaPanel, BorderLayout.CENTER);
+        todosCampos.add(historicoPanel, BorderLayout.SOUTH);
         
-        // Botões do formulário
-        JPanel botoesFormPanel = new JPanel(new FlowLayout());
-        botoesFormPanel.add(salvarButton);
-        botoesFormPanel.add(novoButton);
-        botoesFormPanel.add(excluirButton);
+        formContainer.add(todosCampos, BorderLayout.SOUTH);
         
-        gbc.gridx = 0; gbc.gridy = 7; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        formPanel.add(botoesFormPanel, gbc);
+        // Botões do formulário usando PadraoLayout
+        JPanel botoesFormPanel = PadraoLayout.criarPainelBotoes(
+            salvarButton, novoButton, excluirButton
+        );
+        
+        formPanel.add(botoesFormPanel, BorderLayout.SOUTH);
         
         // Botões de autorização
         JPanel autorizacaoPanel = new JPanel(new FlowLayout());
@@ -332,8 +280,7 @@ public class VisitantesPanel extends JPanel {
         autorizacaoPanel.add(negarButton);
         autorizacaoPanel.add(relatorioButton);
         
-        gbc.gridx = 0; gbc.gridy = 8; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        formPanel.add(autorizacaoPanel, gbc);
+        formPanel.add(autorizacaoPanel, BorderLayout.SOUTH);
         
         // Painel da tabela (já foi criado anteriormente)
         // Layout principal

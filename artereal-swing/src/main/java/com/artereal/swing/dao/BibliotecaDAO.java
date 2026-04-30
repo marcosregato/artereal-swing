@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +18,6 @@ public class BibliotecaDAO {
     private static final Logger logger = LoggerFactory.getLogger(BibliotecaDAO.class);
     private final DatabaseManager dbManager;
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     
     public BibliotecaDAO() {
         this.dbManager = DatabaseManager.getInstance();

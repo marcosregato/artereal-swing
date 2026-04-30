@@ -1,7 +1,11 @@
 package com.artereal.swing.ui.panels;
 
+import com.artereal.swing.ui.layout.PadraoLayout;
+
 import javax.swing.*;
 import java.awt.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Painel de Relatórios
@@ -18,41 +22,90 @@ public class RelatoriosPanel extends JPanel {
     }
     
     private void setupLayout() {
-        setLayout(new BorderLayout());
+        // Aplicar layout padrão usando PadraoLayout - CORREÇÃO CRÍTICA
+        this.setBorder(PadraoLayout.BORDA_PAINEL);
+        this.setBackground(PadraoLayout.COR_FUNDO);
         
-        JLabel titleLabel = new JLabel("Relatórios", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+        // Header estilizado usando PadraoLayout
+        JPanel headerPanel = PadraoLayout.criarHeader("📈 Sistema de Relatórios", "Geração e visualização de relatórios");
+        add(headerPanel, BorderLayout.NORTH);
         
-        JPanel centerPanel = new JPanel(new BorderLayout());
-        centerPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
+        // Painel principal usando PadraoLayout - CORREÇÃO CRÍTICA
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setBackground(PadraoLayout.COR_PAINEL);
+        mainPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
         
-        JPanel buttonPanel = new JPanel(new GridLayout(3, 2, 20, 20));
+        // Painel de filtros usando PadraoLayout - CORREÇÃO CRÍTICA
+        JPanel filtroPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
+        filtroPanel.setBackground(PadraoLayout.COR_PAINEL);
+        filtroPanel.setBorder(PadraoLayout.BORDA_GRUPO);
         
-        JButton irmaosButton = new JButton("Relatório de Irmãos");
-        JButton financeiroButton = new JButton("Relatório Financeiro");
-        JButton sessoesButton = new JButton("Relatório de Sessões");
-        JButton bibliotecaButton = new JButton("Relatório da Biblioteca");
-        JButton geralButton = new JButton("Relatório Geral");
-        JButton customButton = new JButton("Relatório Customizado");
+        JLabel dataInicioLabel = PadraoLayout.criarLabelFormulario("📅 Data Início:");
+        JTextField dataInicioField = new JTextField(LocalDate.now().minusMonths(1).format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        PadraoLayout.estilizarCampoTexto(dataInicioField);
         
-        buttonPanel.add(irmaosButton);
-        buttonPanel.add(financeiroButton);
-        buttonPanel.add(sessoesButton);
-        buttonPanel.add(bibliotecaButton);
-        buttonPanel.add(geralButton);
-        buttonPanel.add(customButton);
+        JLabel dataFimLabel = PadraoLayout.criarLabelFormulario("📅 Data Fim:");
+        JTextField dataFimField = new JTextField(LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        PadraoLayout.estilizarCampoTexto(dataFimField);
         
-        JTextArea infoArea = new JTextArea("Selecione um relatório para gerar...");
+        JButton filtrarButton = PadraoLayout.criarBotao("🔍 Filtrar", PadraoLayout.COR_BOTAO_PESQUISAR);
+        
+        filtroPanel.add(dataInicioLabel);
+        filtroPanel.add(dataInicioField);
+        filtroPanel.add(dataFimLabel);
+        filtroPanel.add(dataFimField);
+        filtroPanel.add(filtrarButton);
+        
+        // Painel de relatórios
+        JPanel relatoriosPanel = new JPanel(new GridLayout(3, 3, 20, 20));
+        relatoriosPanel.setBackground(new Color(245, 245, 250));
+        relatoriosPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        // Botões de relatórios usando PadraoLayout - CORREÇÃO FINAL
+        JButton irmaosButton = PadraoLayout.criarBotao("👥 Irmãos", PadraoLayout.COR_PRIMARIA);
+        JButton financeiroButton = PadraoLayout.criarBotao("💰 Financeiro", PadraoLayout.COR_PRIMARIA);
+        JButton sessoesButton = PadraoLayout.criarBotao("📝 Sessões", PadraoLayout.COR_PRIMARIA);
+        JButton bibliotecaButton = PadraoLayout.criarBotao("📚 Biblioteca", PadraoLayout.COR_PRIMARIA);
+        JButton visitantesButton = PadraoLayout.criarBotao("🚪 Visitantes", PadraoLayout.COR_PRIMARIA);
+        JButton eventosButton = PadraoLayout.criarBotao("🎉 Eventos", PadraoLayout.COR_PRIMARIA);
+        JButton documentosButton = PadraoLayout.criarBotao("📄 Documentos", PadraoLayout.COR_PRIMARIA);
+        JButton geralButton = PadraoLayout.criarBotao("📊 Geral", PadraoLayout.COR_PRIMARIA);
+        JButton customButton = PadraoLayout.criarBotao("⚙️ Customizado", PadraoLayout.COR_PRIMARIA);
+        
+        relatoriosPanel.add(irmaosButton);
+        relatoriosPanel.add(financeiroButton);
+        relatoriosPanel.add(sessoesButton);
+        relatoriosPanel.add(bibliotecaButton);
+        relatoriosPanel.add(visitantesButton);
+        relatoriosPanel.add(eventosButton);
+        relatoriosPanel.add(documentosButton);
+        relatoriosPanel.add(geralButton);
+        relatoriosPanel.add(customButton);
+        
+        // Painel de informações usando PadraoLayout
+        JPanel infoPanel = PadraoLayout.criarGrupoFormulario("📋 Informações do Relatório");
+        
+        JTextArea infoArea = new JTextArea("Selecione um relatório para visualizar informações detalhadas...\n\n" +
+            "• Relatórios disponíveis em PDF, Excel e HTML\n" +
+            "• Filtros por período e categorias\n" +
+            "• Exportação automática para e-mail\n" +
+            "• Agendamento de relatórios periódicos\n" +
+            "• Gráficos e análises estatísticas");
         infoArea.setEditable(false);
-        JScrollPane scrollPane = new JScrollPane(infoArea);
+        infoArea.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        infoArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
-        centerPanel.add(buttonPanel, BorderLayout.NORTH);
-        centerPanel.add(scrollPane, BorderLayout.CENTER);
+        JPanel infoContent = PadraoLayout.criarPainelTextArea("Informações:", infoArea);
+        infoPanel.add(infoContent);
         
-        add(titleLabel, BorderLayout.NORTH);
-        add(centerPanel, BorderLayout.CENTER);
+        mainPanel.add(filtroPanel, BorderLayout.NORTH);
+        mainPanel.add(relatoriosPanel, BorderLayout.CENTER);
+        mainPanel.add(infoPanel, BorderLayout.SOUTH);
+        
+        add(mainPanel, BorderLayout.CENTER);
     }
+    
+    // Método removido - substituído por PadraoLayout.criarBotao() direto
     
     public void refreshData() {
         revalidate();

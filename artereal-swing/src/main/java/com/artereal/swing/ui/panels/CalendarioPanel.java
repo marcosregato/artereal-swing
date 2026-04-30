@@ -1,12 +1,11 @@
 package com.artereal.swing.ui.panels;
 
 import com.artereal.swing.dao.CalendarioDAO;
+import com.artereal.swing.ui.layout.PadraoLayout;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
@@ -62,14 +61,14 @@ public class CalendarioPanel extends JPanel {
             "INSTALACAO", "REUNIAO_ADMINISTRATIVA", "CONFRATERNIZACAO", "EVENTO_SOCIAL"
         });
         
-        // Botões
-        salvarButton = new JButton("Salvar");
-        novoButton = new JButton("Novo");
-        excluirButton = new JButton("Excluir");
-        realizarButton = new JButton("Realizar");
-        cancelarButton = new JButton("Cancelar");
-        proximosButton = new JButton("Próximos 30 dias");
-        hojeButton = new JButton("Hoje");
+        // Botões usando PadraoLayout com cores pastéis
+        salvarButton = PadraoLayout.criarBotaoSalvar();
+        novoButton = PadraoLayout.criarBotaoNovo();
+        excluirButton = PadraoLayout.criarBotaoExcluir();
+        realizarButton = PadraoLayout.criarBotao("Realizar", new Color(152, 251, 152)); // Verde menta
+        cancelarButton = PadraoLayout.criarBotao("Cancelar", new Color(255, 182, 193)); // Rosa pastel
+        proximosButton = PadraoLayout.criarBotao("Próximos 30 dias", new Color(173, 216, 230)); // Azul pastel
+        hojeButton = PadraoLayout.criarBotao("Hoje", new Color(255, 250, 205)); // Amarelo pastel
         
         // Data atual como padrão
         dataField.setText(LocalDate.now().toString());
@@ -80,12 +79,12 @@ public class CalendarioPanel extends JPanel {
     }
     
     private void setupLayout() {
-        setLayout(new BorderLayout());
+        // Aplicar layout padrão usando PadraoLayout
+        PadraoLayout.aplicarLayoutPadrao(this);
         
-        // Título
-        JLabel titleLabel = new JLabel("Calendário Maçônico", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+        // Header estilizado usando PadraoLayout
+        JPanel headerPanel = PadraoLayout.criarHeader("📅 Calendário Maçônico", "Eventos e reuniões maçônicas");
+        add(headerPanel, BorderLayout.NORTH);
         
         // Painel de estatísticas
         JPanel statsPanel = new JPanel(new GridLayout(1, 3, 10, 10));
@@ -158,28 +157,33 @@ public class CalendarioPanel extends JPanel {
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.anchor = GridBagConstraints.WEST;
         
-        // Descrição
+        // Descrição usando PadraoLayout
         gbc.gridx = 0; gbc.gridy = 0;
-        formPanel.add(new JLabel("Descrição:"), gbc);
+        formPanel.add(PadraoLayout.criarLabelFormulario("Descrição:"), gbc);
         gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
+        PadraoLayout.estilizarCampoTexto(descricaoField);
         formPanel.add(descricaoField, gbc);
         
-        // Data e Horário
+        // Data e Horário usando PadraoLayout
         gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Data e Horário:"), gbc);
+        formPanel.add(PadraoLayout.criarLabelFormulario("Data e Horário:"), gbc);
         gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
         JPanel dataHorarioPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        PadraoLayout.estilizarCampoTexto(dataField);
         dataHorarioPanel.add(dataField);
+        PadraoLayout.estilizarCampoTexto(horarioField);
         dataHorarioPanel.add(horarioField);
         formPanel.add(dataHorarioPanel, gbc);
         
-        // Local e Tipo
+        // Local usando PadraoLayout
         gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Local:"), gbc);
+        formPanel.add(PadraoLayout.criarLabelFormulario("Local:"), gbc);
         gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
         JPanel localTipoPanel = new JPanel(new BorderLayout());
+        PadraoLayout.estilizarCampoTexto(localField);
         localTipoPanel.add(localField, BorderLayout.NORTH);
-        localTipoPanel.add(new JLabel("Tipo:"), BorderLayout.CENTER);
+        localTipoPanel.add(PadraoLayout.criarLabelFormulario("Tipo:"), BorderLayout.CENTER);
+        PadraoLayout.estilizarComboBox(tipoComboBox);
         localTipoPanel.add(tipoComboBox, BorderLayout.SOUTH);
         formPanel.add(localTipoPanel, gbc);
         
@@ -220,8 +224,23 @@ public class CalendarioPanel extends JPanel {
         mainPanel.add(statsPanel, BorderLayout.NORTH);
         mainPanel.add(centerPanel, BorderLayout.CENTER);
         
-        add(titleLabel, BorderLayout.NORTH);
-        add(mainPanel, BorderLayout.CENTER);
+        // Tabela estilizada
+        calendarioTable.setRowHeight(25);
+        calendarioTable.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        calendarioTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
+        calendarioTable.getTableHeader().setBackground(new Color(70, 130, 180));
+        calendarioTable.getTableHeader().setForeground(Color.WHITE);
+        calendarioTable.setSelectionBackground(new Color(173, 216, 230));
+        calendarioTable.setSelectionForeground(new Color(25, 84, 123));
+        
+        // Layout principal com split
+        JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        mainSplitPane.setLeftComponent(formPanel);
+        mainSplitPane.setRightComponent(tabelaPanel);
+        mainSplitPane.setDividerLocation(500);
+        
+        add(headerPanel, BorderLayout.NORTH);
+        add(mainSplitPane, BorderLayout.CENTER);
     }
     
     private void setupEvents() {
