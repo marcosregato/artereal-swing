@@ -200,7 +200,7 @@ class PainelLayoutValidacaoTest {
         assertThat(PadraoLayout.ESPACAMENTO_CAMPOS).isEqualTo(10);
         assertThat(PadraoLayout.ESPACAMENTO_BOTOES).isEqualTo(10);
         assertThat(PadraoLayout.ESPACAMENTO_GRUPO).isEqualTo(10);
-        assertThat(PadraoLayout.ESPACAMENTO_GRID).isEqualTo(8);
+        assertThat(PadraoLayout.ESPACAMENTO_GRID).isEqualTo(10);
         assertThat(PadraoLayout.LARGURA_CAMPO_PESQUISA).isEqualTo(200);
         assertThat(PadraoLayout.ALTURA_CAMPO).isEqualTo(30);
         assertThat(PadraoLayout.MARGEM_PAINEL).isEqualTo(20);

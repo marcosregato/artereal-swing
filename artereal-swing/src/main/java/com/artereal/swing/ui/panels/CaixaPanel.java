@@ -78,7 +78,7 @@ public class CaixaPanel extends JPanel {
         
         // Formulário
         codigoField = new JTextField();
-        dataField = new JTextField();
+        dataField = new JTextField(); // Já configurado para receber data no formato dd/MM/yyyy
         descricaoField = new JTextField();
         valorField = new JTextField();
         numeroDocumentoField = new JTextField(25);
@@ -109,15 +109,18 @@ public class CaixaPanel extends JPanel {
         PadraoLayout.aplicarCoresPastelBotoesPrincipais(salvarButton, novoButton, editarButton, excluirButton, limparButton);
         PadraoLayout.aplicarCoresPastelBotao(relatorioButton, "novo"); // Usa cor de novo para relatório
         
-        // Labels de resumo
+        // Labels de resumo com fontes muito maiores
         saldoLabel = PadraoLayout.criarLabelFormulario("💰 Saldo: R$ 0,00");
+        saldoLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
         receitasLabel = PadraoLayout.criarLabelFormulario("📈 Receitas: R$ 0,00");
+        receitasLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
         despesasLabel = PadraoLayout.criarLabelFormulario("📉 Despesas: R$ 0,00");
+        despesasLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
     }
     
     private void setupLayout() {
-        // Aplicar layout padrão usando PadraoLayout
-        PadraoLayout.aplicarLayoutPadrao(this);
+        // Aplicar estilização padrão ao painel principal
+        PadraoLayout.estilizarPainelPrincipal(this);
         
         // Header estilizado usando PadraoLayout
         JPanel headerPanel = PadraoLayout.criarHeader("💰 Gestão Financeira (Caixa)", "Controle de receitas, despesas e movimentações financeiras");
@@ -144,119 +147,76 @@ public class CaixaPanel extends JPanel {
         formContent.setLayout(new BoxLayout(formContent, BoxLayout.Y_AXIS));
         formContent.setBackground(Color.WHITE);
         
-        // SEÇÃO 1: Detalhes da Movimentação
-        JPanel detalhesMovimentacaoPanel = new JPanel(new BorderLayout());
-        detalhesMovimentacaoPanel.setBackground(Color.WHITE);
-        detalhesMovimentacaoPanel.setBorder(BorderFactory.createTitledBorder("📋 Detalhes da Movimentação"));
+        // SEÇÃO 1: Detalhe da Movimentação usando PadraoLayout com alinhamento correto
+        JPanel detalheMovimentacaoPanel = PadraoLayout.criarGrupoFormulario("📋 Detalhe da Movimentação");
+        JPanel detalheMovimentacaoContent = new JPanel(PadraoLayout.criarLayoutFormularioAlinhado());
+        detalheMovimentacaoContent.setBackground(Color.WHITE);
         
-        JPanel detalhesMovimentacaoContent = new JPanel();
-        detalhesMovimentacaoContent.setLayout(new BoxLayout(detalhesMovimentacaoContent, BoxLayout.Y_AXIS));
-        detalhesMovimentacaoContent.setBackground(Color.WHITE);
+        // Layout com painéis separados para evitar sobreposição
+        // Painel principal com BoxLayout vertical
+        JPanel camposPanel = new JPanel();
+        camposPanel.setLayout(new BoxLayout(camposPanel, BoxLayout.Y_AXIS));
+        camposPanel.setBackground(Color.WHITE);
         
-        // Primeira linha: Código e Data
-        JPanel primeiraLinhaMovimentacaoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        primeiraLinhaMovimentacaoPanel.setBackground(Color.WHITE);
-        
-        // Campo Código
-        JPanel codigoMovimentacaoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        codigoMovimentacaoPanel.setBackground(Color.WHITE);
-        codigoMovimentacaoPanel.add(PadraoLayout.criarLabelFormularioCodigo("Código:"));
+        // Linha 1: Identificação, Classificação, Financeiro e Documentação (Código, Data, Tipo, Categoria, Valor, Status e Forma Pagamento)
+        JPanel linha1Panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 2));
+        linha1Panel.setBackground(Color.WHITE);
+        linha1Panel.add(PadraoLayout.criarLabelFormularioCodigo("Código:"));
         PadraoLayout.estilizarCampoCodigo(codigoField);
-        codigoMovimentacaoPanel.add(codigoField);
-        
-        // Campo Data
-        JPanel dataMovimentacaoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        dataMovimentacaoPanel.setBackground(Color.WHITE);
-        dataMovimentacaoPanel.add(PadraoLayout.criarLabelFormulario("Data:"));
+        linha1Panel.add(codigoField);
+        linha1Panel.add(PadraoLayout.criarLabelFormulario("Data:"));
         PadraoLayout.estilizarCampoData(dataField);
-        dataMovimentacaoPanel.add(dataField);
-        
-        // Adicionar os painéis à primeira linha
-        primeiraLinhaMovimentacaoPanel.add(codigoMovimentacaoPanel);
-        primeiraLinhaMovimentacaoPanel.add(Box.createHorizontalStrut(20)); // Espaço entre os campos
-        primeiraLinhaMovimentacaoPanel.add(dataMovimentacaoPanel);
-        
-        // Adicionar o painel da primeira linha ao conteúdo
-        detalhesMovimentacaoContent.add(primeiraLinhaMovimentacaoPanel);
-        detalhesMovimentacaoContent.add(Box.createVerticalStrut(5)); // Espaço vertical
-        
-        // Segunda linha: Tipo e Categoria
-        JPanel segundaLinhaMovimentacaoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        segundaLinhaMovimentacaoPanel.setBackground(Color.WHITE);
-        
-        // Campo Tipo
-        JPanel tipoMovimentacaoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        tipoMovimentacaoPanel.setBackground(Color.WHITE);
-        tipoMovimentacaoPanel.add(PadraoLayout.criarLabelFormulario("Tipo:"));
+        dataField.setColumns(10); // Tamanho ideal para formato xx/xx/xxxx (10 caracteres)
+        linha1Panel.add(dataField);
+        linha1Panel.add(PadraoLayout.criarLabelFormulario("Tipo:"));
         PadraoLayout.estilizarComboBox(tipoCombo);
-        tipoMovimentacaoPanel.add(tipoCombo);
-        
-        // Campo Categoria
-        JPanel categoriaMovimentacaoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        categoriaMovimentacaoPanel.setBackground(Color.WHITE);
-        categoriaMovimentacaoPanel.add(PadraoLayout.criarLabelFormulario("Categoria:"));
+        linha1Panel.add(tipoCombo);
+        linha1Panel.add(PadraoLayout.criarLabelFormulario("Categoria:"));
         PadraoLayout.estilizarComboBox(categoriaCombo);
-        categoriaMovimentacaoPanel.add(categoriaCombo);
-        
-        // Adicionar os painéis à segunda linha
-        segundaLinhaMovimentacaoPanel.add(tipoMovimentacaoPanel);
-        segundaLinhaMovimentacaoPanel.add(Box.createHorizontalStrut(20)); // Espaço entre os campos
-        segundaLinhaMovimentacaoPanel.add(categoriaMovimentacaoPanel);
-        
-        // Adicionar o painel da segunda linha ao conteúdo
-        detalhesMovimentacaoContent.add(segundaLinhaMovimentacaoPanel);
-        
-        detalhesMovimentacaoPanel.add(detalhesMovimentacaoContent, BorderLayout.CENTER);
-        formContent.add(detalhesMovimentacaoPanel);
-        
-        // SEÇÃO 2: Detalhes Financeiros
-        JPanel financeirosPanel = new JPanel(new BorderLayout());
-        financeirosPanel.setBackground(Color.WHITE);
-        financeirosPanel.setBorder(BorderFactory.createTitledBorder("💰 Detalhes Financeiros"));
-        
-        JPanel financeirosContent = new JPanel(PadraoLayout.criarLayoutFormulario());
-        financeirosContent.setBackground(Color.WHITE);
-        
-        financeirosContent.add(PadraoLayout.criarLabelFormulario("Descrição:"));
-        PadraoLayout.estilizarCampoDescricao(descricaoField);
-        financeirosContent.add(descricaoField);
-        
-        financeirosContent.add(PadraoLayout.criarLabelFormulario("Valor:"));
+        linha1Panel.add(categoriaCombo);
+        linha1Panel.add(PadraoLayout.criarLabelFormulario("Valor:"));
         PadraoLayout.estilizarCampoValorFinanceiro(valorField);
-        financeirosContent.add(valorField);
-        
-        financeirosContent.add(PadraoLayout.criarLabelFormulario("Forma Pagamento:"));
-        PadraoLayout.estilizarComboBox(formaPagamentoCombo);
-        financeirosContent.add(formaPagamentoCombo);
-        
-        financeirosPanel.add(financeirosContent, BorderLayout.CENTER);
-        formContent.add(financeirosPanel);
-        
-        // SEÇÃO 3: Documentação
-        JPanel documentacaoPanel = new JPanel(new BorderLayout());
-        documentacaoPanel.setBackground(Color.WHITE);
-        documentacaoPanel.setBorder(BorderFactory.createTitledBorder("📄 Documentação"));
-        
-        JPanel documentacaoContent = new JPanel(PadraoLayout.criarLayoutFormulario());
-        documentacaoContent.setBackground(Color.WHITE);
-        
-        documentacaoContent.add(PadraoLayout.criarLabelFormulario("Número Documento:"));
-        PadraoLayout.estilizarCampoNumeroDocumento(numeroDocumentoField);
-        documentacaoContent.add(numeroDocumentoField);
-        
-        documentacaoContent.add(PadraoLayout.criarLabelFormulario("Status:"));
+        linha1Panel.add(valorField);
+        linha1Panel.add(PadraoLayout.criarLabelFormulario("Status:"));
         PadraoLayout.estilizarComboBox(statusCombo);
-        documentacaoContent.add(statusCombo);
+        linha1Panel.add(statusCombo);
+        linha1Panel.add(PadraoLayout.criarLabelFormulario("Forma Pagto:"));
+        PadraoLayout.estilizarComboBox(formaPagamentoCombo);
+        linha1Panel.add(formaPagamentoCombo);
+        camposPanel.add(linha1Panel);
         
-        documentacaoPanel.add(documentacaoContent, BorderLayout.CENTER);
-        formContent.add(documentacaoPanel);
+        // Linha 2: Documentação (Número Documento)
+        JPanel linha2Panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 2));
+        linha2Panel.setBackground(Color.WHITE);
+        linha2Panel.add(PadraoLayout.criarLabelFormulario("Nº Documento:"));
+        PadraoLayout.estilizarCampoNumeroDocumento(numeroDocumentoField);
+        linha2Panel.add(numeroDocumentoField);
+        camposPanel.add(linha2Panel);
         
-        // SEÇÃO 4: Observações
-        JPanel observacoesPanel = new JPanel(new BorderLayout());
-        observacoesPanel.setBackground(Color.WHITE);
-        observacoesPanel.setBorder(BorderFactory.createTitledBorder("📝 Observações"));
+        // Linha 3: Descrição (largura total)
+        JPanel linha3Panel = new JPanel(new BorderLayout(5, 2));
+        linha3Panel.setBackground(Color.WHITE);
+        linha3Panel.add(PadraoLayout.criarLabelFormulario("Descrição:"), BorderLayout.NORTH);
+        PadraoLayout.estilizarCampoDescricao(descricaoField);
+        linha3Panel.add(descricaoField, BorderLayout.CENTER);
+        camposPanel.add(linha3Panel);
         
-        observacoesPanel.add(observacoesArea, BorderLayout.CENTER);
+        // Adicionar o painel principal ao conteúdo
+        detalheMovimentacaoContent.add(camposPanel, PadraoLayout.criarConstraintsFormulario(0, 0));
+        
+                detalheMovimentacaoPanel.add(detalheMovimentacaoContent);
+        formContent.add(detalheMovimentacaoPanel);
+        
+        // SEÇÃO 2: Observações
+        JPanel observacoesPanel = PadraoLayout.criarGrupoFormulario("� Observações");
+        JPanel observacoesContent = new JPanel(new BorderLayout());
+        observacoesContent.setBackground(Color.WHITE);
+        
+        observacoesArea.setBorder(PadraoLayout.BORDA_CAMPO);
+        observacoesArea.setBackground(Color.WHITE);
+        observacoesContent.add(new JScrollPane(observacoesArea), BorderLayout.CENTER);
+        
+        observacoesPanel.add(observacoesContent);
         formContent.add(observacoesPanel);
         
         // Resumo Financeiro no formulário

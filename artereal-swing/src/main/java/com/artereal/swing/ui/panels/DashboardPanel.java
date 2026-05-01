@@ -20,8 +20,8 @@ public class DashboardPanel extends JPanel {
     }
     
     private void setupLayout() {
-        // Aplicar layout padrão usando PadraoLayout - 100% CONFORMIDADE
-        PadraoLayout.aplicarLayoutPadrao(this);
+        // Aplicar estilização padrão ao painel principal
+        PadraoLayout.estilizarPainelPrincipal(this);
         
         // Header estilizado usando PadraoLayout
         JPanel headerPanel = PadraoLayout.criarHeader("📊 Dashboard", "Estatísticas e informações do sistema ArteReal");

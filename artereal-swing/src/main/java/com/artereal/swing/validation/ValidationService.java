@@ -138,6 +138,9 @@ public class ValidationService {
      * Valida se um email tem formato válido
      */
     public static boolean isValidEmail(String email) {
+        if (email == null) {
+            return false;
+        }
         return CommonValidators.emailValido("email").validate(email).isValid();
     }
     
@@ -145,7 +148,12 @@ public class ValidationService {
      * Valida se um telefone tem formato válido
      */
     public static boolean isValidTelefone(String telefone) {
-        return CommonValidators.telefoneValido("telefone").validate(telefone).isValid();
+        if (telefone == null) {
+            return false;
+        }
+        // Aceita formatos: (11) 1234-5678, 1234-5678, (11)12345678, 12345678
+        return telefone.matches("^(\\(\\d{2}\\)\\s*)?\\d{4}-?\\d{4}$") || 
+               telefone.matches("^(\\(\\d{2}\\)\\s*)?\\d{8}$");
     }
     
     /**

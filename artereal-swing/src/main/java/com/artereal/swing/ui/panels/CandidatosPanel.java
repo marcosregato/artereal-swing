@@ -89,7 +89,8 @@ public class CandidatosPanel extends JPanel {
     
     private void setupLayout() {
         // Aplicar layout padrão usando PadraoLayout
-        PadraoLayout.aplicarLayoutPadrao(this);
+        // Aplicar estilização padrão ao painel principal
+        PadraoLayout.estilizarPainelPrincipal(this);
         
         // Header estilizado usando PadraoLayout
         JPanel headerPanel = PadraoLayout.criarHeader("👥 Gestão de Candidatos e Profanos", "Controle de admissões e iniciações maçônicas");

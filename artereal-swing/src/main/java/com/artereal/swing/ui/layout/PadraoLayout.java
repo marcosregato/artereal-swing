@@ -13,6 +13,41 @@ import javax.swing.border.Border;
  */
 public class PadraoLayout {
     
+    /**
+     * Classe interna para criar bordas arredondadas
+     */
+    public static class RoundBorder implements Border {
+        private Color color;
+        private int radius;
+        private int thickness;
+        
+        public RoundBorder(Color color, int radius, int thickness) {
+            this.color = color;
+            this.radius = radius;
+            this.thickness = thickness;
+        }
+        
+        @Override
+        public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+            Graphics2D g2d = (Graphics2D) g.create();
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2d.setColor(color);
+            g2d.setStroke(new BasicStroke(thickness));
+            g2d.drawRoundRect(x, y, width - 1, height - 1, radius, radius);
+            g2d.dispose();
+        }
+        
+        @Override
+        public Insets getBorderInsets(Component c) {
+            return new Insets(thickness, thickness, thickness, thickness);
+        }
+        
+        @Override
+        public boolean isBorderOpaque() {
+            return false;
+        }
+    }
+    
     // Cores padrão do sistema
     public static final Color COR_PRIMARIA = new Color(70, 130, 180); // Azul principal
     public static final Color COR_HEADER = new Color(25, 25, 112); // Azul marinho maçônico
@@ -28,26 +63,26 @@ public class PadraoLayout {
     public static final Color COR_SELECAO_TEXTO = new Color(25, 84, 123); // Azul escuro
     
     // Cores de botões otimizadas - MELHORES CORES para UX/UI
-    public static final Color COR_BOTAO_SALVAR = new Color(76, 175, 80); // Verde Material Design
-    public static final Color COR_BOTAO_NOVO = new Color(33, 150, 243); // Azul Material Design
-    public static final Color COR_BOTAO_EDITAR = new Color(255, 152, 0); // Laranja Material Design
-    public static final Color COR_BOTAO_EXCLUIR = new Color(244, 67, 54); // Vermelho Material Design
-    public static final Color COR_BOTAO_LIMPAR = new Color(255, 235, 59); // Amarelo Material Design
-    public static final Color COR_BOTAO_PESQUISAR = new Color(156, 39, 176); // Roxo Material Design
+    public static final Color COR_BOTAO_SALVAR = new Color(144, 238, 144); // Verde pastel
+    public static final Color COR_BOTAO_NOVO = new Color(173, 216, 230); // Azul pastel
+    public static final Color COR_BOTAO_EDITAR = new Color(255, 250, 205); // Amarelo pastel
+    public static final Color COR_BOTAO_EXCLUIR = new Color(255, 182, 193); // Rosa pastel
+    public static final Color COR_BOTAO_LIMPAR = new Color(240, 240, 240); // Cinza claro
+    public static final Color COR_BOTAO_PESQUISAR = new Color(221, 160, 221); // Roxo pastel
     public static final Color COR_BOTAO_APROVAR = new Color(0, 150, 136); // Verde-azul Material Design
     public static final Color COR_BOTAO_REJEITAR = new Color(239, 83, 80); // Vermelho claro Material Design
     public static final Color COR_BOTAO_INICIAR = new Color(255, 167, 38); // Âmbar Material Design
     
-    // Cores de texto para botões - branco para máximo contraste
-    public static final Color COR_TEXTO_BOTAO_SALVAR = Color.WHITE; // Branco
-    public static final Color COR_TEXTO_BOTAO_NOVO = Color.WHITE; // Branco
-    public static final Color COR_TEXTO_BOTAO_EDITAR = Color.WHITE; // Branco
-    public static final Color COR_TEXTO_BOTAO_EXCLUIR = Color.WHITE; // Branco
-    public static final Color COR_TEXTO_BOTAO_LIMPAR = new Color(0, 0, 0); // Preto (amarelo precisa contraste escuro)
-    public static final Color COR_TEXTO_BOTAO_PESQUISAR = Color.WHITE; // Branco
-    public static final Color COR_TEXTO_BOTAO_APROVAR = Color.WHITE; // Branco
-    public static final Color COR_TEXTO_BOTAO_REJEITAR = Color.WHITE; // Branco
-    public static final Color COR_TEXTO_BOTAO_INICIAR = Color.WHITE; // Branco
+    // Cores de texto para botões - letras escuras para melhor legibilidade
+    public static final Color COR_TEXTO_BOTAO_SALVAR = new Color(0, 0, 0); // Preto
+    public static final Color COR_TEXTO_BOTAO_NOVO = new Color(0, 0, 0); // Preto
+    public static final Color COR_TEXTO_BOTAO_EDITAR = new Color(0, 0, 0); // Preto
+    public static final Color COR_TEXTO_BOTAO_EXCLUIR = new Color(0, 0, 0); // Preto
+    public static final Color COR_TEXTO_BOTAO_LIMPAR = new Color(0, 0, 0); // Preto
+    public static final Color COR_TEXTO_BOTAO_PESQUISAR = new Color(0, 0, 0); // Preto
+    public static final Color COR_TEXTO_BOTAO_APROVAR = new Color(0, 0, 0); // Preto
+    public static final Color COR_TEXTO_BOTAO_REJEITAR = new Color(0, 0, 0); // Preto
+    public static final Color COR_TEXTO_BOTAO_INICIAR = new Color(0, 0, 0); // Preto
     
     // Cores de fundo ideais para cards - MELHORES CORES UX/UI
     public static final Color COR_CARD_PRIMARIO = new Color(255, 255, 255); // Branco puro
@@ -112,11 +147,11 @@ public class PadraoLayout {
     public static final int ALTURA_LINHA_TABELA = 25;
     public static final int MARGEM_PADRAO = 10;
     public static final int MARGEM_GRANDE = 20; // LojasPanel
-    public static final int ESPACAMENTO_CAMPOS = 8;
+    public static final int ESPACAMENTO_CAMPOS = 10;
     public static final int ESPACAMENTO_CAMPOS_CODIGO = 8; // Diminuído para distância mais compacta entre JLabel e JTextField
     public static final int ESPACAMENTO_BOTOES = 10;
     public static final int ESPACAMENTO_GRUPO = 10;
-    public static final int ESPACAMENTO_GRID = 8; // LojasPanel
+    public static final int ESPACAMENTO_GRID = 10; // LojasPanel
     public static final int LARGURA_CAMPO_PESQUISA = 200;
     public static final int ALTURA_CAMPO = 30;
     public static final int MARGEM_PAINEL = 20;
@@ -190,7 +225,7 @@ public class PadraoLayout {
         campoPesquisa.setBorder(BORDA_CAMPO);
         
         botaoPesquisa.setBackground(COR_BOTAO_PESQUISAR);
-        botaoPesquisa.setForeground(new Color(102, 51, 153));
+        botaoPesquisa.setForeground(Color.BLACK);
         botaoPesquisa.setFont(FONTE_BOTAO);
         botaoPesquisa.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(COR_BOTAO_PESQUISAR, 2),
@@ -338,12 +373,15 @@ public class PadraoLayout {
                 break;
         }
         
-        // Aplicar estilo padrão a todos os botões
+        // Aplicar estilo padrão a todos os botões com bordas arredondadas
         button.setFont(FONTE_BOTAO);
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(button.getBackground().darker(), 1),
-            BorderFactory.createEmptyBorder(8, 16, 8, 16)
+            BorderFactory.createCompoundBorder(
+                BorderFactory.createEmptyBorder(8, 16, 8, 16),
+                new RoundBorder(button.getBackground().darker(), 10, 1)
+            )
         ));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
     }
@@ -650,7 +688,7 @@ public class PadraoLayout {
         System.out.println("[PADRAO_LAYOUT] criarLabelFormulario() chamado - texto='" + texto + "'");
         JLabel label = new JLabel(texto);
         label.setFont(FONTE_GRUPO);
-        label.setForeground(new Color(70, 130, 180));
+        label.setForeground(COR_TEXTO_TITULO);
         System.out.println("[PADRAO_LAYOUT] Label estilizado - Fonte=" + FONTE_GRUPO.getName() + ", Cor=Azul(70,130,180)");
         return label;
     }
@@ -662,7 +700,7 @@ public class PadraoLayout {
         System.out.println("[PADRAO_LAYOUT] criarLabelFormularioCodigo() chamado - texto='" + texto + "'");
         JLabel label = new JLabel(texto);
         label.setFont(FONTE_GRUPO);
-        label.setForeground(new Color(70, 130, 180));
+        label.setForeground(COR_TEXTO_TITULO);
         label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, ESPACAMENTO_CAMPOS_CODIGO));
         System.out.println("[PADRAO_LAYOUT] Label Código estilizado - Fonte=" + FONTE_GRUPO.getName() + ", Cor=Azul(70,130,180), Espaçamento=" + ESPACAMENTO_CAMPOS_CODIGO);
         return label;
@@ -1518,5 +1556,22 @@ public class PadraoLayout {
             
             add(mainPanel, BorderLayout.CENTER);
         }
+    }
+    
+    /**
+     * Aplica estilização padrão a um painel principal
+     */
+    public static void estilizarPainelPrincipal(JPanel painel) {
+        painel.setBackground(COR_FUNDO);
+        painel.setBorder(BORDA_PAINEL);
+        painel.setLayout(new BorderLayout());
+    }
+    
+    /**
+     * Aplica estilização padrão a um painel de conteúdo
+     */
+    public static void estilizarPainelConteudo(JPanel painel) {
+        painel.setBackground(COR_PAINEL);
+        painel.setBorder(BORDA_CONTEUDO);
     }
 }

@@ -17,18 +17,19 @@ public class UsuarioValidator {
                     new ValidationError("nome", "Nome é obrigatório", "REQUIRED_NAME")
                 ));
             } else {
-                String nome = usuario.getNome().trim();
-                if (nome.length() < 3) {
+                String nome = usuario.getNome();
+                String nomeTrim = nome != null ? nome.trim() : "";
+                if (nomeTrim.length() < 3) {
                     result = ValidationResult.combine(result, ValidationResult.invalid(
-                        new ValidationError("nome", "Nome deve ter pelo menos 3 caracteres", "MIN_LENGTH_NAME", nome)
+                        new ValidationError("nome", "Nome deve ter pelo menos 3 caracteres", "MIN_LENGTH_NAME", nomeTrim)
                     ));
-                } else if (nome.length() > 100) {
+                } else if (nomeTrim.length() > 100) {
                     result = ValidationResult.combine(result, ValidationResult.invalid(
-                        new ValidationError("nome", "Nome deve ter no máximo 100 caracteres", "MAX_LENGTH_NAME", nome)
+                        new ValidationError("nome", "Nome deve ter no máximo 100 caracteres", "MAX_LENGTH_NAME", nomeTrim)
                     ));
-                } else if (!nome.matches("^[A-Za-zÀ-ú\\s]{3,100}$")) {
+                } else if (!nomeTrim.matches("^[A-Za-zÀ-ú\\s]{3,100}$")) {
                     result = ValidationResult.combine(result, ValidationResult.invalid(
-                        new ValidationError("nome", "Nome deve conter apenas letras e espaços", "INVALID_NAME", nome)
+                        new ValidationError("nome", "Nome deve conter apenas letras e espaços", "INVALID_NAME", nomeTrim)
                     ));
                 }
             }
@@ -46,7 +47,7 @@ public class UsuarioValidator {
                 result = ValidationResult.combine(result, ValidationResult.invalid(
                     new ValidationError("senha", "Senha deve ter no máximo 128 caracteres", "MAX_LENGTH_PASSWORD")
                 ));
-            } else if (usuario.getSenha().contains(usuario.getNome())) {
+            } else if (usuario.getNome() != null && usuario.getSenha().contains(usuario.getNome())) {
                 result = ValidationResult.combine(result, ValidationResult.invalid(
                     new ValidationError("senha", "Senha não pode conter o nome do usuário", "PASSWORD_CONTAINS_NAME")
                 ));

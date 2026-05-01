@@ -101,14 +101,17 @@ public class FrequenciaPanel extends JPanel {
         JPanel formContainer = new JPanel(new BorderLayout());
         formContainer.setBackground(Color.WHITE);
         
-        // Formulário usando PadraoLayout
-        JPanel formContent = new JPanel(PadraoLayout.criarLayoutFormulario());
+        // Container principal com layout vertical para colocar painéis um debaixo do outro
+        JPanel formContent = new JPanel();
+        formContent.setLayout(new BoxLayout(formContent, BoxLayout.Y_AXIS));
         formContent.setBackground(Color.WHITE);
+        formContent.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
         // SEÇÃO 1: Dados do Irmão
         JPanel dadosIrmaoPanel = new JPanel(new BorderLayout());
         dadosIrmaoPanel.setBackground(Color.WHITE);
         dadosIrmaoPanel.setBorder(BorderFactory.createTitledBorder("👤 Dados do Irmão"));
+        dadosIrmaoPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         JPanel dadosIrmaoContent = new JPanel(PadraoLayout.criarLayoutFormulario());
         dadosIrmaoContent.setBackground(Color.WHITE);
@@ -123,29 +126,49 @@ public class FrequenciaPanel extends JPanel {
         
         dadosIrmaoPanel.add(dadosIrmaoContent, BorderLayout.CENTER);
         formContent.add(dadosIrmaoPanel);
+        formContent.add(Box.createVerticalStrut(15)); // Espaçamento entre painéis
         
         // SEÇÃO 2: Controle de Frequência
         JPanel frequenciaPanel = new JPanel(new BorderLayout());
         frequenciaPanel.setBackground(Color.WHITE);
         frequenciaPanel.setBorder(BorderFactory.createTitledBorder("📊 Controle de Frequência"));
+        frequenciaPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
-        JPanel frequenciaContent = new JPanel(PadraoLayout.criarLayoutFormulario());
+        // Layout personalizado com 3 colunas para Presenças, Faltas e Total na mesma linha
+        JPanel frequenciaContent = new JPanel(new GridBagLayout());
         frequenciaContent.setBackground(Color.WHITE);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         
-        frequenciaContent.add(PadraoLayout.criarLabelFormulario("Presenças:"));
+        // Presenças - coluna 0
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        frequenciaContent.add(PadraoLayout.criarLabelFormulario("Presenças:"), gbc);
+        gbc.gridx = 1;
         PadraoLayout.estilizarCampoContagemFrequencia(presencasField);
-        frequenciaContent.add(presencasField);
+        frequenciaContent.add(presencasField, gbc);
         
-        frequenciaContent.add(PadraoLayout.criarLabelFormulario("Faltas:"));
+        // Faltas - coluna 2
+        gbc.gridx = 2;
+        gbc.gridy = 0;
+        frequenciaContent.add(PadraoLayout.criarLabelFormulario("Faltas:"), gbc);
+        gbc.gridx = 3;
         PadraoLayout.estilizarCampoContagemFrequencia(faltasField);
-        frequenciaContent.add(faltasField);
+        frequenciaContent.add(faltasField, gbc);
         
-        frequenciaContent.add(PadraoLayout.criarLabelFormulario("Total:"));
+        // Total - coluna 4
+        gbc.gridx = 4;
+        gbc.gridy = 0;
+        frequenciaContent.add(PadraoLayout.criarLabelFormulario("Total:"), gbc);
+        gbc.gridx = 5;
         PadraoLayout.estilizarCampoContagemFrequencia(totalField);
-        frequenciaContent.add(totalField);
+        frequenciaContent.add(totalField, gbc);
         
         frequenciaPanel.add(frequenciaContent, BorderLayout.CENTER);
         formContent.add(frequenciaPanel);
+        formContent.add(Box.createVerticalStrut(15)); // Espaçamento após o segundo painel
         
         // Painel de botões
         JPanel botoesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
@@ -208,12 +231,12 @@ public class FrequenciaPanel extends JPanel {
         statsContainer.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
         statsContainer.add(statsPanel, BorderLayout.CENTER);
         
-        // Estrutura vertical: Formulário → Estatísticas → Tabela
+        // Estrutura vertical: Formulário → Tabela → Estatísticas
         JPanel verticalPanel = new JPanel(new BorderLayout());
         verticalPanel.setBackground(PadraoLayout.COR_FUNDO);
         verticalPanel.add(formPanel, BorderLayout.NORTH);
-        verticalPanel.add(statsContainer, BorderLayout.CENTER);
-        verticalPanel.add(tabelaPanel, BorderLayout.SOUTH);
+        verticalPanel.add(tabelaPanel, BorderLayout.CENTER);
+        verticalPanel.add(statsContainer, BorderLayout.SOUTH);
         
         contentPanel.add(verticalPanel, BorderLayout.CENTER);
         

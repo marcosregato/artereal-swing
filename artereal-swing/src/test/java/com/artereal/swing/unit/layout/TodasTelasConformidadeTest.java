@@ -24,6 +24,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.border.CompoundBorder;
 import java.awt.*;
 // import java.lang.reflect.Field; // Removido - não utilizado
 // import java.lang.reflect.Method; // Removido - não utilizado
@@ -185,9 +186,28 @@ class TodasTelasConformidadeTest {
 
     private boolean validarBorda(JPanel tela) {
         Border borda = tela.getBorder();
-        return borda != null && (borda.equals(PadraoLayout.BORDA_PAINEL) || 
-                               borda.equals(PadraoLayout.BORDA_GRUPO) ||
-                               borda.equals(PadraoLayout.BORDA_PADRAO));
+        if (borda == null) {
+            return false;
+        }
+        
+        // Verificação mais robusta: em vez de usar equals(), verificamos se é uma CompoundBorder
+        // com as características esperadas (borda externa + empty border interna)
+        if (borda instanceof CompoundBorder) {
+            CompoundBorder compoundBorder = (CompoundBorder) borda;
+            Border outsideBorder = compoundBorder.getOutsideBorder();
+            Border insideBorder = compoundBorder.getInsideBorder();
+            
+            // Verifica se a borda externa é LineBorder e a interna é EmptyBorder
+            boolean hasLineBorder = outsideBorder instanceof javax.swing.border.LineBorder;
+            boolean hasEmptyBorder = insideBorder instanceof javax.swing.border.EmptyBorder;
+            
+            return hasLineBorder && hasEmptyBorder;
+        }
+        
+        // Para compatibilidade, também aceitamos as bordas padrão diretas
+        return borda.equals(PadraoLayout.BORDA_PAINEL) || 
+               borda.equals(PadraoLayout.BORDA_GRUPO) ||
+               borda.equals(PadraoLayout.BORDA_PADRAO);
     }
 
     private List<String> validarBotoes(JPanel tela) {

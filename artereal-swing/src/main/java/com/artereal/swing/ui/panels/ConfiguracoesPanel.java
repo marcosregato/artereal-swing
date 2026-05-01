@@ -73,7 +73,8 @@ public class ConfiguracoesPanel extends JPanel {
     
     private void setupLayout() {
         // Aplicar layout padrão usando PadraoLayout - 100% CONFORMIDADE
-        PadraoLayout.aplicarLayoutPadrao(this);
+        // Aplicar estilização padrão ao painel principal
+        PadraoLayout.estilizarPainelPrincipal(this);
         
         // Header estilizado usando PadraoLayout
         JPanel headerPanel = PadraoLayout.criarHeader("⚙️ Configurações Globais", "Parâmetros e preferências do sistema");

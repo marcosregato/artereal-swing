@@ -70,7 +70,8 @@ public class GaleriaFotosPanel extends JPanel {
     
     private void setupLayout() {
         // Aplicar layout padrão usando PadraoLayout
-        PadraoLayout.aplicarLayoutPadrao(this);
+        // Aplicar estilização padrão ao painel principal
+        PadraoLayout.estilizarPainelPrincipal(this);
         
         // Header estilizado usando PadraoLayout
         JPanel headerPanel = PadraoLayout.criarHeader("🖼️ Galeria de Fotos", "Álbum de fotos e eventos maçônicos");

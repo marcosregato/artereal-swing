@@ -142,8 +142,8 @@ public class BibliotecaPanel extends JPanel {
     }
     
     private void setupLayout() {
-        // Aplicar layout padrão usando PadraoLayout
-        PadraoLayout.aplicarLayoutPadrao(this);
+        // Aplicar estilização padrão ao painel principal
+        PadraoLayout.estilizarPainelPrincipal(this);
         
         // Header estilizado usando PadraoLayout
         JPanel headerPanel = PadraoLayout.criarHeader("📚 Biblioteca Maçônica", "Gestão de livros e empréstimos");
@@ -197,19 +197,6 @@ public class BibliotecaPanel extends JPanel {
         PadraoLayout.estilizarComboBox(tipoCombo);
         tipoLivroPanel.add(tipoCombo);
         
-        // Adicionar os painéis à primeira linha
-        primeiraLinhaLivroPanel.add(codigoLivroPanel);
-        primeiraLinhaLivroPanel.add(Box.createHorizontalStrut(20)); // Espaço entre os campos
-        primeiraLinhaLivroPanel.add(tipoLivroPanel);
-        
-        // Adicionar o painel da primeira linha ao conteúdo
-        dadosLivroContent.add(primeiraLinhaLivroPanel);
-        dadosLivroContent.add(Box.createVerticalStrut(5)); // Espaço vertical
-        
-        // Segunda linha: ISBN e Ano
-        JPanel segundaLinhaLivroPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        segundaLinhaLivroPanel.setBackground(Color.WHITE);
-        
         // Campo ISBN
         JPanel isbnLivroPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         isbnLivroPanel.setBackground(Color.WHITE);
@@ -224,13 +211,18 @@ public class BibliotecaPanel extends JPanel {
         PadraoLayout.estilizarCampoAnoPublicacao(anoPublicacaoField);
         anoLivroPanel.add(anoPublicacaoField);
         
-        // Adicionar os painéis à segunda linha
-        segundaLinhaLivroPanel.add(isbnLivroPanel);
-        segundaLinhaLivroPanel.add(Box.createHorizontalStrut(20)); // Espaço entre os campos
-        segundaLinhaLivroPanel.add(anoLivroPanel);
+        // Adicionar os painéis à primeira linha (Código, Tipo, ISBN, Ano)
+        primeiraLinhaLivroPanel.add(codigoLivroPanel);
+        primeiraLinhaLivroPanel.add(Box.createHorizontalStrut(20)); // Espaço entre os campos
+        primeiraLinhaLivroPanel.add(tipoLivroPanel);
+        primeiraLinhaLivroPanel.add(Box.createHorizontalStrut(20)); // Espaço entre os campos
+        primeiraLinhaLivroPanel.add(isbnLivroPanel);
+        primeiraLinhaLivroPanel.add(Box.createHorizontalStrut(20)); // Espaço entre os campos
+        primeiraLinhaLivroPanel.add(anoLivroPanel);
         
-        // Adicionar o painel da segunda linha ao conteúdo
-        dadosLivroContent.add(segundaLinhaLivroPanel);
+        // Adicionar o painel da primeira linha ao conteúdo
+        dadosLivroContent.add(primeiraLinhaLivroPanel);
+        dadosLivroContent.add(Box.createVerticalStrut(5)); // Espaço vertical
         
         dadosLivroPanel.add(dadosLivroContent, BorderLayout.CENTER);
         formContent.add(dadosLivroPanel);

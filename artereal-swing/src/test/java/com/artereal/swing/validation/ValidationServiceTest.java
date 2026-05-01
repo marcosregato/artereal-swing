@@ -55,7 +55,8 @@ class ValidationServiceTest {
         ValidationResult result = ValidationService.validateUsuarioForCreation(usuario);
 
         assertFalse(result.isValid(), "Usuário com nome nulo deve falhar na validação");
-        assertTrue(result.getErrorMessage().contains("Nome é obrigatório"), 
+        String errorMessage = result.getErrorMessage();
+        assertTrue(errorMessage != null && errorMessage.contains("Nome é obrigatório"), 
             "Mensagem deve mencionar nome obrigatório");
     }
 

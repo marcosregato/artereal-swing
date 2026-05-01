@@ -101,7 +101,8 @@ public class SessoesPanel extends JPanel {
     
     private void setupLayout() {
         // Aplicar layout padrão usando PadraoLayout - 100% CONFORMIDADE
-        PadraoLayout.aplicarLayoutPadrao(this);
+        // Aplicar estilização padrão ao painel principal
+        PadraoLayout.estilizarPainelPrincipal(this);
         
         // Header estilizado usando PadraoLayout
         JPanel headerPanel = PadraoLayout.criarHeader("📝 Gestão de Sessões", "Cadastro e administração de sessões maçônicas");
@@ -137,39 +138,39 @@ public class SessoesPanel extends JPanel {
         JPanel formContainer = new JPanel(new BorderLayout());
         formContainer.setBackground(Color.WHITE);
         
-        // Grupo 1: Dados Básicos usando PadraoLayout com alinhamento correto
-        JPanel dadosBasicosPanel = PadraoLayout.criarGrupoFormulario("📅 Dados Básicos");
-        JPanel dadosBasicosContent = new JPanel(PadraoLayout.criarLayoutFormularioAlinhado());
-        dadosBasicosContent.setBackground(Color.WHITE);
+        // Grupo 1: Dados da Sessão usando PadraoLayout com alinhamento correto
+        JPanel dadosSessaoPanel = PadraoLayout.criarGrupoFormulario("📅 Dados da Sessão");
+        JPanel dadosSessaoContent = new JPanel(PadraoLayout.criarLayoutFormularioAlinhado());
+        dadosSessaoContent.setBackground(Color.WHITE);
         
         // Código
-        dadosBasicosContent.add(PadraoLayout.criarLabelFormularioCodigo("Código:"), PadraoLayout.criarConstraintsFormulario(0, 0));
+        dadosSessaoContent.add(PadraoLayout.criarLabelFormularioCodigo("Código:"), PadraoLayout.criarConstraintsFormulario(0, 0));
         PadraoLayout.estilizarCampoCodigo(codigoField); // Usando método específico
-        dadosBasicosContent.add(codigoField, PadraoLayout.criarConstraintsFormulario(0, 1));
+        dadosSessaoContent.add(codigoField, PadraoLayout.criarConstraintsFormulario(0, 1));
         
         // Data e Hora
-        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Data e Hora:"), PadraoLayout.criarConstraintsFormulario(1, 0));
+        dadosSessaoContent.add(PadraoLayout.criarLabelFormulario("Data e Hora:"), PadraoLayout.criarConstraintsFormulario(1, 0));
         PadraoLayout.estilizarCampoDataHora(dataHoraField); // Usando método específico
-        dadosBasicosContent.add(dataHoraField, PadraoLayout.criarConstraintsFormulario(1, 1));
+        dadosSessaoContent.add(dataHoraField, PadraoLayout.criarConstraintsFormulario(1, 1));
         
         // Local (ocupa duas colunas)
         GridBagConstraints localLabelConstraints = PadraoLayout.criarConstraintsFormulario(2, 0);
         localLabelConstraints.gridwidth = 2;
         localLabelConstraints.fill = GridBagConstraints.HORIZONTAL;
-        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Local:"), localLabelConstraints);
+        dadosSessaoContent.add(PadraoLayout.criarLabelFormulario("Local:"), localLabelConstraints);
         
         GridBagConstraints localFieldConstraints = PadraoLayout.criarConstraintsFormulario(3, 0);
         localFieldConstraints.gridwidth = 2;
         localFieldConstraints.fill = GridBagConstraints.HORIZONTAL;
         PadraoLayout.estilizarCampoLocalSessao(localField); // Usando método específico
-        dadosBasicosContent.add(localField, localFieldConstraints);
+        dadosSessaoContent.add(localField, localFieldConstraints);
         
         // Tipo
-        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Tipo:"), PadraoLayout.criarConstraintsFormulario(4, 0));
+        dadosSessaoContent.add(PadraoLayout.criarLabelFormulario("Tipo:"), PadraoLayout.criarConstraintsFormulario(4, 0));
         PadraoLayout.estilizarComboBox(tipoCombo);
-        dadosBasicosContent.add(tipoCombo, PadraoLayout.criarConstraintsFormulario(4, 1));
+        dadosSessaoContent.add(tipoCombo, PadraoLayout.criarConstraintsFormulario(4, 1));
         
-        dadosBasicosPanel.add(dadosBasicosContent);
+        dadosSessaoPanel.add(dadosSessaoContent);
         
         // Grupo 2: Diretoria usando PadraoLayout com alinhamento correto
         JPanel diretoriaPanel = PadraoLayout.criarGrupoFormulario("👥 Diretoria da Sessão");
@@ -243,7 +244,7 @@ public class SessoesPanel extends JPanel {
         
         // Organizar grupos verticalmente usando PadraoLayout
         JPanel allGroups = PadraoLayout.criarFormularioMultiplosGrupos(
-            dadosBasicosPanel, diretoriaPanel, participantesPanel, conteudoPanel
+            dadosSessaoPanel, diretoriaPanel, participantesPanel, conteudoPanel
         );
         
         // Adicionar scroll ao formulário usando PadraoLayout

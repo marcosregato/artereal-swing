@@ -33,7 +33,7 @@ public class MainFrame extends JFrame {
     private BibliotecaPanel bibliotecaPanel;
     private RelatoriosPanel relatoriosPanel;
     private FrequenciaPanel frequenciaPanel;
-    private ChequesPanel chequesPanel;
+    private DespesasPanel despesasPanel;
     private VisitantesPanel visitantesPanel;
     private DocumentosPanel documentosPanel;
     private CalendarioPanel calendarioPanel;
@@ -207,11 +207,11 @@ public class MainFrame extends JFrame {
         JMenu financeiroMenu = new JMenu("Financeiro");
         financeiroMenu.setMnemonic('F');
         
-        JMenuItem chequesMenuItem = new JMenuItem("Cheques");
-        chequesMenuItem.setMnemonic('C');
-        chequesMenuItem.addActionListener(e -> showCheques());
+        JMenuItem despesasMenuItem = new JMenuItem("Despesas");
+        despesasMenuItem.setMnemonic('D');
+        despesasMenuItem.addActionListener(e -> showDespesas());
         
-        financeiroMenu.add(chequesMenuItem);
+        financeiroMenu.add(despesasMenuItem);
         
         // Menu Documental
         JMenu documentalMenu = new JMenu("Documental");
@@ -447,12 +447,22 @@ public class MainFrame extends JFrame {
         configuracoesPanel.refreshData();
     }
     
-    public void showCheques() {
+    public void showDespesas() {
+        if (despesasPanel == null) {
+            logger.info("Criando DespesasPanel (lazy initialization)");
+            statusLabel.setText("Carregando Gestão de Despesas...");
+            despesasPanel = new DespesasPanel();
+            contentPanel.add(despesasPanel, "DESPESAS");
+        }
+        
         CardLayout cl = (CardLayout) contentPanel.getLayout();
-        cl.show(contentPanel, "CHEQUES");
-        setTitle(TITLE + " - Cheques");
-        statusLabel.setText("Gestão de Cheques");
-        chequesPanel.refreshData();
+        cl.show(contentPanel, "DESPESAS");
+        setTitle(TITLE + " - Despesas");
+        statusLabel.setText("Gestão de Despesas");
+        
+        if (despesasPanel != null) {
+            despesasPanel.refreshData();
+        }
     }
     
     public void showVisitantes() {
