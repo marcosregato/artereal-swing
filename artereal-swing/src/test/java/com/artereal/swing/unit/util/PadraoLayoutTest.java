@@ -172,7 +172,6 @@ class PadraoLayoutTest {
         // Arrange
         JTextField campo = new JTextField();
         Border bordaOriginal = campo.getBorder();
-        Color fundoOriginal = campo.getBackground();
 
         // Act
         PadraoLayout.estilizarCampoTexto(campo);

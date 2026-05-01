@@ -27,6 +27,8 @@ public class UsuariosPanel extends JPanel {
     private JButton salvarButton;
     private JButton novoButton;
     private JButton excluirButton;
+    private JTextField pesquisarField;
+    private JButton pesquisarButton;
     private Usuario usuarioAtual;
     
     public UsuariosPanel() {
@@ -48,8 +50,8 @@ public class UsuariosPanel extends JPanel {
         usuariosTable = new JTable(tableModel);
         
         // Formulário
-        nomeField = new JTextField(20);
-        senhaField = new JPasswordField(20);
+        nomeField = new JTextField();
+        senhaField = new JPasswordField();
         adminCheckBox = new JCheckBox("Administrador");
         permissaoPagarCheckBox = new JCheckBox("Pagar");
         permissaoReceberCheckBox = new JCheckBox("Receber");
@@ -60,81 +62,128 @@ public class UsuariosPanel extends JPanel {
         novoButton = PadraoLayout.criarBotaoNovo();
         excluirButton = PadraoLayout.criarBotaoExcluir();
         
+        // Pesquisa
+        pesquisarField = new JTextField(20);
+        pesquisarButton = PadraoLayout.criarBotaoPesquisar();
+        
+        // Aplicar cores pastéis nos botões usando PadraoLayout
+        PadraoLayout.aplicarCoresPastelBotoesUsuarios(salvarButton, novoButton, excluirButton);
+        
         usuarioAtual = null;
     }
     
     private void setupLayout() {
-        // Aplicar layout padrão usando PadraoLayout - CORREÇÃO EM LOTE
-        this.setBorder(PadraoLayout.BORDA_PAINEL);
-        this.setBackground(PadraoLayout.COR_FUNDO);
+        // Aplicar layout padrão usando PadraoLayout
+        PadraoLayout.aplicarLayoutPadrao(this);
         
         // Header estilizado usando PadraoLayout
         JPanel headerPanel = PadraoLayout.criarHeader("👤 Gestão de Usuários", "Administração de contas e permissões");
         add(headerPanel, BorderLayout.NORTH);
         
-        // Painel de formulário usando PadraoLayout - CORREÇÃO EM LOTE
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBackground(PadraoLayout.COR_PAINEL);
-        formPanel.setBorder(PadraoLayout.BORDA_GRUPO);
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.anchor = GridBagConstraints.WEST;
+        // Painel principal usando PadraoLayout
+        JPanel mainPanel = PadraoLayout.criarPainelPrincipal();
         
-        // Nome usando PadraoLayout
-        gbc.gridx = 0; gbc.gridy = 0;
-        formPanel.add(PadraoLayout.criarLabelFormulario("Nome:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        PadraoLayout.estilizarCampoTexto(nomeField);
-        formPanel.add(nomeField, gbc);
+        // Painel de busca no topo
+        JPanel buscaPanel = PadraoLayout.criarPainelPesquisa(pesquisarField, pesquisarButton);
+        mainPanel.add(buscaPanel, BorderLayout.NORTH);
         
-        // Senha usando PadraoLayout
-        gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(PadraoLayout.criarLabelFormulario("Senha:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        PadraoLayout.estilizarCampoTexto(senhaField);
-        formPanel.add(senhaField, gbc);
+        // Painel do conteúdo com split vertical (Formulário acima, Tabela abaixo)
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBackground(PadraoLayout.COR_FUNDO);
         
-        // Permissões usando PadraoLayout
-        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(PadraoLayout.criarLabelFormulario("Permissões:"), gbc);
+        // Painel de formulário usando PadraoLayout
+        JPanel formPanel = PadraoLayout.criarGrupoFormulario("📝 Dados do Usuário");
+        JPanel formContainer = new JPanel(new BorderLayout());
+        formContainer.setBackground(Color.WHITE);
+        
+        // SEÇÃO 1: Dados do Usuario
+        JPanel dadosUsuarioPanel = new JPanel(new BorderLayout());
+        dadosUsuarioPanel.setBackground(Color.WHITE);
+        dadosUsuarioPanel.setBorder(BorderFactory.createTitledBorder("👤 Dados do Usuario"));
+        
+        JPanel dadosUsuarioContent = new JPanel();
+        dadosUsuarioContent.setLayout(new BoxLayout(dadosUsuarioContent, BoxLayout.Y_AXIS));
+        dadosUsuarioContent.setBackground(Color.WHITE);
+        
+        // Primeira linha: Nome e Senha
+        JPanel primeiraLinhaUsuarioPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        primeiraLinhaUsuarioPanel.setBackground(Color.WHITE);
+        
+        // Campo Nome
+        JPanel nomeUsuarioPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        nomeUsuarioPanel.setBackground(Color.WHITE);
+        nomeUsuarioPanel.add(PadraoLayout.criarLabelFormulario("Nome:"));
+        PadraoLayout.estilizarCampoNomeUsuario(nomeField);
+        nomeUsuarioPanel.add(nomeField);
+        
+        // Campo Senha
+        JPanel senhaUsuarioPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        senhaUsuarioPanel.setBackground(Color.WHITE);
+        senhaUsuarioPanel.add(PadraoLayout.criarLabelFormulario("Senha:"));
+        PadraoLayout.estilizarCampoSenha(senhaField);
+        senhaUsuarioPanel.add(senhaField);
+        
+        // Adicionar os painéis à primeira linha
+        primeiraLinhaUsuarioPanel.add(nomeUsuarioPanel);
+        primeiraLinhaUsuarioPanel.add(Box.createHorizontalStrut(20)); // Espaço entre os campos
+        primeiraLinhaUsuarioPanel.add(senhaUsuarioPanel);
+        
+        // Adicionar o painel da primeira linha ao conteúdo
+        dadosUsuarioContent.add(primeiraLinhaUsuarioPanel);
+        
+        dadosUsuarioPanel.add(dadosUsuarioContent, BorderLayout.CENTER);
+        formContainer.add(dadosUsuarioPanel, BorderLayout.NORTH);
+        
+        // SEÇÃO 2: Permissões do Usuário
+        JPanel permissoesUsuarioPanel = new JPanel(new BorderLayout());
+        permissoesUsuarioPanel.setBackground(Color.WHITE);
+        permissoesUsuarioPanel.setBorder(BorderFactory.createTitledBorder("🔐 Permissões do Usuário"));
+        
+        JPanel permissoesContent = new JPanel(new BorderLayout());
+        permissoesContent.setBackground(Color.WHITE);
+        
+        permissoesContent.add(PadraoLayout.criarLabelFormulario("Permissões:"), BorderLayout.NORTH);
         
         JPanel permissoesPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        permissoesPanel.setBackground(Color.WHITE);
         permissoesPanel.add(adminCheckBox);
         permissoesPanel.add(permissaoPagarCheckBox);
         permissoesPanel.add(permissaoReceberCheckBox);
         permissoesPanel.add(permissaoBackupCheckBox);
         
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(permissoesPanel, gbc);
+        permissoesContent.add(permissoesPanel, BorderLayout.CENTER);
+        permissoesUsuarioPanel.add(permissoesContent, BorderLayout.CENTER);
+        formContainer.add(permissoesUsuarioPanel, BorderLayout.CENTER);
         
-        // Botões do formulário
-        JPanel botoesFormPanel = new JPanel(new FlowLayout());
-        botoesFormPanel.add(salvarButton);
-        botoesFormPanel.add(novoButton);
-        botoesFormPanel.add(excluirButton);
+        // Painel de botões
+        JPanel botoesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        botoesPanel.setBackground(Color.WHITE);
+        botoesPanel.add(salvarButton);
+        botoesPanel.add(novoButton);
+        botoesPanel.add(excluirButton);
         
-        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        formPanel.add(botoesFormPanel, gbc);
+        formContainer.add(botoesPanel, BorderLayout.SOUTH);
         
-        // Tabela estilizada usando PadraoLayout - CORREÇÃO EM LOTE
+        formPanel.add(formContainer, BorderLayout.CENTER);
+        
+        // Painel de tabela usando PadraoLayout
+        JPanel tabelaPanel = PadraoLayout.criarGrupoFormulario("👥 Usuários Cadastrados");
         PadraoLayout.configurarTabela(usuariosTable);
+        JScrollPane tableScrollPane = new JScrollPane(usuariosTable);
         
-        // Painel da tabela usando PadraoLayout - CORREÇÃO EM LOTE
-        JPanel tabelaPanel = new JPanel(new BorderLayout());
-        tabelaPanel.setBackground(PadraoLayout.COR_PAINEL);
-        tabelaPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
-        tabelaPanel.setBackground(Color.WHITE);
-        tabelaPanel.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
-        tabelaPanel.add(new JScrollPane(usuariosTable), BorderLayout.CENTER);
+        tabelaPanel.add(tableScrollPane, BorderLayout.CENTER);
         
-        // Layout principal com split
-        JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        mainSplitPane.setLeftComponent(formPanel);
-        mainSplitPane.setRightComponent(tabelaPanel);
-        mainSplitPane.setDividerLocation(400);
+        // Split vertical: Formulário acima (50%), Tabela abaixo (50%)
+        JSplitPane verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formPanel, tabelaPanel);
+        verticalSplitPane.setDividerLocation(300);
+        verticalSplitPane.setResizeWeight(0.5);
         
-        add(headerPanel, BorderLayout.NORTH);
-        add(mainSplitPane, BorderLayout.CENTER);
+        contentPanel.add(verticalSplitPane, BorderLayout.CENTER);
+        
+        // Adicionar contentPanel ao mainPanel
+        mainPanel.add(contentPanel, BorderLayout.CENTER);
+        
+        add(mainPanel, BorderLayout.CENTER);
     }
     
     private void setupEvents() {

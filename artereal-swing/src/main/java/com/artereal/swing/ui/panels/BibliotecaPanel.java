@@ -90,11 +90,11 @@ public class BibliotecaPanel extends JPanel {
         bibliotecaTable = new JTable(tableModel);
         
         // Formulário
-        codigoField = new JTextField(10);
+        codigoField = new JTextField();
         codigoField.setEditable(false);
         
         tipoCombo = new JComboBox<>(new String[]{"LIVRO", "EMPRESTIMO"});
-        tituloField = new JTextField(40);
+        tituloField = new JTextField();
         autorField = new JTextField(30);
         isbnField = new JTextField(15);
         editoraField = new JTextField(25);
@@ -107,12 +107,12 @@ public class BibliotecaPanel extends JPanel {
         });
         
         // Campos para empréstimo
-        nomeLeitorField = new JTextField(30);
-        dataEmprestimoField = new JTextField(10);
-        dataDevolucaoPrevistaField = new JTextField(10);
-        dataDevolucaoRealField = new JTextField(10);
-        responsavelEmprestimoField = new JTextField(25);
-        multaField = new JTextField(10);
+        nomeLeitorField = new JTextField();
+        dataEmprestimoField = new JTextField();
+        dataDevolucaoPrevistaField = new JTextField();
+        dataDevolucaoRealField = new JTextField();
+        responsavelEmprestimoField = new JTextField();
+        multaField = new JTextField();
         
         observacoesArea = new JTextArea(3, 40);
         observacoesArea.setLineWrap(true);
@@ -129,6 +129,11 @@ public class BibliotecaPanel extends JPanel {
         devolverButton = PadraoLayout.criarBotao("Devolver", new Color(152, 251, 152)); // Verde menta pastel
         pesquisarField = new JTextField(20);
         
+        // Aplicar cores pastéis nos botões usando PadraoLayout
+        PadraoLayout.aplicarCoresPastelBotoesPrincipais(salvarButton, novoButton, editarButton, excluirButton, limparButton);
+        PadraoLayout.aplicarCoresPastelBotao(emprestarButton, "editar"); // Usa cor de editar para emprestar
+        PadraoLayout.aplicarCoresPastelBotao(devolverButton, "salvar"); // Usa cor de salvar para devolver
+        
         // Labels de estatísticas
         totalLivrosLabel = new JLabel("0");
         livrosDisponiveisLabel = new JLabel("0");
@@ -140,107 +145,184 @@ public class BibliotecaPanel extends JPanel {
         // Aplicar layout padrão usando PadraoLayout
         PadraoLayout.aplicarLayoutPadrao(this);
         
-        // Header usando PadraoLayout
+        // Header estilizado usando PadraoLayout
         JPanel headerPanel = PadraoLayout.criarHeader("📚 Biblioteca Maçônica", "Gestão de livros e empréstimos");
         add(headerPanel, BorderLayout.NORTH);
         
-        // Painel principal com split
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        splitPane.setDividerLocation(650);
-        splitPane.setResizeWeight(0.6);
+        // Painel principal usando PadraoLayout
+        JPanel mainPanel = PadraoLayout.criarPainelPrincipal();
         
-        // Painel esquerdo - Tabela
-        JPanel leftPanel = new JPanel(new BorderLayout());
-        leftPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 5));
-        leftPanel.setBackground(Color.WHITE);
+        // Painel de busca no topo
+        JPanel buscaPanel = PadraoLayout.criarPainelPesquisa(pesquisarField, pesquisarButton);
+        mainPanel.add(buscaPanel, BorderLayout.NORTH);
         
-        // Painel de pesquisa simplificado
-        JPanel pesquisaPanel = PadraoLayout.criarGrupoFormulario("🔍 Pesquisa");
-        JPanel pesquisaContent = new JPanel(new BorderLayout());
-        pesquisaContent.setBackground(Color.WHITE);
-        pesquisaContent.add(new JLabel("Pesquisar:"), BorderLayout.WEST);
-        pesquisaContent.add(pesquisarField, BorderLayout.CENTER);
-        pesquisaPanel.add(pesquisaContent);
+        // Painel do conteúdo com split vertical (Formulário acima, Tabela abaixo)
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBackground(PadraoLayout.COR_FUNDO);
         
-        // Tabela estilizada usando PadraoLayout
-        PadraoLayout.configurarTabela(bibliotecaTable);
-        JScrollPane tableScrollPane = new JScrollPane(bibliotecaTable);
-        
-        leftPanel.add(pesquisaPanel, BorderLayout.NORTH);
-        leftPanel.add(tableScrollPane, BorderLayout.CENTER);
-        
-        // Painel direito - Formulário simplificado
-        JPanel rightPanel = new JPanel(new BorderLayout());
-        rightPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 10));
-        
-        // Header do formulário usando PadraoLayout
-        JPanel formHeaderPanel = PadraoLayout.criarHeader("📝 Detalhes do Livro", "");
-        rightPanel.add(formHeaderPanel, BorderLayout.NORTH);
-        
-        // Formulário usando PadraoLayout
-        System.out.println("[BIBLIOTECA_PANEL] Iniciando setupLayout do formulário BibliotecaPanel");
+        // Painel de formulário usando PadraoLayout
         JPanel formPanel = PadraoLayout.criarGrupoFormulario("📚 Dados do Livro");
-        System.out.println("[BIBLIOTECA_PANEL] Grupo formulário criado: Dados do Livro");
-        JPanel formContent = new JPanel(PadraoLayout.criarLayoutFormulario());
+        JPanel formContainer = new JPanel(new BorderLayout());
+        formContainer.setBackground(Color.WHITE);
+        
+        // Formulário usando BoxLayout vertical para organizar JPanel um de baixo do outro
+        JPanel formContent = new JPanel();
+        formContent.setLayout(new BoxLayout(formContent, BoxLayout.Y_AXIS));
         formContent.setBackground(Color.WHITE);
-        System.out.println("[BIBLIOTECA_PANEL] Layout de formulário aplicado com criarLayoutFormulario()");
         
-        // Adicionar campos básicos com estilização PadraoLayout
-        formContent.add(PadraoLayout.criarLabelFormulario("🔢 Código:"));
-        codigoField.setEditable(false);
-        codigoField.setBackground(new Color(240, 240, 245));
-        PadraoLayout.estilizarCampoTexto(codigoField);
-        formContent.add(codigoField);
+        // SEÇÃO 1: Dados do Livro
+        JPanel dadosLivroPanel = new JPanel(new BorderLayout());
+        dadosLivroPanel.setBackground(Color.WHITE);
+        dadosLivroPanel.setBorder(BorderFactory.createTitledBorder("📚 Dados do Livro"));
         
-        formContent.add(PadraoLayout.criarLabelFormulario("📂 Tipo:"));
+        JPanel dadosLivroContent = new JPanel();
+        dadosLivroContent.setLayout(new BoxLayout(dadosLivroContent, BoxLayout.Y_AXIS));
+        dadosLivroContent.setBackground(Color.WHITE);
+        
+        // Primeira linha: Código e Tipo
+        JPanel primeiraLinhaLivroPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        primeiraLinhaLivroPanel.setBackground(Color.WHITE);
+        
+        // Campo Código
+        JPanel codigoLivroPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        codigoLivroPanel.setBackground(Color.WHITE);
+        codigoLivroPanel.add(PadraoLayout.criarLabelFormularioCodigo("Código:"));
+        PadraoLayout.estilizarCampoCodigo(codigoField);
+        codigoLivroPanel.add(codigoField);
+        
+        // Campo Tipo
+        JPanel tipoLivroPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        tipoLivroPanel.setBackground(Color.WHITE);
+        tipoLivroPanel.add(PadraoLayout.criarLabelFormulario("Tipo:"));
         PadraoLayout.estilizarComboBox(tipoCombo);
-        formContent.add(tipoCombo);
+        tipoLivroPanel.add(tipoCombo);
         
-        formContent.add(PadraoLayout.criarLabelFormulario("📖 Título:"));
-        PadraoLayout.estilizarCampoTexto(tituloField);
-        formContent.add(tituloField);
+        // Adicionar os painéis à primeira linha
+        primeiraLinhaLivroPanel.add(codigoLivroPanel);
+        primeiraLinhaLivroPanel.add(Box.createHorizontalStrut(20)); // Espaço entre os campos
+        primeiraLinhaLivroPanel.add(tipoLivroPanel);
         
-        formContent.add(PadraoLayout.criarLabelFormulario("✍️ Autor:"));
-        PadraoLayout.estilizarCampoTexto(autorField);
-        formContent.add(autorField);
+        // Adicionar o painel da primeira linha ao conteúdo
+        dadosLivroContent.add(primeiraLinhaLivroPanel);
+        dadosLivroContent.add(Box.createVerticalStrut(5)); // Espaço vertical
         
-        // ISBN com estilização PadraoLayout
-        formContent.add(PadraoLayout.criarLabelFormulario("📋 ISBN:"));
-        PadraoLayout.estilizarCampoTexto(isbnField);
-        formContent.add(isbnField);
+        // Segunda linha: ISBN e Ano
+        JPanel segundaLinhaLivroPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        segundaLinhaLivroPanel.setBackground(Color.WHITE);
         
-        // Editora com estilização PadraoLayout
-        formContent.add(PadraoLayout.criarLabelFormulario("🏢 Editora:"));
-        PadraoLayout.estilizarCampoTexto(editoraField);
-        formContent.add(editoraField);
+        // Campo ISBN
+        JPanel isbnLivroPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        isbnLivroPanel.setBackground(Color.WHITE);
+        isbnLivroPanel.add(PadraoLayout.criarLabelFormulario("ISBN:"));
+        PadraoLayout.estilizarCampoISBN(isbnField);
+        isbnLivroPanel.add(isbnField);
         
-        // Ano com estilização PadraoLayout
-        formContent.add(PadraoLayout.criarLabelFormulario("📅 Ano:"));
-        PadraoLayout.estilizarCampoTexto(anoPublicacaoField);
-        formContent.add(anoPublicacaoField);
+        // Campo Ano
+        JPanel anoLivroPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        anoLivroPanel.setBackground(Color.WHITE);
+        anoLivroPanel.add(PadraoLayout.criarLabelFormulario("Ano:"));
+        PadraoLayout.estilizarCampoAnoPublicacao(anoPublicacaoField);
+        anoLivroPanel.add(anoPublicacaoField);
         
-        // Categoria com estilização PadraoLayout
-        formContent.add(PadraoLayout.criarLabelFormulario("🏷️ Categoria:"));
-        PadraoLayout.estilizarCampoTexto(categoriaField);
-        formContent.add(categoriaField);
+        // Adicionar os painéis à segunda linha
+        segundaLinhaLivroPanel.add(isbnLivroPanel);
+        segundaLinhaLivroPanel.add(Box.createHorizontalStrut(20)); // Espaço entre os campos
+        segundaLinhaLivroPanel.add(anoLivroPanel);
         
-        // Localização com estilização PadraoLayout
-        formContent.add(PadraoLayout.criarLabelFormulario("📍 Localização:"));
-        PadraoLayout.estilizarCampoTexto(localizacaoField);
-        formContent.add(localizacaoField);
+        // Adicionar o painel da segunda linha ao conteúdo
+        dadosLivroContent.add(segundaLinhaLivroPanel);
         
-        // Status com estilização PadraoLayout
-        formContent.add(PadraoLayout.criarLabelFormulario("✅ Status:"));
+        dadosLivroPanel.add(dadosLivroContent, BorderLayout.CENTER);
+        formContent.add(dadosLivroPanel);
+        
+        // SEÇÃO 2: Informações Bibliográficas
+        JPanel bibliograficasPanel = new JPanel(new BorderLayout());
+        bibliograficasPanel.setBackground(Color.WHITE);
+        bibliograficasPanel.setBorder(BorderFactory.createTitledBorder("📖 Informações Bibliográficas"));
+        
+        JPanel bibliograficasContent = new JPanel(PadraoLayout.criarLayoutFormularioAlinhado());
+        bibliograficasContent.setBackground(Color.WHITE);
+        
+        // Título (ocupa duas colunas)
+        GridBagConstraints tituloLabelConstraints = PadraoLayout.criarConstraintsFormulario(0, 0);
+        tituloLabelConstraints.gridwidth = 2;
+        tituloLabelConstraints.fill = GridBagConstraints.HORIZONTAL;
+        bibliograficasContent.add(PadraoLayout.criarLabelFormulario("Título:"), tituloLabelConstraints);
+        
+        GridBagConstraints tituloFieldConstraints = PadraoLayout.criarConstraintsFormulario(1, 0);
+        tituloFieldConstraints.gridwidth = 2;
+        tituloFieldConstraints.fill = GridBagConstraints.HORIZONTAL;
+        PadraoLayout.estilizarCampoNome(tituloField);
+        bibliograficasContent.add(tituloField, tituloFieldConstraints);
+        
+        // Autor (ocupa duas colunas)
+        GridBagConstraints autorLabelConstraints = PadraoLayout.criarConstraintsFormulario(2, 0);
+        autorLabelConstraints.gridwidth = 2;
+        autorLabelConstraints.fill = GridBagConstraints.HORIZONTAL;
+        bibliograficasContent.add(PadraoLayout.criarLabelFormulario("Autor:"), autorLabelConstraints);
+        
+        GridBagConstraints autorFieldConstraints = PadraoLayout.criarConstraintsFormulario(3, 0);
+        autorFieldConstraints.gridwidth = 2;
+        autorFieldConstraints.fill = GridBagConstraints.HORIZONTAL;
+        PadraoLayout.estilizarCampoNome(autorField);
+        bibliograficasContent.add(autorField, autorFieldConstraints);
+        
+        // Editora (ocupa duas colunas)
+        GridBagConstraints editoraLabelConstraints = PadraoLayout.criarConstraintsFormulario(4, 0);
+        editoraLabelConstraints.gridwidth = 2;
+        editoraLabelConstraints.fill = GridBagConstraints.HORIZONTAL;
+        bibliograficasContent.add(PadraoLayout.criarLabelFormulario("Editora:"), editoraLabelConstraints);
+        
+        GridBagConstraints editoraFieldConstraints = PadraoLayout.criarConstraintsFormulario(5, 0);
+        editoraFieldConstraints.gridwidth = 2;
+        editoraFieldConstraints.fill = GridBagConstraints.HORIZONTAL;
+        PadraoLayout.estilizarCampoNome(editoraField);
+        bibliograficasContent.add(editoraField, editoraFieldConstraints);
+        
+        bibliograficasPanel.add(bibliograficasContent, BorderLayout.CENTER);
+        formContent.add(bibliograficasPanel);
+        
+        // SEÇÃO 3: Classificação
+        JPanel classificacaoPanel = new JPanel(new BorderLayout());
+        classificacaoPanel.setBackground(Color.WHITE);
+        classificacaoPanel.setBorder(BorderFactory.createTitledBorder("🏷️ Classificação"));
+        
+        JPanel classificacaoContent = new JPanel(PadraoLayout.criarLayoutFormularioAlinhado());
+        classificacaoContent.setBackground(Color.WHITE);
+        
+        // Categoria (ocupa duas colunas)
+        GridBagConstraints categoriaLabelConstraints = PadraoLayout.criarConstraintsFormulario(0, 0);
+        categoriaLabelConstraints.gridwidth = 2;
+        categoriaLabelConstraints.fill = GridBagConstraints.HORIZONTAL;
+        classificacaoContent.add(PadraoLayout.criarLabelFormulario("Categoria:"), categoriaLabelConstraints);
+        
+        GridBagConstraints categoriaFieldConstraints = PadraoLayout.criarConstraintsFormulario(1, 0);
+        categoriaFieldConstraints.gridwidth = 2;
+        categoriaFieldConstraints.fill = GridBagConstraints.HORIZONTAL;
+        PadraoLayout.estilizarCampoCategoriaBiblioteca(categoriaField);
+        classificacaoContent.add(categoriaField, categoriaFieldConstraints);
+        
+        // Localização (ocupa duas colunas)
+        GridBagConstraints localizacaoLabelConstraints = PadraoLayout.criarConstraintsFormulario(2, 0);
+        localizacaoLabelConstraints.gridwidth = 2;
+        localizacaoLabelConstraints.fill = GridBagConstraints.HORIZONTAL;
+        classificacaoContent.add(PadraoLayout.criarLabelFormulario("Localização:"), localizacaoLabelConstraints);
+        
+        GridBagConstraints localizacaoFieldConstraints = PadraoLayout.criarConstraintsFormulario(3, 0);
+        localizacaoFieldConstraints.gridwidth = 2;
+        localizacaoFieldConstraints.fill = GridBagConstraints.HORIZONTAL;
+        PadraoLayout.estilizarCampoLocalizacaoBiblioteca(localizacaoField);
+        classificacaoContent.add(localizacaoField, localizacaoFieldConstraints);
+        
+        // Status
+        classificacaoContent.add(PadraoLayout.criarLabelFormulario("Status:"), PadraoLayout.criarConstraintsFormulario(4, 0));
         PadraoLayout.estilizarComboBox(statusCombo);
-        formContent.add(statusCombo);
+        classificacaoContent.add(statusCombo, PadraoLayout.criarConstraintsFormulario(4, 1));
         
-        formPanel.add(formContent);
+        classificacaoPanel.add(classificacaoContent, BorderLayout.CENTER);
+        formContent.add(classificacaoPanel);
         
-        // Adicionar formulário com scroll usando PadraoLayout
-        JScrollPane formScroll = PadraoLayout.criarFormularioComScroll(formPanel);
-        rightPanel.add(formScroll, BorderLayout.CENTER);
-        
-        // Painel de botões simplificado
+        // Painel de botões
         JPanel botoesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         botoesPanel.setBackground(Color.WHITE);
         botoesPanel.add(salvarButton);
@@ -251,12 +333,32 @@ public class BibliotecaPanel extends JPanel {
         botoesPanel.add(emprestarButton);
         botoesPanel.add(devolverButton);
         
-        rightPanel.add(botoesPanel, BorderLayout.SOUTH);
+        formContainer.add(formContent, BorderLayout.CENTER);
+        formContainer.add(botoesPanel, BorderLayout.SOUTH);
         
-        // Montar painel principal
-        splitPane.setLeftComponent(leftPanel);
-        splitPane.setRightComponent(rightPanel);
-        add(splitPane, BorderLayout.CENTER);
+        formPanel.add(formContainer, BorderLayout.CENTER);
+        
+        // Painel de tabela usando PadraoLayout
+        JPanel tabelaPanel = new JPanel(new BorderLayout());
+        tabelaPanel.setBackground(PadraoLayout.COR_PAINEL);
+        tabelaPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
+        
+        // Tabela estilizada usando PadraoLayout
+        PadraoLayout.configurarTabela(bibliotecaTable);
+        JScrollPane tableScrollPane = new JScrollPane(bibliotecaTable);
+        tabelaPanel.add(tableScrollPane, BorderLayout.CENTER);
+        
+        // Split vertical: Formulário acima (60%), Tabela abaixo (40%)
+        JSplitPane verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formPanel, tabelaPanel);
+        verticalSplitPane.setDividerLocation(400);
+        verticalSplitPane.setResizeWeight(0.6);
+        
+        contentPanel.add(verticalSplitPane, BorderLayout.CENTER);
+        
+        // Adicionar contentPanel ao mainPanel
+        mainPanel.add(contentPanel, BorderLayout.CENTER);
+        
+        add(mainPanel, BorderLayout.CENTER);
         
                 
         // Estilizar botões com cores pastéis

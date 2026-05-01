@@ -3,25 +3,25 @@ package com.artereal.swing.ui.panels;
 import com.artereal.swing.dao.IrmaoDAO;
 import com.artereal.swing.model.Irmao;
 import com.artereal.swing.ui.layout.PadraoLayout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Painel de cadastro de Irmãos Maçons
+ * Painel para gestão de candidatos e profanos
+ * Layout padrão: Header → Busca → Formulário → Tabela
  */
-public class CadastroIrmaosPanel extends JPanel {
+public class CadastroIrmaosPanel extends BasePanel<Irmao> {
+    private static final Logger logger = LoggerFactory.getLogger(CadastroIrmaosPanel.class);
     
-    private IrmaoDAO irmaoDAO;
-    private DefaultTableModel tableModel;
-    private JTable irmaosTable;
+    private final IrmaoDAO irmaoDAO;
     
-    // Formulário
-    private JTextField codigoField;
+    // Componentes do formulário
     private JTextField nomeField;
     private JTextField nascimentoField;
     private JTextField estadoCivilField;
@@ -50,33 +50,26 @@ public class CadastroIrmaosPanel extends JPanel {
     private JButton pesquisarButton;
     private JTextField pesquisarField;
     
+    // Tabela
+    private JTable irmaosTable;
+    private DefaultTableModel tableModel;
+    
+    // Estado
     private Irmao irmaoAtual;
     
     public CadastroIrmaosPanel() {
-        irmaoDAO = new IrmaoDAO();
-        initializeComponents();
+        super(); // Chamar construtor da classe base
+        this.irmaoDAO = new IrmaoDAO();
+        // Não chamar initializeComponents() novamente, pois já foi chamado no super()
         setupLayout();
         setupEvents();
         refreshData();
     }
     
-    private void initializeComponents() {
-        // Tabela
-        tableModel = new DefaultTableModel(new Object[]{
-            "Código", "Nome", "Telefone", "Grau", "Cargo Loja", "Cidade"
-        }, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        irmaosTable = new JTable(tableModel);
-        
-        // Formulário
-        codigoField = new JTextField(10);
-        codigoField.setEditable(false);
-        nomeField = new JTextField(40);
-        nascimentoField = new JTextField(10);
+    protected void initializeComponents() {
+        // Campos do formulário
+        nomeField = new JTextField(30);
+        nascimentoField = new JTextField(15);
         estadoCivilField = new JTextField(15);
         naturalField = new JTextField(20);
         identidadeField = new JTextField(15);
@@ -94,7 +87,7 @@ public class CadastroIrmaosPanel extends JPanel {
         enderecoEmpresaField = new JTextField(40);
         registroGrandeLojaField = new JTextField(20);
         
-        // Botões usando PadraoLayout com cores pastéis
+        // Botões usando PadraoLayout
         salvarButton = PadraoLayout.criarBotaoSalvar();
         novoButton = PadraoLayout.criarBotaoNovo();
         editarButton = PadraoLayout.criarBotaoEditar();
@@ -102,238 +95,190 @@ public class CadastroIrmaosPanel extends JPanel {
         limparButton = PadraoLayout.criarBotaoLimpar();
         pesquisarButton = PadraoLayout.criarBotaoPesquisar();
         pesquisarField = new JTextField(20);
+        
+        // Tabela
+        tableModel = new DefaultTableModel(
+            new Object[]{"ID", "Nome", "Data Nascimento", "Estado Civil", "Telefone", "Cargo"},
+            0
+        );
+        irmaosTable = new JTable(tableModel);
     }
     
-    private void setupLayout() {
+    protected void setupLayout() {
         // Aplicar layout padrão usando PadraoLayout
         PadraoLayout.aplicarLayoutPadrao(this);
         
         // Header estilizado usando PadraoLayout
-        JPanel headerPanel = PadraoLayout.criarHeader("� Cadastro de Irmãos", "Novos cadastros e admissões maçônicas");
+        JPanel headerPanel = PadraoLayout.criarHeader("👥 Gestão de Candidato e Profano", "Cadastro e administração de candidatos e profanos");
         add(headerPanel, BorderLayout.NORTH);
         
-        // Painel principal com split
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        splitPane.setDividerLocation(650);
-        splitPane.setResizeWeight(0.6);
+        // Painel principal usando PadraoLayout
+        JPanel mainPanel = PadraoLayout.criarPainelPrincipal();
         
-        // Painel esquerdo - Tabela
-        JPanel leftPanel = new JPanel(new BorderLayout());
-        leftPanel.setBackground(Color.WHITE);
-        leftPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        // Painel de busca no topo
+        JPanel buscaPanel = PadraoLayout.criarPainelPesquisa(pesquisarField, pesquisarButton);
+        mainPanel.add(buscaPanel, BorderLayout.NORTH);
         
-        // Painel de pesquisa
-        JPanel pesquisaPanel = new JPanel(new BorderLayout());
-        pesquisaPanel.setBackground(new Color(245, 245, 250));
-        pesquisaPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(200, 200, 210)),
-            BorderFactory.createEmptyBorder(10, 15, 10, 15)
-        ));
+        // Painel do conteúdo com split vertical (Formulário acima, Tabela abaixo)
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBackground(PadraoLayout.COR_FUNDO);
         
-        JPanel searchContainer = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        searchContainer.setBackground(new Color(245, 245, 250));
+        // Painel de formulário usando PadraoLayout
+        JPanel formPanel = createFormPanel();
         
-        JLabel searchLabel = new JLabel("🔍 Pesquisar:");
-        searchLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        searchLabel.setForeground(new Color(100, 100, 120));
+        // Painel de tabela usando PadraoLayout
+        JPanel tabelaPanel = createTablePanel();
         
-        pesquisarField.setPreferredSize(new Dimension(200, 30));
-        pesquisarField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
+        // Split vertical: Formulário acima (60%), Tabela abaixo (40%)
+        JSplitPane verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formPanel, tabelaPanel);
+        verticalSplitPane.setDividerLocation(400);
+        verticalSplitPane.setResizeWeight(0.6);
         
-        pesquisarButton.setBackground(new Color(70, 130, 180));
-        pesquisarButton.setForeground(Color.WHITE);
-        pesquisarButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        pesquisarButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
-        pesquisarButton.setFocusPainted(false);
+        contentPanel.add(verticalSplitPane, BorderLayout.CENTER);
         
-        searchContainer.add(searchLabel);
-        searchContainer.add(pesquisarField);
-        searchContainer.add(pesquisarButton);
-        pesquisaPanel.add(searchContainer, BorderLayout.CENTER);
+        // Adicionar contentPanel ao mainPanel
+        mainPanel.add(contentPanel, BorderLayout.CENTER);
         
-        // Tabela estilizada
-        JScrollPane tableScrollPane = new JScrollPane(irmaosTable);
-        tableScrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 210)));
-        tableScrollPane.getViewport().setBackground(Color.WHITE);
-        
-        // Tabela estilizada usando PadraoLayout
-        PadraoLayout.configurarTabela(irmaosTable);
-        
-        JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.setBackground(Color.WHITE);
-        topPanel.add(pesquisaPanel, BorderLayout.NORTH);
-        topPanel.add(tableScrollPane, BorderLayout.CENTER);
-        
-        leftPanel.add(topPanel, BorderLayout.CENTER);
-        
-        // Painel direito - Formulário (padrão SessoesPanel)
-        JPanel rightPanel = new JPanel(new BorderLayout());
-        rightPanel.setBackground(Color.WHITE);
-        rightPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 10));
-        
-        // Título do formulário
-        JPanel formHeaderPanel = new JPanel(new BorderLayout());
-        formHeaderPanel.setBackground(new Color(245, 245, 250));
-        formHeaderPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
-        
-        JLabel formTitleLabel = new JLabel("📝 Dados do Irmão", SwingConstants.LEFT);
-        formTitleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        formTitleLabel.setForeground(new Color(70, 130, 180));
-        
-        formHeaderPanel.add(formTitleLabel, BorderLayout.CENTER);
-        rightPanel.add(formHeaderPanel, BorderLayout.NORTH);
-        
-        // Painel de formulário
-        JPanel formularioPanel = new JPanel(new BorderLayout());
-        formularioPanel.setBackground(Color.WHITE);
-        formularioPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
-        
-        JLabel formTitle = new JLabel("📝 Dados do Irmão");
-        formTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        formTitle.setForeground(new Color(70, 130, 180));
-        
-        // Container principal para todos os grupos
+        add(mainPanel, BorderLayout.CENTER);
+    }
+    
+    @Override
+    protected JPanel createFormPanel() {
+        JPanel formPanel = PadraoLayout.criarGrupoFormulario("📝 Dados do Irmão");
         JPanel formContainer = new JPanel(new BorderLayout());
         formContainer.setBackground(Color.WHITE);
         
         // Grupo 1: Dados Básicos
         JPanel dadosBasicosPanel = createFormGroup("📅 Dados Básicos");
-        JPanel dadosBasicosContent = new JPanel(PadraoLayout.criarLayoutFormulario());
+        JPanel dadosBasicosContent = new JPanel(PadraoLayout.criarLayoutFormularioAlinhado());
         dadosBasicosContent.setBackground(Color.WHITE);
         
-        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Código:"));
-        PadraoLayout.estilizarCampoTexto(codigoField);
-        dadosBasicosContent.add(codigoField);
-        
         dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Nome:"));
-        PadraoLayout.estilizarCampoTexto(nomeField);
-        dadosBasicosContent.add(nomeField);
+        PadraoLayout.estilizarCampoNome(nomeField); // Usando método específico
+        dadosBasicosContent.add(nomeField, PadraoLayout.criarConstraintsFormulario(0, 1));
         
-        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Nascimento:"));
-        PadraoLayout.estilizarCampoTexto(nascimentoField);
-        dadosBasicosContent.add(nascimentoField);
+        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Data Nascimento:"));
+        PadraoLayout.estilizarCampoData(nascimentoField); // Usando método otimizado para data
+        dadosBasicosContent.add(nascimentoField, PadraoLayout.criarConstraintsFormulario(1, 1));
         
         dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Estado Civil:"));
-        PadraoLayout.estilizarCampoTexto(estadoCivilField);
-        dadosBasicosContent.add(estadoCivilField);
+        PadraoLayout.estilizarCampoEstadoCivil(estadoCivilField); // Usando método específico
+        dadosBasicosContent.add(estadoCivilField, PadraoLayout.criarConstraintsFormulario(2, 1));
         
         dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Naturalidade:"));
-        PadraoLayout.estilizarCampoTexto(naturalField);
-        dadosBasicosContent.add(naturalField);
+        PadraoLayout.estilizarCampoNaturalidade(naturalField); // Usando método específico
+        dadosBasicosContent.add(naturalField, PadraoLayout.criarConstraintsFormulario(3, 1));
         
-        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Identidade:"));
-        PadraoLayout.estilizarCampoTexto(identidadeField);
-        dadosBasicosContent.add(identidadeField);
+        dadosBasicosPanel.add(dadosBasicosContent, BorderLayout.CENTER);
         
-        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Tipo Sanguíneo:"));
-        PadraoLayout.estilizarCampoTexto(tipoSanguineoField);
-        dadosBasicosContent.add(tipoSanguineoField);
+        // Grupo 2: Documentação
+        JPanel docsPanel = createFormGroup("📄 Documentação");
+        JPanel docsContent = new JPanel(PadraoLayout.criarLayoutFormularioAlinhado());
+        docsContent.setBackground(Color.WHITE);
         
-        dadosBasicosPanel.add(dadosBasicosContent);
+        docsContent.add(PadraoLayout.criarLabelFormulario("Identidade:"));
+        PadraoLayout.estilizarCampoRG(identidadeField); // Usando método específico
+        docsContent.add(identidadeField, PadraoLayout.criarConstraintsFormulario(0, 1));
         
-        // Grupo 2: Dados Maçônicos
-        JPanel dadosMasonicosPanel = createFormGroup("🔱 Dados Maçônicos");
-        JPanel dadosMasonicosContent = new JPanel(PadraoLayout.criarLayoutFormulario());
-        dadosMasonicosContent.setBackground(Color.WHITE);
+        docsContent.add(PadraoLayout.criarLabelFormulario("Tipo Sanguíneo:"));
+        PadraoLayout.estilizarCampoTipoSanguineo(tipoSanguineoField); // Usando método específico
+        docsContent.add(tipoSanguineoField, PadraoLayout.criarConstraintsFormulario(1, 1));
         
-        dadosMasonicosContent.add(PadraoLayout.criarLabelFormulario("Cargo na Loja:"));
-        PadraoLayout.estilizarCampoTexto(cargoLojaField);
-        dadosMasonicosContent.add(cargoLojaField);
+        docsContent.add(PadraoLayout.criarLabelFormulario("Registro Grande Loja:"));
+        PadraoLayout.estilizarCampoRegistroMaconico(registroGrandeLojaField); // Usando método específico
+        docsContent.add(registroGrandeLojaField, PadraoLayout.criarConstraintsFormulario(2, 1));
         
-        dadosMasonicosContent.add(PadraoLayout.criarLabelFormulario("Grau:"));
-        PadraoLayout.estilizarCampoTexto(grauField);
-        dadosMasonicosContent.add(grauField);
+        docsPanel.add(docsContent, BorderLayout.CENTER);
         
-        dadosMasonicosContent.add(PadraoLayout.criarLabelFormulario("Cargo Grande Loja:"));
-        PadraoLayout.estilizarCampoTexto(cargoGrandeLojaField);
-        dadosMasonicosContent.add(cargoGrandeLojaField);
+        // Grupo 3: Contato
+        JPanel contatoPanel = createFormGroup("📞 Contato");
+        JPanel contatoContent = new JPanel(PadraoLayout.criarLayoutFormularioAlinhado());
+        contatoContent.setBackground(Color.WHITE);
         
-        dadosMasonicosContent.add(PadraoLayout.criarLabelFormulario("Registro Grande Loja:"));
-        PadraoLayout.estilizarCampoTexto(registroGrandeLojaField);
-        dadosMasonicosContent.add(registroGrandeLojaField);
+        contatoContent.add(PadraoLayout.criarLabelFormulario("Telefone:"));
+        PadraoLayout.estilizarCampoTelefone(telefoneField); // Usando método específico
+        contatoContent.add(telefoneField, PadraoLayout.criarConstraintsFormulario(0, 1));
         
-        dadosMasonicosPanel.add(dadosMasonicosContent);
+        contatoContent.add(PadraoLayout.criarLabelFormulario("Endereço:"));
+        PadraoLayout.estilizarCampoEndereco(enderecoField); // Usando método específico
+        contatoContent.add(enderecoField, PadraoLayout.criarConstraintsFormulario(1, 1));
         
-        // Grupo 3: Endereço e Contato
-        JPanel enderecoContatoPanel = createFormGroup("📍 Endereço e Contato");
-        JPanel enderecoContatoContent = new JPanel(PadraoLayout.criarLayoutFormulario());
-        enderecoContatoContent.setBackground(Color.WHITE);
+        contatoContent.add(PadraoLayout.criarLabelFormulario("Bairro:"));
+        PadraoLayout.estilizarCampoBairro(bairroField); // Usando método específico
+        contatoContent.add(bairroField, PadraoLayout.criarConstraintsFormulario(2, 1));
         
-        enderecoContatoContent.add(PadraoLayout.criarLabelFormulario("Endereço:"));
-        PadraoLayout.estilizarCampoTexto(enderecoField);
-        enderecoContatoContent.add(enderecoField);
+        contatoContent.add(PadraoLayout.criarLabelFormulario("Cidade:"));
+        PadraoLayout.estilizarCampoCidade(cidadeField); // Usando método específico
+        contatoContent.add(cidadeField, PadraoLayout.criarConstraintsFormulario(3, 1));
         
-        enderecoContatoContent.add(PadraoLayout.criarLabelFormulario("Bairro:"));
-        PadraoLayout.estilizarCampoTexto(bairroField);
-        enderecoContatoContent.add(bairroField);
+        contatoContent.add(PadraoLayout.criarLabelFormulario("Estado:"));
+        PadraoLayout.estilizarCampoEstado(estadoField); // Usando método específico
+        contatoContent.add(estadoField, PadraoLayout.criarConstraintsFormulario(4, 1));
         
-        enderecoContatoContent.add(PadraoLayout.criarLabelFormulario("Cidade:"));
-        PadraoLayout.estilizarCampoTexto(cidadeField);
-        enderecoContatoContent.add(cidadeField);
+        contatoPanel.add(contatoContent, BorderLayout.CENTER);
         
-        enderecoContatoContent.add(PadraoLayout.criarLabelFormulario("Estado:"));
-        PadraoLayout.estilizarCampoTexto(estadoField);
-        enderecoContatoContent.add(estadoField);
+        // Grupo 4: Informações Profissionais
+        JPanel profPanel = createFormGroup("💼 Informações Profissionais");
+        JPanel profContent = new JPanel(PadraoLayout.criarLayoutFormularioAlinhado());
+        profContent.setBackground(Color.WHITE);
         
-        enderecoContatoContent.add(PadraoLayout.criarLabelFormulario("Telefone:"));
-        PadraoLayout.estilizarCampoTexto(telefoneField);
-        enderecoContatoContent.add(telefoneField);
+        profContent.add(PadraoLayout.criarLabelFormulario("Empresa:"));
+        PadraoLayout.estilizarCampoNome(empresaField); // Usando método específico
+        profContent.add(empresaField, PadraoLayout.criarConstraintsFormulario(0, 1));
         
-        enderecoContatoContent.add(PadraoLayout.criarLabelFormulario("Empresa:"));
-        PadraoLayout.estilizarCampoTexto(empresaField);
-        enderecoContatoContent.add(empresaField);
+        profContent.add(PadraoLayout.criarLabelFormulario("Telefone Empresa:"));
+        PadraoLayout.estilizarCampoTelefone(telefoneEmpresaField); // Usando método específico
+        profContent.add(telefoneEmpresaField, PadraoLayout.criarConstraintsFormulario(1, 1));
         
-        enderecoContatoContent.add(PadraoLayout.criarLabelFormulario("Telefone Empresa:"));
-        PadraoLayout.estilizarCampoTexto(telefoneEmpresaField);
-        enderecoContatoContent.add(telefoneEmpresaField);
+        profContent.add(PadraoLayout.criarLabelFormulario("Endereço Empresa:"));
+        PadraoLayout.estilizarCampoEndereco(enderecoEmpresaField); // Usando método específico
+        profContent.add(enderecoEmpresaField, PadraoLayout.criarConstraintsFormulario(2, 1));
         
-        enderecoContatoPanel.add(enderecoContatoContent);
+        profPanel.add(profContent, BorderLayout.CENTER);
         
-        // Grupo 4: Informações Adicionais
-        JPanel infoPanel = createFormGroup("📝 Informações Adicionais");
-        JPanel infoContent = new JPanel(new BorderLayout());
-        infoContent.setBackground(Color.WHITE);
+        // Grupo 5: Informações Maçônicas
+        JPanel masonPanel = createFormGroup("🔷 Informações Maçônicas");
+        JPanel masonContent = new JPanel(PadraoLayout.criarLayoutFormularioAlinhado());
+        masonContent.setBackground(Color.WHITE);
         
-        // Painel de informações adicionais
-        JPanel textAreasPanel = new JPanel(new GridLayout(1, 1, 10, 10));
-        textAreasPanel.setBackground(Color.WHITE);
+        masonContent.add(PadraoLayout.criarLabelFormulario("Cargo na Loja:"));
+        PadraoLayout.estilizarCampoCargoMaconico(cargoLojaField); // Usando método específico
+        masonContent.add(cargoLojaField, PadraoLayout.criarConstraintsFormulario(0, 1));
         
-        JPanel obsPanel = new JPanel(new BorderLayout());
-        obsPanel.setBackground(Color.WHITE);
-        obsPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(200, 200, 210), 1),
-            BorderFactory.createEmptyBorder(5, 5, 5, 5)
-        ));
-        obsPanel.add(new JLabel("📄 Endereço Empresa:"), BorderLayout.NORTH);
-        obsPanel.add(new JScrollPane(enderecoEmpresaField), BorderLayout.CENTER);
+        masonContent.add(PadraoLayout.criarLabelFormulario("Grau:"));
+        PadraoLayout.estilizarCampoGrauMaconico(grauField); // Usando método específico
+        masonContent.add(grauField, PadraoLayout.criarConstraintsFormulario(1, 1));
         
-        textAreasPanel.add(obsPanel);
-        infoContent.add(textAreasPanel, BorderLayout.CENTER);
-        infoPanel.add(infoContent);
+        masonContent.add(PadraoLayout.criarLabelFormulario("Cargo Grande Loja:"));
+        PadraoLayout.estilizarCampoCargoMaconico(cargoGrandeLojaField); // Usando método específico
+        masonContent.add(cargoGrandeLojaField, PadraoLayout.criarConstraintsFormulario(2, 1));
         
-        // Organizar grupos verticalmente (padrão SessoesPanel)
-        JPanel groupsPanel = new JPanel(new BorderLayout());
-        groupsPanel.setBackground(Color.WHITE);
+        masonPanel.add(masonContent, BorderLayout.CENTER);
+        
+        // Organizar todos os grupos verticalmente
+        JPanel allGroups = new JPanel(new BorderLayout());
+        allGroups.setBackground(Color.WHITE);
         
         JPanel topGroups = new JPanel(new BorderLayout());
         topGroups.setBackground(Color.WHITE);
         topGroups.add(dadosBasicosPanel, BorderLayout.NORTH);
-        topGroups.add(dadosMasonicosPanel, BorderLayout.CENTER);
+        topGroups.add(docsPanel, BorderLayout.CENTER);
         
-        JPanel middleGroups = new JPanel(new BorderLayout());
-        middleGroups.setBackground(Color.WHITE);
-        middleGroups.add(enderecoContatoPanel, BorderLayout.NORTH);
-        middleGroups.add(infoPanel, BorderLayout.CENTER);
+        JPanel bottomGroups = new JPanel(new BorderLayout());
+        bottomGroups.setBackground(Color.WHITE);
+        bottomGroups.add(contatoPanel, BorderLayout.NORTH);
         
-        JPanel allGroups = new JPanel(new BorderLayout());
-        allGroups.setBackground(Color.WHITE);
+        JPanel profMasonGroups = new JPanel(new BorderLayout());
+        profMasonGroups.setBackground(Color.WHITE);
+        profMasonGroups.add(profPanel, BorderLayout.NORTH);
+        profMasonGroups.add(masonPanel, BorderLayout.CENTER);
+        
+        bottomGroups.add(profMasonGroups, BorderLayout.CENTER);
+        
         allGroups.add(topGroups, BorderLayout.NORTH);
-        allGroups.add(middleGroups, BorderLayout.CENTER);
+        allGroups.add(bottomGroups, BorderLayout.CENTER);
         
-        // Adicionar scroll ao formulário para garantir visibilidade
+        // Adicionar scroll ao formulário
         JScrollPane formScroll = new JScrollPane(allGroups);
         formScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         formScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -344,33 +289,32 @@ public class CadastroIrmaosPanel extends JPanel {
         // Painel de botões
         JPanel botoesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         botoesPanel.setBackground(Color.WHITE);
+        botoesPanel.add(salvarButton);
+        botoesPanel.add(novoButton);
+        botoesPanel.add(editarButton);
+        botoesPanel.add(excluirButton);
+        botoesPanel.add(limparButton);
         
-        botoesPanel.add(createStyledButton("Salvar", new Color(144, 238, 144)));
-        botoesPanel.add(createStyledButton("Novo", new Color(173, 216, 230)));
-        botoesPanel.add(createStyledButton("Editar", new Color(255, 250, 205)));
-        botoesPanel.add(createStyledButton("Excluir", new Color(255, 182, 193)));
-        botoesPanel.add(createStyledButton("Limpar", new Color(240, 240, 240)));
+        formContainer.add(botoesPanel, BorderLayout.SOUTH);
         
-        formularioPanel.add(formTitle, BorderLayout.NORTH);
-        formularioPanel.add(formContainer, BorderLayout.CENTER);
-        formularioPanel.add(botoesPanel, BorderLayout.SOUTH);
+        formPanel.add(formContainer, BorderLayout.CENTER);
         
-        rightPanel.add(formularioPanel, BorderLayout.CENTER);
-        
-        // Adicionar tabela ao painel esquerdo
-        JPanel tabelaPanel = new JPanel(new BorderLayout());
-        tabelaPanel.setBackground(Color.WHITE);
-        tabelaPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        tabelaPanel.add(topPanel, BorderLayout.CENTER);
-        
-        splitPane.setLeftComponent(leftPanel);
-        splitPane.setRightComponent(rightPanel);
-        
-        add(splitPane, BorderLayout.CENTER);
+        return formPanel;
     }
     
-    private JButton createStyledButton(String text, Color bgColor) {
-        return PadraoLayout.criarBotao(text, bgColor);
+    @Override
+    protected JPanel createContentPanel() {
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBackground(PadraoLayout.COR_FUNDO);
+        
+        // Split vertical: Formulário acima (70%), Tabela abaixo (30%)
+        JSplitPane verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formPanel, tablePanel);
+        verticalSplitPane.setDividerLocation(400);
+        verticalSplitPane.setResizeWeight(0.7);
+        
+        contentPanel.add(verticalSplitPane, BorderLayout.CENTER);
+        
+        return contentPanel;
     }
     
     private JPanel createFormGroup(String title) {
@@ -390,13 +334,14 @@ public class CadastroIrmaosPanel extends JPanel {
         return groupPanel;
     }
     
-    private void setupEvents() {
-        salvarButton.addActionListener(e -> salvarIrmao());
-        novoButton.addActionListener(e -> limparFormulario());
-        editarButton.addActionListener(e -> editarIrmao());
-        excluirButton.addActionListener(e -> excluirIrmao());
-        limparButton.addActionListener(e -> limparFormulario());
-        pesquisarButton.addActionListener(e -> pesquisarIrmaos());
+    protected void setupEvents() {
+        // Usando métodos padrão da BasePanel
+        salvarButton.addActionListener(e -> performSave());
+        novoButton.addActionListener(e -> performNew());
+        editarButton.addActionListener(e -> performEdit());
+        excluirButton.addActionListener(e -> performDelete());
+        limparButton.addActionListener(e -> performClear());
+        pesquisarButton.addActionListener(e -> performSearch());
         
         // Seleção na tabela
         irmaosTable.getSelectionModel().addListSelectionListener(e -> {
@@ -406,90 +351,232 @@ public class CadastroIrmaosPanel extends JPanel {
         });
     }
     
-    private void salvarIrmao() {
+    public void refreshData() {
         try {
-            if (nomeField.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Nome é obrigatório!", "Erro", JOptionPane.ERROR_MESSAGE);
-                return;
+            List<Irmao> irmaos = irmaoDAO.findAll();
+            tableModel.setRowCount(0);
+            
+            for (Irmao irmao : irmaos) {
+                Object[] row = {
+                    irmao.getId(),
+                    irmao.getNome(),
+                    irmao.getNascimento() != null ? irmao.getNascimento().toString() : "",
+                    irmao.getEstadoCivil(),
+                    irmao.getTelefone(),
+                    irmao.getCargoLoja()
+                };
+                tableModel.addRow(row);
             }
-            
-            Irmao irmao = irmaoAtual != null ? irmaoAtual : new Irmao();
-            irmao.setNome(nomeField.getText().trim());
-            
-            // Data de nascimento
-            String nascimentoStr = nascimentoField.getText().trim();
-            if (!nascimentoStr.isEmpty()) {
-                try {
-                    irmao.setNascimento(LocalDate.parse(nascimentoStr));
-                } catch (Exception e) {
-                    JOptionPane.showMessageDialog(this, "Data de nascimento inválida! Use formato YYYY-MM-DD", "Erro", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            }
-            
-            irmao.setEstadoCivil(estadoCivilField.getText().trim());
-            irmao.setNatural(naturalField.getText().trim());
-            irmao.setIdentidade(identidadeField.getText().trim());
-            irmao.setTipoSanguineo(tipoSanguineoField.getText().trim());
-            irmao.setCargoLoja(cargoLojaField.getText().trim());
-            irmao.setGrau(grauField.getText().trim());
-            irmao.setCargoGrandeLoja(cargoGrandeLojaField.getText().trim());
-            irmao.setEndereco(enderecoField.getText().trim());
-            irmao.setBairro(bairroField.getText().trim());
-            irmao.setCidade(cidadeField.getText().trim());
-            irmao.setEstado(estadoField.getText().trim());
-            irmao.setTelefone(telefoneField.getText().trim());
-            irmao.setEmpresa(empresaField.getText().trim());
-            irmao.setTelefoneEmpresa(telefoneEmpresaField.getText().trim());
-            irmao.setEnderecoEmpresa(enderecoEmpresaField.getText().trim());
-            irmao.setRegistroGrandeLoja(registroGrandeLojaField.getText().trim());
-            
-            irmaoDAO.save(irmao);
-            
-            JOptionPane.showMessageDialog(this, "Irmão salvo com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-            limparFormulario();
-            refreshData();
-            
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao salvar irmão: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            logger.error("Erro ao carregar dados: " + ex.getMessage(), ex);
+            JOptionPane.showMessageDialog(this, "Erro ao carregar dados: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
     
+        
     private void editarIrmao() {
         if (irmaoAtual == null) {
             JOptionPane.showMessageDialog(this, "Selecione um irmão para editar!", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        // O formulário já está preenchido com os dados do irmão selecionado
-        nomeField.requestFocus();
+        
+        // Carregar dados do irmão selecionado para o formulário
+        nomeField.setText(irmaoAtual.getNome());
+        nascimentoField.setText(irmaoAtual.getNascimento() != null ? irmaoAtual.getNascimento().toString() : "");
+        estadoCivilField.setText(irmaoAtual.getEstadoCivil());
+        naturalField.setText(irmaoAtual.getNatural());
+        identidadeField.setText(irmaoAtual.getIdentidade());
+        tipoSanguineoField.setText(irmaoAtual.getTipoSanguineo());
+        cargoLojaField.setText(irmaoAtual.getCargoLoja());
+        grauField.setText(irmaoAtual.getGrau());
+        cargoGrandeLojaField.setText(irmaoAtual.getCargoGrandeLoja());
+        enderecoField.setText(irmaoAtual.getEndereco());
+        bairroField.setText(irmaoAtual.getBairro());
+        cidadeField.setText(irmaoAtual.getCidade());
+        estadoField.setText(irmaoAtual.getEstado());
+        telefoneField.setText(irmaoAtual.getTelefone());
+        empresaField.setText(irmaoAtual.getEmpresa());
+        telefoneEmpresaField.setText(irmaoAtual.getTelefoneEmpresa());
+        enderecoEmpresaField.setText(irmaoAtual.getEnderecoEmpresa());
+        registroGrandeLojaField.setText(irmaoAtual.getRegistroGrandeLoja());
     }
     
-    private void excluirIrmao() {
-        if (irmaoAtual == null) {
-            JOptionPane.showMessageDialog(this, "Selecione um irmão para excluir!", "Aviso", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
         
-        int opcao = JOptionPane.showConfirmDialog(this, 
-            "Deseja realmente excluir o irmão " + irmaoAtual.getNome() + "?",
-            "Confirmar Exclusão",
-            JOptionPane.YES_NO_OPTION);
-            
-        if (opcao == JOptionPane.YES_OPTION) {
+    private void carregarIrmaoSelecionado() {
+        int selectedRow = irmaosTable.getSelectedRow();
+        if (selectedRow >= 0) {
             try {
-                irmaoDAO.delete(irmaoAtual.getId());
-                JOptionPane.showMessageDialog(this, "Irmão excluído com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-                limparFormulario();
-                refreshData();
+                Long id = (Long) tableModel.getValueAt(selectedRow, 0);
+                irmaoAtual = irmaoDAO.findById(id);
+                if (irmaoAtual != null) {
+                    editarIrmao();
+                }
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Erro ao excluir irmão: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+                logger.error("Erro ao carregar irmão selecionado: " + ex.getMessage(), ex);
             }
         }
     }
     
-    private void limparFormulario() {
-        irmaoAtual = null;
-        codigoField.setText("");
+    // Implementação dos métodos abstratos da BasePanel
+    
+    @Override
+    protected String getHeaderTitle() {
+        return "👥 Gestão de Candidatos e Profanos";
+    }
+    
+    @Override
+    protected String getHeaderDescription() {
+        return "Novos cadastros e admissões maçônicas";
+    }
+    
+    @Override
+    protected DefaultTableModel createTableModel() {
+        return new DefaultTableModel(
+            new Object[]{"ID", "Nome", "Data Nascimento", "Estado Civil", "Telefone", "Cargo"},
+            0
+        );
+    }
+    
+    @Override
+    protected List<Irmao> loadData() throws Exception {
+        return irmaoDAO.findAll();
+    }
+    
+    @Override
+    protected List<Irmao> searchData(String searchTerm) throws Exception {
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            return irmaoDAO.findAll();
+        }
+        return irmaoDAO.findByNome(searchTerm.trim());
+    }
+    
+    @Override
+    protected JPanel createTablePanel() {
+        JPanel panel = PadraoLayout.criarGrupoFormulario("👥 Candidatos e Profanos Cadastrados");
+        panel.setLayout(new BorderLayout());
+        
+        PadraoLayout.configurarTabela(irmaosTable);
+        JScrollPane scrollPane = new JScrollPane(irmaosTable);
+        scrollPane.setBackground(Color.WHITE);
+        panel.add(scrollPane, BorderLayout.CENTER);
+        
+        return panel;
+    }
+    
+    @Override
+    protected Irmao getSelectedEntity() {
+        int selectedRow = dataTable.getSelectedRow();
+        if (selectedRow >= 0) {
+            try {
+                Long id = (Long) dataTable.getValueAt(selectedRow, 0);
+                return irmaoDAO.findById(id);
+            } catch (Exception ex) {
+                logger.error("Erro ao carregar irmão selecionado: " + ex.getMessage(), ex);
+                return null;
+            }
+        }
+        return null;
+    }
+    
+    @Override
+    protected void loadEntityToForm(Irmao entity) {
+        if (entity != null) {
+            nomeField.setText(entity.getNome());
+            nascimentoField.setText(entity.getNascimento() != null ? entity.getNascimento().toString() : "");
+            estadoCivilField.setText(entity.getEstadoCivil());
+            naturalField.setText(entity.getNatural());
+            identidadeField.setText(entity.getIdentidade());
+            tipoSanguineoField.setText(entity.getTipoSanguineo());
+            cargoLojaField.setText(entity.getCargoLoja());
+            grauField.setText(entity.getGrau());
+            cargoGrandeLojaField.setText(entity.getCargoGrandeLoja());
+            enderecoField.setText(entity.getEndereco());
+            bairroField.setText(entity.getBairro());
+            cidadeField.setText(entity.getCidade());
+            estadoField.setText(entity.getEstado());
+            telefoneField.setText(entity.getTelefone());
+            empresaField.setText(entity.getEmpresa());
+            telefoneEmpresaField.setText(entity.getTelefoneEmpresa());
+            enderecoEmpresaField.setText(entity.getEnderecoEmpresa());
+            registroGrandeLojaField.setText(entity.getRegistroGrandeLoja());
+        }
+    }
+    
+    @Override
+    protected Irmao getEntityFromForm() throws Exception {
+        Irmao irmao = new Irmao();
+        
+        if (nomeField.getText().trim().isEmpty()) {
+            throw new Exception("Nome é obrigatório!");
+        }
+        
+        irmao.setNome(nomeField.getText().trim());
+        
+        // Data de nascimento
+        String nascimentoStr = nascimentoField.getText().trim();
+        if (!nascimentoStr.isEmpty()) {
+            try {
+                irmao.setNascimento(LocalDate.parse(nascimentoStr));
+            } catch (Exception e) {
+                throw new Exception("Data de nascimento inválida! Use formato YYYY-MM-DD");
+            }
+        }
+        
+        irmao.setEstadoCivil(estadoCivilField.getText().trim());
+        irmao.setNatural(naturalField.getText().trim());
+        irmao.setIdentidade(identidadeField.getText().trim());
+        irmao.setTipoSanguineo(tipoSanguineoField.getText().trim());
+        irmao.setCargoLoja(cargoLojaField.getText().trim());
+        irmao.setGrau(grauField.getText().trim());
+        irmao.setCargoGrandeLoja(cargoGrandeLojaField.getText().trim());
+        irmao.setEndereco(enderecoField.getText().trim());
+        irmao.setBairro(bairroField.getText().trim());
+        irmao.setCidade(cidadeField.getText().trim());
+        irmao.setEstado(estadoField.getText().trim());
+        irmao.setTelefone(telefoneField.getText().trim());
+        irmao.setEmpresa(empresaField.getText().trim());
+        irmao.setTelefoneEmpresa(telefoneEmpresaField.getText().trim());
+        irmao.setEnderecoEmpresa(enderecoEmpresaField.getText().trim());
+        irmao.setRegistroGrandeLoja(registroGrandeLojaField.getText().trim());
+        
+        return irmao;
+    }
+    
+    @Override
+    protected void validateEntity(Irmao entity) throws Exception {
+        if (entity.getNome() == null || entity.getNome().trim().isEmpty()) {
+            throw new Exception("Nome é obrigatório!");
+        }
+    }
+    
+    @Override
+    protected void saveEntity(Irmao entity) throws Exception {
+        irmaoDAO.save(entity);
+    }
+    
+    @Override
+    protected void deleteEntity(Irmao entity) throws Exception {
+        irmaoDAO.delete(entity.getId());
+    }
+    
+    @Override
+    protected void updateTableModel(List<Irmao> data) {
+        tableModel.setRowCount(0);
+        for (Irmao irmao : data) {
+            Object[] row = {
+                irmao.getId(),
+                irmao.getNome(),
+                irmao.getNascimento() != null ? irmao.getNascimento().toString() : "",
+                irmao.getEstadoCivil(),
+                irmao.getTelefone(),
+                irmao.getCargoLoja()
+            };
+            tableModel.addRow(row);
+        }
+    }
+    
+    @Override
+    protected void clearFormFields() {
         nomeField.setText("");
         nascimentoField.setText("");
         estadoCivilField.setText("");
@@ -508,103 +595,29 @@ public class CadastroIrmaosPanel extends JPanel {
         telefoneEmpresaField.setText("");
         enderecoEmpresaField.setText("");
         registroGrandeLojaField.setText("");
-        nomeField.requestFocus();
-        atualizarBotoesAcao();
+        
+        dataTable.clearSelection();
     }
     
-    private void pesquisarIrmaos() {
-        try {
-            String termo = pesquisarField.getText().trim();
-            if (termo.isEmpty()) {
-                refreshData();
-                return;
-            }
-            
-            List<Irmao> irmaos = irmaoDAO.findAll(); // Simplificado - poderia ter método específico
-            tableModel.setRowCount(0);
-            
-            for (Irmao irmao : irmaos) {
-                if (irmao.getNome().toLowerCase().contains(termo.toLowerCase()) ||
-                    irmao.getEndereco().toLowerCase().contains(termo.toLowerCase())) {
-                    Object[] row = {
-                        irmao.getId(),
-                        irmao.getNome(),
-                        irmao.getTelefone(),
-                        irmao.getGrau(),
-                        irmao.getCargoLoja(),
-                        irmao.getCidade()
-                    };
-                    tableModel.addRow(row);
-                }
-            }
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao pesquisar: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-    
-    private void carregarIrmaoSelecionado() {
-        int selectedRow = irmaosTable.getSelectedRow();
-        if (selectedRow >= 0) {
-            Long id = (Long) tableModel.getValueAt(selectedRow, 0);
-            try {
-                irmaoAtual = irmaoDAO.findById(id);
-                if (irmaoAtual != null) {
-                    codigoField.setText(String.valueOf(irmaoAtual.getId()));
-                    nomeField.setText(irmaoAtual.getNome());
-                    
-                    // Data de nascimento
-                    if (irmaoAtual.getNascimento() != null) {
-                        nascimentoField.setText(irmaoAtual.getNascimento().toString());
-                    }
-                    
-                    estadoCivilField.setText(irmaoAtual.getEstadoCivil());
-                    naturalField.setText(irmaoAtual.getNatural());
-                    identidadeField.setText(irmaoAtual.getIdentidade());
-                    tipoSanguineoField.setText(irmaoAtual.getTipoSanguineo());
-                    cargoLojaField.setText(irmaoAtual.getCargoLoja());
-                    grauField.setText(irmaoAtual.getGrau());
-                    cargoGrandeLojaField.setText(irmaoAtual.getCargoGrandeLoja());
-                    enderecoField.setText(irmaoAtual.getEndereco());
-                    bairroField.setText(irmaoAtual.getBairro());
-                    cidadeField.setText(irmaoAtual.getCidade());
-                    estadoField.setText(irmaoAtual.getEstado());
-                    telefoneField.setText(irmaoAtual.getTelefone());
-                    empresaField.setText(irmaoAtual.getEmpresa());
-                    telefoneEmpresaField.setText(irmaoAtual.getTelefoneEmpresa());
-                    enderecoEmpresaField.setText(irmaoAtual.getEnderecoEmpresa());
-                    registroGrandeLojaField.setText(irmaoAtual.getRegistroGrandeLoja());
-                    atualizarBotoesAcao();
-                }
-            } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(this, "Erro ao carregar irmão: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-    }
-    
-    private void atualizarBotoesAcao() {
-        boolean temIrmao = irmaoAtual != null;
-        editarButton.setEnabled(temIrmao);
-        excluirButton.setEnabled(temIrmao);
-    }
-    
-    public void refreshData() {
-        try {
-            List<Irmao> irmaos = irmaoDAO.findAll();
-            tableModel.setRowCount(0);
-            
-            for (Irmao irmao : irmaos) {
-                Object[] row = {
-                    irmao.getId(),
-                    irmao.getNome(),
-                    irmao.getTelefone(),
-                    irmao.getGrau(),
-                    irmao.getCargoLoja(),
-                    irmao.getCidade()
-                };
-                tableModel.addRow(row);
-            }
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao carregar irmãos: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
-        }
+    @Override
+    protected void enableFormFields(boolean enabled) {
+        nomeField.setEnabled(enabled);
+        nascimentoField.setEnabled(enabled);
+        estadoCivilField.setEnabled(enabled);
+        naturalField.setEnabled(enabled);
+        identidadeField.setEnabled(enabled);
+        tipoSanguineoField.setEnabled(enabled);
+        cargoLojaField.setEnabled(enabled);
+        grauField.setEnabled(enabled);
+        cargoGrandeLojaField.setEnabled(enabled);
+        enderecoField.setEnabled(enabled);
+        bairroField.setEnabled(enabled);
+        cidadeField.setEnabled(enabled);
+        estadoField.setEnabled(enabled);
+        telefoneField.setEnabled(enabled);
+        empresaField.setEnabled(enabled);
+        telefoneEmpresaField.setEnabled(enabled);
+        enderecoEmpresaField.setEnabled(enabled);
+        registroGrandeLojaField.setEnabled(enabled);
     }
 }

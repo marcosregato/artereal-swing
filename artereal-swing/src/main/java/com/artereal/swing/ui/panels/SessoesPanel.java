@@ -100,29 +100,23 @@ public class SessoesPanel extends JPanel {
     }
     
     private void setupLayout() {
-        // Aplicar layout padrão usando PadraoLayout - CORREÇÃO CRÍTICA
-        this.setBorder(PadraoLayout.BORDA_PAINEL);
-        this.setBackground(PadraoLayout.COR_FUNDO);
+        // Aplicar layout padrão usando PadraoLayout - 100% CONFORMIDADE
+        PadraoLayout.aplicarLayoutPadrao(this);
         
         // Header estilizado usando PadraoLayout
         JPanel headerPanel = PadraoLayout.criarHeader("📝 Gestão de Sessões", "Cadastro e administração de sessões maçônicas");
         add(headerPanel, BorderLayout.NORTH);
         
-        // Painel principal (padrão RelatoriosPanel)
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBackground(new Color(245, 245, 250));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
+        // Painel principal usando PadraoLayout - 100% CONFORMIDADE
+        JPanel mainPanel = PadraoLayout.criarPainelPrincipal();
         
-        // Painel de pesquisa usando PadraoLayout
-        JPanel filtroPanel = PadraoLayout.criarPainelPesquisa(pesquisarField, pesquisarButton);
+        // Painel de busca no topo
+        JPanel buscaPanel = PadraoLayout.criarPainelPesquisa(pesquisarField, pesquisarButton);
+        mainPanel.add(buscaPanel, BorderLayout.NORTH);
         
-        // Painel de conteúdo com tabela e formulário
+        // Painel do conteúdo com split horizontal
         JPanel contentPanel = new JPanel(new BorderLayout());
-        contentPanel.setBackground(Color.WHITE);
-        contentPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(200, 200, 210)),
-            BorderFactory.createEmptyBorder(15, 15, 15, 15)
-        ));
+        contentPanel.setBackground(PadraoLayout.COR_FUNDO);
         
         // Tabela de sessões usando PadraoLayout
         JPanel tabelaPanel = new JPanel(new BorderLayout());
@@ -131,60 +125,93 @@ public class SessoesPanel extends JPanel {
         PadraoLayout.configurarTabela(sessoesTable);
         tabelaPanel.add(new JScrollPane(sessoesTable), BorderLayout.CENTER);
         
-        // Painel de formulário
+        // Painel de formulário usando PadraoLayout
         JPanel formularioPanel = new JPanel(new BorderLayout());
-        formularioPanel.setBackground(Color.WHITE);
-        formularioPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
+        formularioPanel.setBackground(PadraoLayout.COR_PAINEL);
+        formularioPanel.setBorder(PadraoLayout.BORDA_GRUPO);
         
-        JLabel formTitle = new JLabel("📝 Dados da Sessão");
-        formTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        formTitle.setForeground(new Color(70, 130, 180));
+        JLabel formTitle = PadraoLayout.criarLabelFormulario("📝 Dados da Sessão");
+        formTitle.setFont(PadraoLayout.FONTE_GRUPO);
         
         // Container principal para todos os grupos
         JPanel formContainer = new JPanel(new BorderLayout());
         formContainer.setBackground(Color.WHITE);
         
-        // Grupo 1: Dados Básicos usando PadraoLayout
-        JPanel dadosBasicosPanel = PadraoLayout.criarGrupoFormulario(" Dados Básicos");
-        JPanel dadosBasicosContent = new JPanel(PadraoLayout.criarLayoutGrupo());
+        // Grupo 1: Dados Básicos usando PadraoLayout com alinhamento correto
+        JPanel dadosBasicosPanel = PadraoLayout.criarGrupoFormulario("📅 Dados Básicos");
+        JPanel dadosBasicosContent = new JPanel(PadraoLayout.criarLayoutFormularioAlinhado());
         dadosBasicosContent.setBackground(Color.WHITE);
         
-        dadosBasicosContent.add(new JLabel("Código:"));
-        dadosBasicosContent.add(codigoField);
-        dadosBasicosContent.add(new JLabel("Data e Hora:"));
-        dadosBasicosContent.add(dataHoraField);
-        dadosBasicosContent.add(new JLabel("Local:"));
-        dadosBasicosContent.add(localField);
-        dadosBasicosContent.add(new JLabel("Tipo:"));
-        dadosBasicosContent.add(tipoCombo);
+        // Código
+        dadosBasicosContent.add(PadraoLayout.criarLabelFormularioCodigo("Código:"), PadraoLayout.criarConstraintsFormulario(0, 0));
+        PadraoLayout.estilizarCampoCodigo(codigoField); // Usando método específico
+        dadosBasicosContent.add(codigoField, PadraoLayout.criarConstraintsFormulario(0, 1));
+        
+        // Data e Hora
+        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Data e Hora:"), PadraoLayout.criarConstraintsFormulario(1, 0));
+        PadraoLayout.estilizarCampoDataHora(dataHoraField); // Usando método específico
+        dadosBasicosContent.add(dataHoraField, PadraoLayout.criarConstraintsFormulario(1, 1));
+        
+        // Local (ocupa duas colunas)
+        GridBagConstraints localLabelConstraints = PadraoLayout.criarConstraintsFormulario(2, 0);
+        localLabelConstraints.gridwidth = 2;
+        localLabelConstraints.fill = GridBagConstraints.HORIZONTAL;
+        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Local:"), localLabelConstraints);
+        
+        GridBagConstraints localFieldConstraints = PadraoLayout.criarConstraintsFormulario(3, 0);
+        localFieldConstraints.gridwidth = 2;
+        localFieldConstraints.fill = GridBagConstraints.HORIZONTAL;
+        PadraoLayout.estilizarCampoLocalSessao(localField); // Usando método específico
+        dadosBasicosContent.add(localField, localFieldConstraints);
+        
+        // Tipo
+        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Tipo:"), PadraoLayout.criarConstraintsFormulario(4, 0));
+        PadraoLayout.estilizarComboBox(tipoCombo);
+        dadosBasicosContent.add(tipoCombo, PadraoLayout.criarConstraintsFormulario(4, 1));
         
         dadosBasicosPanel.add(dadosBasicosContent);
         
-        // Grupo 2: Diretoria usando PadraoLayout
-        JPanel diretoriaPanel = PadraoLayout.criarGrupoFormulario(" Diretoria da Sessão");
-        JPanel diretoriaContent = new JPanel(PadraoLayout.criarLayoutGrupo());
+        // Grupo 2: Diretoria usando PadraoLayout com alinhamento correto
+        JPanel diretoriaPanel = PadraoLayout.criarGrupoFormulario("👥 Diretoria da Sessão");
+        JPanel diretoriaContent = new JPanel(PadraoLayout.criarLayoutFormularioAlinhado());
         diretoriaContent.setBackground(Color.WHITE);
         
-        diretoriaContent.add(new JLabel("Presidente:"));
-        diretoriaContent.add(presidenteField);
-        diretoriaContent.add(new JLabel("Secretário:"));
-        diretoriaContent.add(secretarioField);
-        diretoriaContent.add(new JLabel("Tesoureiro:"));
-        diretoriaContent.add(tesoureiroField);
-        diretoriaContent.add(new JLabel("Orador:"));
-        diretoriaContent.add(oradorField);
+        // Presidente
+        diretoriaContent.add(PadraoLayout.criarLabelFormulario("Presidente:"), PadraoLayout.criarConstraintsFormulario(0, 0));
+        PadraoLayout.estilizarCampoCargoSessao(presidenteField); // Usando método específico
+        diretoriaContent.add(presidenteField, PadraoLayout.criarConstraintsFormulario(0, 1));
+        
+        // Secretário
+        diretoriaContent.add(PadraoLayout.criarLabelFormulario("Secretário:"), PadraoLayout.criarConstraintsFormulario(1, 0));
+        PadraoLayout.estilizarCampoCargoSessao(secretarioField); // Usando método específico
+        diretoriaContent.add(secretarioField, PadraoLayout.criarConstraintsFormulario(1, 1));
+        
+        // Tesoureiro
+        diretoriaContent.add(PadraoLayout.criarLabelFormulario("Tesoureiro:"), PadraoLayout.criarConstraintsFormulario(2, 0));
+        PadraoLayout.estilizarCampoCargoSessao(tesoureiroField); // Usando método específico
+        diretoriaContent.add(tesoureiroField, PadraoLayout.criarConstraintsFormulario(2, 1));
+        
+        // Orador
+        diretoriaContent.add(PadraoLayout.criarLabelFormulario("Orador:"), PadraoLayout.criarConstraintsFormulario(3, 0));
+        PadraoLayout.estilizarCampoCargoSessao(oradorField); // Usando método específico
+        diretoriaContent.add(oradorField, PadraoLayout.criarConstraintsFormulario(3, 1));
         
         diretoriaPanel.add(diretoriaContent);
         
-        // Grupo 3: Participantes usando PadraoLayout
-        JPanel participantesPanel = PadraoLayout.criarGrupoFormulario(" Participantes");
-        JPanel participantesContent = new JPanel(PadraoLayout.criarLayoutGrupo());
+        // Grupo 3: Participantes usando PadraoLayout com alinhamento correto
+        JPanel participantesPanel = PadraoLayout.criarGrupoFormulario("👥 Participantes");
+        JPanel participantesContent = new JPanel(PadraoLayout.criarLayoutFormularioAlinhado());
         participantesContent.setBackground(Color.WHITE);
         
-        participantesContent.add(new JLabel("Presentes:"));
-        participantesContent.add(presentesField);
-        participantesContent.add(new JLabel("Visitantes:"));
-        participantesContent.add(visitantesField);
+        // Presentes
+        participantesContent.add(PadraoLayout.criarLabelFormulario("Presentes:"), PadraoLayout.criarConstraintsFormulario(0, 0));
+        PadraoLayout.estilizarCampoNumeroParticipantes(presentesField); // Usando método específico
+        participantesContent.add(presentesField, PadraoLayout.criarConstraintsFormulario(0, 1));
+        
+        // Visitantes
+        participantesContent.add(PadraoLayout.criarLabelFormulario("Visitantes:"), PadraoLayout.criarConstraintsFormulario(1, 0));
+        PadraoLayout.estilizarCampoNumeroParticipantes(visitantesField); // Usando método específico
+        participantesContent.add(visitantesField, PadraoLayout.criarConstraintsFormulario(1, 1));
         
         participantesPanel.add(participantesContent);
         
@@ -237,14 +264,14 @@ public class SessoesPanel extends JPanel {
         formularioPanel.add(formContainer, BorderLayout.CENTER);
         formularioPanel.add(botoesPanel, BorderLayout.SOUTH);
         
-        // Split pane para tabela e formulário
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tabelaPanel, formularioPanel);
-        splitPane.setDividerLocation(300);
-        splitPane.setResizeWeight(0.6);
+        // Split vertical: Formulário acima, Tabela abaixo
+        JSplitPane verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formularioPanel, tabelaPanel);
+        verticalSplitPane.setDividerLocation(350);
+        verticalSplitPane.setResizeWeight(0.4);
         
-        contentPanel.add(splitPane, BorderLayout.CENTER);
+        contentPanel.add(verticalSplitPane, BorderLayout.CENTER);
         
-        mainPanel.add(filtroPanel, BorderLayout.NORTH);
+        mainPanel.add(buscaPanel, BorderLayout.NORTH);
         mainPanel.add(contentPanel, BorderLayout.CENTER);
         
         add(mainPanel, BorderLayout.CENTER);

@@ -73,16 +73,73 @@ public class GaleriaFotosPanel extends JPanel {
         PadraoLayout.aplicarLayoutPadrao(this);
         
         // Header estilizado usando PadraoLayout
-        JPanel headerPanel = PadraoLayout.criarHeader("�️ Galeria de Fotos", "Álbum de fotos e eventos maçônicos");
+        JPanel headerPanel = PadraoLayout.criarHeader("🖼️ Galeria de Fotos", "Álbum de fotos e eventos maçônicos");
         add(headerPanel, BorderLayout.NORTH);
         
-        // Painel de estatísticas
-        JPanel statsPanel = new JPanel(new GridLayout(1, 3, 10, 10));
-        statsPanel.setBackground(new Color(245, 245, 250));
-        statsPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(200, 200, 210)),
-            BorderFactory.createEmptyBorder(15, 20, 15, 20)
-        ));
+        // Painel principal usando PadraoLayout
+        JPanel mainPanel = PadraoLayout.criarPainelPrincipal();
+        
+        // Painel de busca no topo
+        JTextField pesquisarField = new JTextField(20);
+        JButton pesquisarButton = PadraoLayout.criarBotaoPesquisar();
+        JPanel buscaPanel = PadraoLayout.criarPainelPesquisa(pesquisarField, pesquisarButton);
+        mainPanel.add(buscaPanel, BorderLayout.NORTH);
+        
+        // Painel do conteúdo com split vertical (Formulário acima, Tabela abaixo)
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBackground(PadraoLayout.COR_FUNDO);
+        
+        // Painel de formulário usando PadraoLayout
+        JPanel formPanel = PadraoLayout.criarGrupoFormulario("📸 Dados da Foto");
+        JPanel formContainer = new JPanel(new BorderLayout());
+        formContainer.setBackground(Color.WHITE);
+        
+        // Formulário usando PadraoLayout
+        JPanel formContent = new JPanel(PadraoLayout.criarLayoutFormulario());
+        formContent.setBackground(Color.WHITE);
+        
+        // SEÇÃO 1: Dados da Foto
+        JPanel dadosFotoPanel = new JPanel(new BorderLayout());
+        dadosFotoPanel.setBackground(Color.WHITE);
+        dadosFotoPanel.setBorder(BorderFactory.createTitledBorder("📸 Dados da Foto"));
+        
+        JPanel dadosFotoContent = new JPanel(PadraoLayout.criarLayoutFormulario());
+        dadosFotoContent.setBackground(Color.WHITE);
+        
+        dadosFotoContent.add(PadraoLayout.criarLabelFormulario("Descrição:"));
+        PadraoLayout.estilizarCampoDescricaoFoto(descricaoField);
+        dadosFotoContent.add(descricaoField);
+        
+        dadosFotoContent.add(PadraoLayout.criarLabelFormulario("Categoria:"));
+        PadraoLayout.estilizarComboBox(categoriaComboBox);
+        dadosFotoContent.add(categoriaComboBox);
+        
+        dadosFotoPanel.add(dadosFotoContent, BorderLayout.CENTER);
+        formContainer.add(dadosFotoPanel, BorderLayout.NORTH);
+        
+        // SEÇÃO 2: Arquivo da Foto
+        JPanel arquivoFotoPanel = new JPanel(new BorderLayout());
+        arquivoFotoPanel.setBackground(Color.WHITE);
+        arquivoFotoPanel.setBorder(BorderFactory.createTitledBorder("📁 Arquivo da Foto"));
+        
+        JPanel arquivoFotoContent = new JPanel(PadraoLayout.criarLayoutFormulario());
+        arquivoFotoContent.setBackground(Color.WHITE);
+        
+        arquivoFotoContent.add(PadraoLayout.criarLabelFormulario("Caminho do Arquivo:"));
+        PadraoLayout.estilizarCampoCaminhoFoto(caminhoField);
+        caminhoField.setEditable(false);
+        arquivoFotoContent.add(caminhoField);
+        
+        arquivoFotoContent.add(PadraoLayout.criarLabelFormulario("Selecionar Arquivo:"));
+        arquivoFotoContent.add(selecionarArquivoButton);
+        
+        arquivoFotoPanel.add(arquivoFotoContent, BorderLayout.CENTER);
+        formContainer.add(arquivoFotoPanel, BorderLayout.CENTER);
+        
+        // Painel de estatísticas no formulário
+        JPanel statsPanel = new JPanel(new GridLayout(1, 3, 10, 5));
+        statsPanel.setBackground(Color.WHITE);
+        statsPanel.setBorder(BorderFactory.createTitledBorder("📊 Estatísticas de Fotos"));
         
         try {
             List<Object[]> estatisticas = fotoDAO.getEstatisticas();
@@ -91,11 +148,11 @@ public class GaleriaFotosPanel extends JPanel {
             // Total de fotos
             JPanel totalPanel = new JPanel(new BorderLayout());
             totalPanel.setBorder(BorderFactory.createEtchedBorder());
-            JLabel totalLabel = new JLabel("Total de Fotos", SwingConstants.CENTER);
+            JLabel totalLabel = new JLabel("Total", SwingConstants.CENTER);
             totalLabel.setForeground(Color.BLUE);
             totalPanel.add(totalLabel, BorderLayout.NORTH);
             JLabel totalValorLabel = new JLabel(String.valueOf(totalFotos), SwingConstants.CENTER);
-            totalValorLabel.setFont(new Font("Arial", Font.BOLD, 24));
+            totalValorLabel.setFont(new Font("Arial", Font.BOLD, 16));
             totalPanel.add(totalValorLabel, BorderLayout.CENTER);
             statsPanel.add(totalPanel);
             
@@ -103,26 +160,29 @@ public class GaleriaFotosPanel extends JPanel {
             for (Object[] est : estatisticas) {
                 String categoria = (String) est[0];
                 int quantidade = (Integer) est[1];
-                double tamanho = (Double) est[2];
                 
                 JPanel catPanel = new JPanel(new BorderLayout());
                 catPanel.setBorder(BorderFactory.createEtchedBorder());
                 
                 Color color = Color.BLACK;
                 switch (categoria) {
-                    case "SESSAO_MAGNA": color = Color.BLUE; break;
-                    case "SESSAO_BRANCA": color = Color.GREEN; break;
-                    case "CERIMONIA_INICIACAO": color = Color.MAGENTA; break;
-                    default: color = Color.DARK_GRAY; break;
+                    case "IRMAO": color = Color.BLUE; break;
+                    case "LOJA": color = Color.GREEN; break;
+                    case "SESSAO": color = Color.MAGENTA; break;
+                    case "EVENTO": color = Color.RED; break;
+                    case "DOCUMENTO": color = Color.ORANGE; break;
+                    case "OUTRA": color = Color.DARK_GRAY; break;
                 }
                 
                 JLabel catLabel = new JLabel(categoria.replace("_", " "), SwingConstants.CENTER);
                 catLabel.setForeground(color);
+                catLabel.setFont(new Font("Segoe UI", Font.BOLD, 10));
                 catPanel.add(catLabel, BorderLayout.NORTH);
                 
-                JLabel detalhesLabel = new JLabel(String.format("%d fotos\n%.1f MB", quantidade, tamanho / (1024 * 1024)), SwingConstants.CENTER);
-                detalhesLabel.setFont(new Font("Arial", Font.PLAIN, 10));
-                catPanel.add(detalhesLabel, BorderLayout.CENTER);
+                JLabel quantLabel = new JLabel(String.valueOf(quantidade), SwingConstants.CENTER);
+                quantLabel.setFont(new Font("Arial", Font.BOLD, 14));
+                quantLabel.setForeground(color);
+                catPanel.add(quantLabel, BorderLayout.CENTER);
                 
                 statsPanel.add(catPanel);
             }
@@ -130,182 +190,42 @@ public class GaleriaFotosPanel extends JPanel {
             statsPanel.add(new JLabel("Erro ao carregar estatísticas"));
         }
         
-        // Painel de pesquisa
-        JPanel pesquisaPanel = new JPanel(new BorderLayout());
-        pesquisaPanel.setBackground(new Color(245, 245, 250));
-        pesquisaPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(200, 200, 210)),
-            BorderFactory.createEmptyBorder(10, 15, 10, 15)
-        ));
-        
-        JPanel searchContainer = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        searchContainer.setBackground(new Color(245, 245, 250));
-        
-        JLabel searchLabel = new JLabel("🔍 Pesquisar:");
-        searchLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        searchLabel.setForeground(new Color(100, 100, 120));
-        
-        JTextField pesquisarField = new JTextField();
-        pesquisarField.setPreferredSize(new Dimension(200, 30));
-        pesquisarField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        
-        JButton pesquisarButton = PadraoLayout.criarBotaoPesquisar();
-        pesquisarButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
-        pesquisarButton.setFocusPainted(false);
-        
-        searchContainer.add(searchLabel);
-        searchContainer.add(pesquisarField);
-        searchContainer.add(pesquisarButton);
-        pesquisaPanel.add(searchContainer, BorderLayout.CENTER);
-        
-        // Painel direito - Formulário usando PadraoLayout
-        JPanel rightPanel = new JPanel(new BorderLayout());
-        rightPanel.setBackground(Color.WHITE);
-        rightPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 10));
-        
-        // Header estilizado usando PadraoLayout
-        JPanel formHeaderPanel = PadraoLayout.criarHeader("📸 Dados da Foto", "Gerencie as informações das fotos do sistema");
-        rightPanel.add(formHeaderPanel, BorderLayout.NORTH);
-        
-        // Painel de formulário
-        JPanel formularioPanel = new JPanel(new BorderLayout());
-        formularioPanel.setBackground(Color.WHITE);
-        formularioPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
-        
-        JLabel formTitle = new JLabel("📸 Dados da Foto");
-        formTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        formTitle.setForeground(new Color(70, 130, 180));
-        
-        // Container principal para todos os grupos
-        JPanel formContainer = new JPanel(new BorderLayout());
-        formContainer.setBackground(Color.WHITE);
-        
-        // Grupo 1: Dados Básicos
-        JPanel dadosBasicosPanel = createFormGroup("📅 Dados Básicos");
-        JPanel dadosBasicosContent = new JPanel(PadraoLayout.criarLayoutFormulario());
-        dadosBasicosContent.setBackground(Color.WHITE);
-        
-        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Descrição:"));
-        PadraoLayout.estilizarCampoTexto(descricaoField);
-        dadosBasicosContent.add(descricaoField);
-        
-        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Categoria:"));
-        PadraoLayout.estilizarComboBox(categoriaComboBox);
-        dadosBasicosContent.add(categoriaComboBox);
-        
-        dadosBasicosPanel.add(dadosBasicosContent);
-        
-        // Grupo 2: Arquivo e Localização
-        JPanel arquivoPanel = createFormGroup("📁 Arquivo e Localização");
-        JPanel arquivoContent = new JPanel(new BorderLayout());
-        arquivoContent.setBackground(Color.WHITE);
-        
-        // Painel de arquivo
-        JPanel filePanel = new JPanel(PadraoLayout.criarLayoutFormulario());
-        filePanel.setBackground(Color.WHITE);
-        
-        filePanel.add(PadraoLayout.criarLabelFormulario("Caminho:"));
-        PadraoLayout.estilizarCampoTexto(caminhoField);
-        JPanel pathPanel = new JPanel(new BorderLayout());
-        pathPanel.add(caminhoField, BorderLayout.CENTER);
-        pathPanel.add(selecionarArquivoButton, BorderLayout.EAST);
-        filePanel.add(pathPanel);
-        
-        arquivoContent.add(filePanel, BorderLayout.CENTER);
-        arquivoPanel.add(arquivoContent);
-        
-        // Organizar grupos verticalmente (padrão SessoesPanel)
-        JPanel groupsPanel = new JPanel(new BorderLayout());
-        groupsPanel.setBackground(Color.WHITE);
-        
-        JPanel topGroups = new JPanel(new BorderLayout());
-        topGroups.setBackground(Color.WHITE);
-        topGroups.add(dadosBasicosPanel, BorderLayout.NORTH);
-        topGroups.add(arquivoPanel, BorderLayout.CENTER);
-        
-        JPanel allGroups = new JPanel(new BorderLayout());
-        allGroups.setBackground(Color.WHITE);
-        allGroups.add(topGroups, BorderLayout.NORTH);
-        
-        // Adicionar scroll ao formulário para garantir visibilidade
-        JScrollPane formScroll = new JScrollPane(allGroups);
-        formScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        formScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        formScroll.setBorder(BorderFactory.createEmptyBorder());
-        
-        formContainer.add(formScroll, BorderLayout.CENTER);
-        
         // Painel de botões
         JPanel botoesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         botoesPanel.setBackground(Color.WHITE);
+        botoesPanel.add(salvarButton);
+        botoesPanel.add(novoButton);
+        botoesPanel.add(excluirButton);
+        botoesPanel.add(visualizarButton);
+        botoesPanel.add(selecionarArquivoButton);
         
-        botoesPanel.add(createStyledButton("Salvar", new Color(144, 238, 144)));
-        botoesPanel.add(createStyledButton("Novo", new Color(173, 216, 230)));
-        botoesPanel.add(createStyledButton("Excluir", new Color(255, 182, 193)));
-        botoesPanel.add(createStyledButton("Visualizar", new Color(255, 250, 205)));
-        botoesPanel.add(createStyledButton("Relatório", new Color(255, 218, 185)));
+        formContainer.add(formContent, BorderLayout.CENTER);
+        formContainer.add(statsPanel, BorderLayout.NORTH);
+        formContainer.add(botoesPanel, BorderLayout.SOUTH);
         
-        formularioPanel.add(formTitle, BorderLayout.NORTH);
-        formularioPanel.add(formContainer, BorderLayout.CENTER);
-        formularioPanel.add(botoesPanel, BorderLayout.SOUTH);
+        formPanel.add(formContainer, BorderLayout.CENTER);
         
-        rightPanel.add(formularioPanel, BorderLayout.CENTER);
-        
-        // Painel principal com split
-        JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        mainSplitPane.setDividerLocation(650);
-        mainSplitPane.setResizeWeight(0.6);
-        
-        // Painel esquerdo - Tabela e estatísticas
-        JPanel tablePanel = new JPanel(new BorderLayout());
-        tablePanel.setBackground(Color.WHITE);
-        tablePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        
-        // Painel de pesquisa já foi definido anteriormente
-        JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.setBackground(Color.WHITE);
-        topPanel.add(pesquisaPanel, BorderLayout.NORTH);
-        topPanel.add(statsPanel, BorderLayout.CENTER);
-        
-        // Tabela estilizada usando padrão PadraoLayout
+        // Painel de tabela usando PadraoLayout
+        JPanel tabelaPanel = PadraoLayout.criarGrupoFormulario("🖼️ Fotos Cadastradas");
         PadraoLayout.configurarTabela(fotosTable);
         JScrollPane tableScrollPane = new JScrollPane(fotosTable);
-        tableScrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 210)));
-        tableScrollPane.getViewport().setBackground(Color.WHITE);
         
-        tablePanel.add(topPanel, BorderLayout.NORTH);
-        tablePanel.add(tableScrollPane, BorderLayout.CENTER);
+        tabelaPanel.add(tableScrollPane, BorderLayout.CENTER);
         
-        mainSplitPane.setLeftComponent(tablePanel);
-        mainSplitPane.setRightComponent(rightPanel);
+        // Split vertical: Formulário acima (60%), Tabela abaixo (40%)
+        JSplitPane verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formPanel, tabelaPanel);
+        verticalSplitPane.setDividerLocation(400);
+        verticalSplitPane.setResizeWeight(0.6);
         
-        add(mainSplitPane, BorderLayout.CENTER);
+        contentPanel.add(verticalSplitPane, BorderLayout.CENTER);
+        
+        // Adicionar contentPanel ao mainPanel
+        mainPanel.add(contentPanel, BorderLayout.CENTER);
+        
+        add(mainPanel, BorderLayout.CENTER);
     }
     
-    private JButton createStyledButton(String text, Color bgColor) {
-        return PadraoLayout.criarBotao(text, bgColor);
-    }
-    
-    private JPanel createFormGroup(String title) {
-        JPanel groupPanel = new JPanel(new BorderLayout());
-        groupPanel.setBackground(Color.WHITE);
-        groupPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(220, 220, 230), 1),
-            BorderFactory.createEmptyBorder(10, 10, 10, 10)
-        ));
         
-        JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        titleLabel.setForeground(new Color(70, 130, 180));
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 8, 0));
-        
-        groupPanel.add(titleLabel, BorderLayout.NORTH);
-        return groupPanel;
-    }
-    
     private void setupEvents() {
         salvarButton.addActionListener(e -> salvarFoto());
         novoButton.addActionListener(e -> limparFormulario());

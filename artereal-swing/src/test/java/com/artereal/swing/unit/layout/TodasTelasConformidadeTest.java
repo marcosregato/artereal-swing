@@ -1,7 +1,23 @@
 package com.artereal.swing.unit.layout;
 
 import com.artereal.swing.ui.layout.PadraoLayout;
-import com.artereal.swing.ui.panels.*;
+import com.artereal.swing.ui.panels.AfastamentosPanel;
+import com.artereal.swing.ui.panels.BibliotecaPanel;
+import com.artereal.swing.ui.panels.CaixaPanel;
+import com.artereal.swing.ui.panels.CalendarioPanel;
+import com.artereal.swing.ui.panels.CandidatosPanel;
+import com.artereal.swing.ui.panels.ChequesPanel;
+import com.artereal.swing.ui.panels.ConfiguracoesPanel;
+import com.artereal.swing.ui.panels.DashboardPanel;
+import com.artereal.swing.ui.panels.DocumentosPanel;
+import com.artereal.swing.ui.panels.FrequenciaPanel;
+import com.artereal.swing.ui.panels.GaleriaFotosPanel;
+import com.artereal.swing.ui.panels.IrmaosPanel;
+import com.artereal.swing.ui.panels.LojasPanel;
+import com.artereal.swing.ui.panels.RelatoriosPanel;
+import com.artereal.swing.ui.panels.SessoesPanel;
+import com.artereal.swing.ui.panels.UsuariosPanel;
+import com.artereal.swing.ui.panels.VisitantesPanel;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.BeforeEach;
@@ -276,7 +292,8 @@ class TodasTelasConformidadeTest {
 
     private List<String> validarComboBox(JPanel tela) {
         List<String> problemas = new ArrayList<>();
-        List<JComboBox<?>> combos = encontrarComponentes(tela, JComboBox.class);
+        @SuppressWarnings("unchecked")
+        List<JComboBox<?>> combos = (List<JComboBox<?>>) (List<?>) encontrarComponentes(tela, JComboBox.class);
 
         for (JComboBox<?> combo : combos) {
             if (!combo.getBorder().equals(PadraoLayout.BORDA_CAMPO)) {

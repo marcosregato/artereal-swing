@@ -17,6 +17,7 @@ public class DatabaseManager {
     private static final Logger logger = LoggerFactory.getLogger(DatabaseManager.class);
     private static DatabaseManager instance;
     private Connection connection;
+    private boolean initialized = false;
     
     private DatabaseManager() {}
     
@@ -28,9 +29,14 @@ public class DatabaseManager {
     }
     
     /**
-     * Inicializa o banco de dados
+     * Inicializa o banco de dados (com cache para evitar múltiplas inicializações)
      */
-    public void initializeDatabase() throws SQLException {
+    public synchronized void initializeDatabase() throws SQLException {
+        if (initialized && connection != null && !connection.isClosed()) {
+            logger.debug("Banco de dados já inicializado, reutilizando conexão");
+            return;
+        }
+        
         String dbPath = System.getProperty("user.home") + File.separator + ".artereal";
         File dbDir = new File(dbPath);
         if (!dbDir.exists()) {
@@ -42,12 +48,17 @@ public class DatabaseManager {
         
         logger.info("Inicializando banco de dados SQLite: {}", dbFile);
         
+        if (connection != null && !connection.isClosed()) {
+            connection.close();
+        }
+        
         connection = DriverManager.getConnection(url);
         connection.setAutoCommit(false);
         
         createTables();
         insertInitialData();
         
+        initialized = true;
         logger.info("Banco de dados inicializado com sucesso");
     }
     
