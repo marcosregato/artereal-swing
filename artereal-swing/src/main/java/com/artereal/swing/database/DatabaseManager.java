@@ -558,6 +558,21 @@ public class DatabaseManager {
                 )
             """);
             
+            // Tabela de Despesas
+            stmt.execute("""
+                CREATE TABLE IF NOT EXISTS despesas (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    descricao TEXT NOT NULL,
+                    valor REAL NOT NULL,
+                    data TEXT NOT NULL,
+                    categoria TEXT DEFAULT 'Geral',
+                    fornecedor TEXT DEFAULT 'Não informado',
+                    numero_documento TEXT,
+                    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+                )
+            """);
+            
             connection.commit();
             logger.info("Tabelas criadas com sucesso");
         } catch (SQLException e) {
