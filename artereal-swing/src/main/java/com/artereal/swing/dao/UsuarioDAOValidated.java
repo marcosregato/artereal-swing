@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * DAO para operações com Usuários no banco SQLite com validação integrada
+ * DAO para operações com Usuários no banco PostgreSQL com validação integrada
  */
 public class UsuarioDAOValidated {
     

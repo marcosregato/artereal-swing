@@ -112,7 +112,7 @@ public class MainFrame extends JFrame {
         statusBar.setBorder(BorderFactory.createEtchedBorder());
         statusBar.setPreferredSize(new Dimension(0, 25));
         
-        JLabel versionLabel = new JLabel("ArteReal v1.0.0 - Swing + SQLite");
+        JLabel versionLabel = new JLabel("ArteReal v1.0.0 - Swing + PostgreSQL");
         versionLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
         
         statusBar.add(statusLabel, BorderLayout.CENTER);
@@ -578,10 +578,10 @@ public class MainFrame extends JFrame {
                 <h2><font color='#2c3e50'>🏛️ ArteReal - Sistema de Gestão Maçônica</font></h2>
                 <p><b><font color='#34495e' size='4'>Versão 2.0.0</font></b></p>
                 <p><font color='#7f8c8d'>Sistema desktop completo para gestão administrativa de lojas maçônicas</font></p>
-                <p><font color='#95a5a6' size='2'>Desenvolvido com Java 21, Swing e SQLite</font></p>
+                <p><font color='#95a5a6' size='2'>Desenvolvido com Java 21, Swing e PostgreSQL</font></p>
                 <br>
                 <p><b><font color='#2c3e50'>🔧 Tecnologias:</font></b></p>
-                <p><font color='#34495e' size='2'>• Java 21 • Swing • SQLite • Maven</font></p>
+                <p><font color='#34495e' size='2'>• Java 21 • Swing • PostgreSQL • Maven</font></p>
                 <p><font color='#34495e' size='2'>• Material Design • Layout Responsivo</font></p>
                 <br>
                 <p><b><font color='#2c3e50'>📋 Funcionalidades Principais:</font></b></p>

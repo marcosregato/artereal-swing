@@ -16,7 +16,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Testes de integração simplificados para o banco de dados SQLite
+ * Testes de integração simplificados para o banco de dados PostgreSQL
  */
 @DisplayName("Testes de Integração do Banco de Dados (Simplificado)")
 class DatabaseIntegrationTestSimplificado {

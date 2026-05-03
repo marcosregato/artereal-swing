@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +16,7 @@ public class BibliotecaDAO {
     
     private static final Logger logger = LoggerFactory.getLogger(BibliotecaDAO.class);
     private final DatabaseManager dbManager;
-    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    // private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd"); // Não utilizado
     
     public BibliotecaDAO() {
         this.dbManager = DatabaseManager.getInstance();
@@ -27,19 +26,15 @@ public class BibliotecaDAO {
         String sql;
         if (biblioteca.getId() == null) {
             sql = """
-                INSERT INTO biblioteca (tipo, titulo, autor, isbn, editora, ano_publicacao, 
-                    categoria, localizacao, status, nome_leitor, data_emprestimo, 
-                    data_devolucao_prevista, data_devolucao_real, responsavel_emprestimo, 
-                    multa, observacoes, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                INSERT INTO biblioteca (titulo, assunto, estoque, emprestados, autor, 
+                    grau, isbn, editora, ano_publicacao, localizacao, ativo, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                 """;
         } else {
             sql = """
-                UPDATE biblioteca SET tipo = ?, titulo = ?, autor = ?, isbn = ?, 
-                    editora = ?, ano_publicacao = ?, categoria = ?, localizacao = ?, 
-                    status = ?, nome_leitor = ?, data_emprestimo = ?, data_devolucao_prevista = ?, 
-                    data_devolucao_real = ?, responsavel_emprestimo = ?, multa = ?, 
-                    observacoes = ?, updated_at = CURRENT_TIMESTAMP
+                UPDATE biblioteca SET titulo = ?, assunto = ?, estoque = ?, emprestados = ?, 
+                    autor = ?, grau = ?, isbn = ?, editora = ?, ano_publicacao = ?, 
+                    localizacao = ?, ativo = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
                 """;
         }
@@ -47,25 +42,24 @@ public class BibliotecaDAO {
         try (Connection conn = dbManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
-            stmt.setString(1, biblioteca.getTipo());
-            stmt.setString(2, biblioteca.getTitulo());
-            stmt.setString(3, biblioteca.getAutor());
-            stmt.setString(4, biblioteca.getIsbn());
-            stmt.setString(5, biblioteca.getEditora());
-            stmt.setString(6, biblioteca.getAnoPublicacao());
-            stmt.setString(7, biblioteca.getCategoria());
-            stmt.setString(8, biblioteca.getLocalizacao());
-            stmt.setString(9, biblioteca.getStatus());
-            stmt.setString(10, biblioteca.getNomeLeitor());
-            stmt.setString(11, biblioteca.getDataEmprestimo() != null ? biblioteca.getDataEmprestimo().format(dateFormatter) : null);
-            stmt.setString(12, biblioteca.getDataDevolucaoPrevista() != null ? biblioteca.getDataDevolucaoPrevista().format(dateFormatter) : null);
-            stmt.setString(13, biblioteca.getDataDevolucaoReal() != null ? biblioteca.getDataDevolucaoReal().format(dateFormatter) : null);
-            stmt.setString(14, biblioteca.getResponsavelEmprestimo());
-            stmt.setBigDecimal(15, biblioteca.getMulta());
-            stmt.setString(16, biblioteca.getObservacoes());
+            stmt.setString(1, biblioteca.getTitulo());
+            stmt.setString(2, biblioteca.getCategoria()); // assunto no banco
+            stmt.setInt(3, 1); // estoque padrão
+            stmt.setInt(4, 0); // emprestados padrão
+            stmt.setString(5, biblioteca.getAutor());
+            stmt.setString(6, ""); // grau - campo não existe no model
+            stmt.setString(7, biblioteca.getIsbn());
+            stmt.setString(8, biblioteca.getEditora());
+            try {
+                stmt.setInt(9, Integer.parseInt(biblioteca.getAnoPublicacao()));
+            } catch (NumberFormatException e) {
+                stmt.setInt(9, 2024); // valor padrão se não conseguir converter
+            }
+            stmt.setString(10, biblioteca.getLocalizacao());
+            stmt.setInt(11, 1); // ativo padrão
             
             if (biblioteca.getId() != null) {
-                stmt.setLong(17, biblioteca.getId());
+                stmt.setLong(12, biblioteca.getId());
             }
             
             int affectedRows = stmt.executeUpdate();
@@ -184,7 +178,7 @@ public class BibliotecaDAO {
     
     public List<Biblioteca> findByNomeLeitor(String nomeLeitor) throws SQLException {
         List<Biblioteca> emprestimos = new ArrayList<>();
-        String sql = "SELECT * FROM biblioteca WHERE nome_leitor LIKE ? ORDER BY data_emprestimo DESC";
+        String sql = "SELECT * FROM emprestimo WHERE nome_irmao LIKE ? ORDER BY data_emprestimo DESC";
         
         try (Connection conn = dbManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {

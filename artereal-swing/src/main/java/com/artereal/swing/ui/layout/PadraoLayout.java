@@ -887,14 +887,14 @@ public class PadraoLayout {
     }
     
     /**
-     * Aplica estilização padrão a um campo de Data com tamanho de 12 caracteres (com máscara)
+     * Aplica estilização padrão a um campo de Data com tamanho de 8 caracteres (formato xx/xx/xxxx)
      */
     public static void estilizarCampoData(JTextField campo) {
         System.out.println("[PADRAO_LAYOUT] estilizarCampoData() chamado - campo=" + campo.getClass().getSimpleName());
         campo.setBorder(BORDA_CAMPO);
         campo.setBackground(Color.WHITE);
-        campo.setColumns(12); // Tamanho ideal para Data
-        System.out.println("[PADRAO_LAYOUT] Campo Data estilizado - Borda=PADRAO, Background=WHITE, Columns=12");
+        campo.setColumns(8); // Tamanho ideal para Data (formato xx/xx/xxxx)
+        System.out.println("[PADRAO_LAYOUT] Campo Data estilizado - Borda=PADRAO, Background=WHITE, Columns=8");
     }
     
     /**
@@ -1206,25 +1206,14 @@ public class PadraoLayout {
     }
     
     /**
-     * Aplica estilização padrão a um campo de Tamanho Arquivo com tamanho de 15 caracteres
-     */
-    public static void estilizarCampoTamanhoArquivo(JTextField campo) {
-        System.out.println("[PADRAO_LAYOUT] estilizarCampoTamanhoArquivo() chamado - campo=" + campo.getClass().getSimpleName());
-        campo.setBorder(BORDA_CAMPO);
-        campo.setBackground(Color.WHITE);
-        campo.setColumns(12); // Tamanho ideal para Tamanho Arquivo (1.5 MB)
-        System.out.println("[PADRAO_LAYOUT] Campo Tamanho Arquivo estilizado - Borda=PADRAO, Background=WHITE, Columns=15");
-    }
-    
-    /**
-     * Aplica estilização padrão a um campo de Formato Arquivo com tamanho de 10 caracteres
+     * Aplica estilização padrão a um campo de Formato Arquivo com tamanho de 6 caracteres
      */
     public static void estilizarCampoFormatoArquivo(JTextField campo) {
         System.out.println("[PADRAO_LAYOUT] estilizarCampoFormatoArquivo() chamado - campo=" + campo.getClass().getSimpleName());
         campo.setBorder(BORDA_CAMPO);
         campo.setBackground(Color.WHITE);
-        campo.setColumns(12); // Tamanho ideal para Formato Arquivo (PDF, DOCX)
-        System.out.println("[PADRAO_LAYOUT] Campo Formato Arquivo estilizado - Borda=PADRAO, Background=WHITE, Columns=10");
+        campo.setColumns(6); // Tamanho ideal para Formato Arquivo (PDF, JPG, DOC)
+        System.out.println("[PADRAO_LAYOUT] Campo Formato Arquivo estilizado - Borda=PADRAO, Background=WHITE, Columns=6");
     }
     
     /**

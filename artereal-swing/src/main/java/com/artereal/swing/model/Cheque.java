@@ -5,7 +5,7 @@ import java.time.LocalDate;
 /**
  * Modelo de dados para Gestão de Cheques
  */
-public class Cheque {
+public class Cheque extends SimpleModel {
     
     private Long id;
     private String fatura;
@@ -141,11 +141,5 @@ public class Cheque {
     
     public void devolver() {
         this.situacao = "DEVOLVIDO";
-    }
-    
-    @Override
-    public String toString() {
-        return String.format("Cheque: %s - R$ %.2f - %s (%s)", 
-                           sacado, valor, situacao, dataVencimento);
     }
 }

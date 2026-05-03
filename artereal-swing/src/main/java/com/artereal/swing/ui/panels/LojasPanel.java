@@ -6,7 +6,9 @@ import com.artereal.swing.ui.layout.PadraoLayout;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.text.*;
 import java.awt.*;
+import java.awt.event.*;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -78,7 +80,12 @@ public class LojasPanel extends JPanel {
         estadoField = new JTextField();
         cepField = new JTextField();
         telefoneField = new JTextField();
+        
+        // Aplicar máscara de CEP ao campo
+        aplicarMascaraCEP(cepField);
         emailField = new JTextField();
+        
+        // Outros campos
         dataFundacaoField = new JTextField(15);
         ritualField = new JTextField(20);
         poderField = new JTextField(25);
@@ -99,6 +106,89 @@ public class LojasPanel extends JPanel {
         PadraoLayout.aplicarCoresPastelBotoesPrincipais(salvarButton, novoButton, editarButton, excluirButton, limparButton);
         
         pesquisarField = new JTextField(20);
+    }
+    
+    /**
+     * Aplica máscara de CEP no formato XXXXX-XXX
+     */
+    private void aplicarMascaraCEP(JTextField cepField) {
+        try {
+            // Remove qualquer formatação existente primeiro
+            PlainDocument document = new PlainDocument();
+            cepField.setDocument(document);
+            
+            // Define o tamanho máximo e formatação
+            document.setDocumentFilter(new DocumentFilter() {
+                @Override
+                public void insertString(DocumentFilter.FilterBypass fb, int offset, String str, AttributeSet attr) throws BadLocationException {
+                    // Remove caracteres não numéricos
+                    String cleaned = str.replaceAll("[^0-9]", "");
+                    
+                    // Limita a 9 caracteres (5-3)
+                    if (document.getLength() + cleaned.length() > 9) {
+                        return;
+                    }
+                    
+                    // Aplica formatação: XXXXX-XXX
+                    String currentText = document.getText(0, document.getLength());
+                    int digits = currentText.replaceAll("[^0-9]", "").length();
+                    
+                    String formatted = cleaned;
+                    if (digits <= 5) {
+                        // Apenas primeiros 5 dígitos
+                        formatted = cleaned;
+                    } else {
+                        // 5 dígitos + hífen + 3 dígitos
+                        formatted = cleaned.substring(0, 5) + "-" + cleaned.substring(5, 8);
+                    }
+                    
+                    super.insertString(fb, offset, formatted, attr);
+                }
+                
+                @Override
+                public void remove(DocumentFilter.FilterBypass fb, int offset, int length) throws BadLocationException {
+                    // Permite remoção normal
+                    super.remove(fb, offset, length);
+                }
+            });
+            
+            // Adiciona foco perdido para formatar quando o campo perder o foco
+            cepField.addFocusListener(new FocusAdapter() {
+                @Override
+                public void focusLost(FocusEvent e) {
+                    String text = cepField.getText();
+                    if (text != null && !text.trim().isEmpty()) {
+                        String digits = text.replaceAll("[^0-9]", "");
+                        if (digits.length() > 0) {
+                            String formatted = formatarCEP(digits);
+                            cepField.setText(formatted);
+                        }
+                    }
+                }
+            });
+            
+        } catch (Exception e) {
+            System.err.println("Erro ao aplicar máscara de CEP: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Formata uma string de dígitos no formato XXXXX-XXX
+     */
+    private String formatarCEP(String digits) {
+        if (digits == null || digits.trim().isEmpty()) {
+            return "";
+        }
+        
+        digits = digits.replaceAll("[^0-9]", "");
+        
+        if (digits.length() <= 5) {
+            // Apenas primeiros 5 dígitos
+            return digits;
+        } else {
+            // 5 dígitos + hífen + 3 dígitos
+            return digits.substring(0, 5) + "-" + digits.substring(5, 8);
+        }
     }
     
     private void setupLayout() {

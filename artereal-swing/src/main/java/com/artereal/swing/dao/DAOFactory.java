@@ -46,6 +46,30 @@ public class DAOFactory {
      */
     @SuppressWarnings("unchecked")
     public <T> T getDAO(Class<T> daoClass) {
+        // Validações de entrada
+        if (daoClass == null) {
+            logger.warn("Tentativa de obter DAO com classe nula - retornando null");
+            return null;
+        }
+        
+        // Verifica se é classe interna não estática (apenas classes membro)
+        if (daoClass.isMemberClass() && !java.lang.reflect.Modifier.isStatic(daoClass.getModifiers())) {
+            logger.warn("Classe interna não estática não suportada: {} - retornando null", daoClass.getSimpleName());
+            return null;
+        }
+        
+        // Verifica se é classe interna local - precisa tratamento especial
+        if (daoClass.isLocalClass()) {
+            logger.warn("Classe interna local não suportada: {} - retornando null", daoClass.getSimpleName());
+            return null;
+        }
+        
+                
+        if (daoClass.isAnonymousClass()) {
+            logger.warn("Classe anônima não suportada: {} - retornando null", daoClass.getSimpleName());
+            return null;
+        }
+        
         // Usa sincronização para evitar problemas com múltiplas threads
         synchronized (daoCache) {
             if (daoCache.containsKey(daoClass)) {

@@ -3,99 +3,238 @@ package com.artereal.swing.database;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
 import java.sql.SQLException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Properties;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * Gerenciador do banco de dados SQLite - Versão Corrigida
+ * Gerenciador do banco de dados PostgreSQL
  */
 public class DatabaseManager {
     
     private static final Logger logger = LoggerFactory.getLogger(DatabaseManager.class);
-    private static DatabaseManager instance;
-    private Connection connection;
-    private boolean initialized = false;
+    private static volatile DatabaseManager instance;
     
-    private DatabaseManager() {}
+    // Connection pool para suportar concorrência
+    private final BlockingQueue<Connection> connectionPool = new LinkedBlockingQueue<>(10);
+    private final AtomicBoolean initialized = new AtomicBoolean(false);
     
-    public static synchronized DatabaseManager getInstance() {
+    // Configurações do banco
+    private final String host;
+    private final String port;
+    private final String database;
+    private final String username;
+    private final String password;
+    
+    private DatabaseManager() {
+        // Configurações PostgreSQL (podem vir de system properties)
+        this.host = System.getProperty("db.host", "localhost");
+        this.port = System.getProperty("db.port", "5432");
+        this.database = System.getProperty("db.name", "artereal_db");
+        this.username = System.getProperty("db.user", "postgres");
+        this.password = System.getProperty("db.password", "postgres");
+        
+            }
+    
+    public static DatabaseManager getInstance() {
         if (instance == null) {
-            instance = new DatabaseManager();
+            synchronized (DatabaseManager.class) {
+                if (instance == null) {
+                    instance = new DatabaseManager();
+                }
+            }
         }
         return instance;
     }
     
     /**
-     * Inicializa o banco de dados (com cache para evitar múltiplas inicializações)
+     * Inicializa o banco de dados PostgreSQL com retry e delay
      */
-    public synchronized void initializeDatabase() throws SQLException {
-        if (initialized && connection != null && !connection.isClosed()) {
-            logger.debug("Banco de dados já inicializado, reutilizando conexão");
+    public void initializeDatabase() throws SQLException {
+        if (initialized.get()) {
+            logger.debug("Banco de dados já inicializado");
             return;
         }
         
-        String dbPath = System.getProperty("user.home") + File.separator + ".artereal";
-        File dbDir = new File(dbPath);
-        if (!dbDir.exists()) {
-            dbDir.mkdirs();
+        String url = "jdbc:postgresql://" + host + ":" + port + "/" + database;
+        logger.info("Inicializando banco de dados PostgreSQL: {}", url);
+        
+        // Limpa conexões pendentes antes de inicializar
+        cleanupStaleConnections();
+        
+        int maxRetries = 3;
+        int retryDelay = 2000; // 2 segundos
+        
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                // Configurações de performance para PostgreSQL
+                Properties props = new Properties();
+                props.setProperty("user", username);
+                props.setProperty("password", password);
+                props.setProperty("ssl", "false");
+                props.setProperty("prepareThreshold", "3");
+                props.setProperty("preparedStatementCacheQueries", "256");
+                props.setProperty("preparedStatementCacheSizeMiB", "5");
+                props.setProperty("defaultRowFetchSize", "1000");
+                
+                Connection mainConnection = DriverManager.getConnection(url, props);
+                mainConnection.setAutoCommit(false); // Melhor performance para transações
+                
+                // Adiciona conexão principal ao pool
+                connectionPool.offer(mainConnection);
+                
+                // Cria tabelas e dados iniciais
+                createTables();
+                insertInitialData();
+                
+                initialized.set(true);
+                logger.info("Banco de dados PostgreSQL inicializado com sucesso (tentativa {})", attempt);
+                return; // Sucesso, sai do loop
+                
+            } catch (SQLException e) {
+                logger.warn("Tentativa {} falhou: {}", attempt, e.getMessage());
+                
+                if (attempt == maxRetries) {
+                    logger.error("Erro ao inicializar banco de dados após {} tentativas: {}", maxRetries, e.getMessage());
+                    throw e;
+                }
+                
+                // Limpa conexões novamente e espera antes da próxima tentativa
+                cleanupStaleConnections();
+                try {
+                    Thread.sleep(retryDelay);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new SQLException("Inicialização interrompida", ie);
+                }
+            }
         }
-        
-        String dbFile = dbPath + File.separator + "artereal.db";
-        String url = "jdbc:sqlite:" + dbFile;
-        
-        logger.info("Inicializando banco de dados SQLite: {}", dbFile);
-        
-        if (connection != null && !connection.isClosed()) {
-            connection.close();
-        }
-        
-        connection = DriverManager.getConnection(url);
-        connection.setAutoCommit(false);
-        
-        createTables();
-        insertInitialData();
-        
-        initialized = true;
-        logger.info("Banco de dados inicializado com sucesso");
     }
     
     /**
-     * Obtém conexão com o banco de dados
+     * Limpa conexões pendentes no PostgreSQL
+     */
+    private void cleanupStaleConnections() {
+        try (Connection conn = DriverManager.getConnection(
+                "jdbc:postgresql://" + host + ":" + port + "/postgres", 
+                username, password)) {
+            
+            try (Statement stmt = conn.createStatement()) {
+                // Termina conexões idle por mais de 5 minutos que não são do psql
+                String cleanupSql = """
+                    SELECT pg_terminate_backend(pid) 
+                    FROM pg_stat_activity 
+                    WHERE pid <> pg_backend_pid() 
+                    AND application_name <> 'psql'
+                    AND state = 'idle'
+                    AND query_start < now() - interval '5 minutes'
+                    """;
+                
+                stmt.execute(cleanupSql);
+                logger.debug("Limpeza de conexões pendentes executada");
+            }
+        } catch (SQLException e) {
+            logger.warn("Não foi possível limpar conexões pendentes: {}", e.getMessage());
+        }
+    }
+    
+    /**
+     * Obtém conexão do pool (connection pool para concorrência)
      */
     public Connection getConnection() throws SQLException {
-        if (connection == null || connection.isClosed()) {
+        if (!initialized.get()) {
             initializeDatabase();
         }
-        return connection;
+        
+        try {
+            // Tenta obter conexão do pool
+            Connection conn = connectionPool.poll();
+            if (conn != null && !conn.isClosed()) {
+                return conn;
+            }
+        } catch (Exception e) {
+            logger.debug("Erro ao obter conexão do pool: {}", e.getMessage());
+        }
+        
+        // Cria nova conexão se o pool estiver vazio
+        String url = "jdbc:postgresql://" + host + ":" + port + "/" + database;
+        Properties props = new Properties();
+        props.setProperty("user", username);
+        props.setProperty("password", password);
+        props.setProperty("ssl", "false");
+        props.setProperty("prepareThreshold", "3");
+        
+        Connection newConn = DriverManager.getConnection(url, props);
+        newConn.setAutoCommit(true); // Auto-commit para concorrência
+        return newConn;
     }
     
     /**
-     * Fecha a conexão com o banco de dados
+     * Devolve conexão ao pool para reutilização
      */
-    public void closeConnection() throws SQLException {
-        if (connection != null && !connection.isClosed()) {
-            connection.close();
-            logger.debug("Conexão com banco de dados fechada");
+    public void releaseConnection(Connection conn) {
+        if (conn != null) {
+            try {
+                if (!conn.isClosed()) {
+                    // Limpa estado da conexão
+                    conn.setAutoCommit(false);
+                    // Devolve ao pool se não estiver cheio
+                    if (!connectionPool.offer(conn)) {
+                        // Pool cheio, fecha a conexão
+                        conn.close();
+                    }
+                }
+            } catch (SQLException e) {
+                logger.debug("Erro ao devolver conexão ao pool: {}", e.getMessage());
+            }
         }
     }
     
     /**
-     * Cria todas as tabelas do sistema
+     * Fecha todas as conexões do pool
+     */
+    public void closeConnection() throws SQLException {
+        Connection conn;
+        while ((conn = connectionPool.poll()) != null) {
+            try {
+                if (!conn.isClosed()) {
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                logger.debug("Erro ao fechar conexão do pool: {}", e.getMessage());
+            }
+        }
+        logger.debug("Conexões do pool fechadas");
+    }
+    
+    /**
+     * Cria todas as tabelas do sistema com transação otimizada
      */
     private void createTables() throws SQLException {
-        try (Statement stmt = getConnection().createStatement()) {
+        String url = "jdbc:postgresql://" + host + ":" + port + "/" + database;
+        Properties props = new Properties();
+        props.setProperty("user", username);
+        props.setProperty("password", password);
+        props.setProperty("ssl", "false");
+        props.setProperty("prepareThreshold", "3");
+        
+        Connection conn = DriverManager.getConnection(url, props);
+        try (Statement stmt = conn.createStatement()) {
+            conn.setAutoCommit(false); // Transação para melhor performance
             
             // Tabela de Irmãos
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS irmao (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY,
                     nome TEXT NOT NULL,
                     nascimento TEXT,
                     estado_civil TEXT,
-                    natural TEXT,
+                    naturalidade TEXT,
                     identidade TEXT,
                     tipo_sanguineo TEXT,
                     cargo_loja TEXT,
@@ -118,20 +257,23 @@ public class DatabaseManager {
             // Tabela de Lojas
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS loja (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY,
                     nome TEXT NOT NULL,
                     endereco TEXT,
                     bairro TEXT,
                     cidade TEXT,
                     estado TEXT,
+                    cep TEXT,
                     telefone TEXT,
                     email TEXT,
+                    presidente TEXT,
+                    secretario TEXT,
+                    tesoureiro TEXT,
+                    data_fundacao TEXT,
                     rito TEXT,
-                    dia_reuniao TEXT,
                     potencia TEXT,
-                    numero_loja TEXT,
-                    veneravel TEXT,
-                    ativa INTEGER DEFAULT 1,
+                    observacoes TEXT,
+                    status TEXT DEFAULT 'ATIVA',
                     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
                     updated_at TEXT DEFAULT CURRENT_TIMESTAMP
                 )
@@ -140,7 +282,7 @@ public class DatabaseManager {
             // Tabela de Sessões
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS sessao (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY,
                     data TEXT NOT NULL,
                     tipo TEXT NOT NULL,
                     descricao TEXT,
@@ -154,7 +296,7 @@ public class DatabaseManager {
             // Tabela de Caixa
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS caixa (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY,
                     data TEXT NOT NULL,
                     historico TEXT,
                     entrada REAL DEFAULT 0,
@@ -170,7 +312,7 @@ public class DatabaseManager {
             // Tabela de Biblioteca
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS biblioteca (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY,
                     titulo TEXT NOT NULL,
                     assunto TEXT,
                     estoque INTEGER DEFAULT 1,
@@ -190,7 +332,7 @@ public class DatabaseManager {
             // Tabela de Empréstimos
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS emprestimo (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY,
                     codigo_livro INTEGER NOT NULL,
                     codigo_irmao INTEGER NOT NULL,
                     data_emprestimo TEXT NOT NULL,
@@ -209,7 +351,7 @@ public class DatabaseManager {
             // Tabela de Contas a Pagar
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS pagar (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY,
                     fatura TEXT,
                     emissao TEXT NOT NULL,
                     favorecido TEXT,
@@ -235,10 +377,10 @@ public class DatabaseManager {
             // Tabela de Usuários
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS usuario (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY,
                     nome TEXT NOT NULL,
                     senha TEXT NOT NULL,
-                    administrador INTEGER DEFAULT 0,
+                    administrador BOOLEAN DEFAULT FALSE,
                     acesso TEXT,
                     data_inicio TEXT,
                     contas TEXT,
@@ -260,7 +402,7 @@ public class DatabaseManager {
             // Tabela de Frequência
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS frequencia (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY,
                     codigo_irmao INTEGER NOT NULL,
                     nome_irmao TEXT NOT NULL,
                     registro_grande_loja TEXT,
@@ -284,7 +426,7 @@ public class DatabaseManager {
             // Tabela de Candidatos
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS candidato (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY,
                     nome TEXT NOT NULL,
                     endereco TEXT,
                     numero TEXT,
@@ -317,7 +459,7 @@ public class DatabaseManager {
             // Tabela de Configurações Globais
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS configuracao (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY,
                     chave TEXT NOT NULL UNIQUE,
                     valor TEXT,
                     descricao TEXT,
@@ -335,7 +477,7 @@ public class DatabaseManager {
             // Tabela de Cheques
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS cheque (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY,
                     fatura TEXT,
                     data_emissao TEXT NOT NULL,
                     sacado TEXT NOT NULL,
@@ -362,7 +504,7 @@ public class DatabaseManager {
             // Tabela de Documentos
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS documento (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY,
                     codigo_irmao INTEGER,
                     nome_arquivo TEXT NOT NULL,
                     caminho_arquivo TEXT,
@@ -385,7 +527,7 @@ public class DatabaseManager {
             // Tabela de Visitantes
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS visitante (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY,
                     nome TEXT NOT NULL,
                     data_visita TEXT NOT NULL,
                     grau_secreto TEXT,
@@ -408,7 +550,7 @@ public class DatabaseManager {
             // Tabela de Afastamentos
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS afastamento (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY,
                     codigo_irmao INTEGER NOT NULL,
                     data_inicial TEXT NOT NULL,
                     data_final TEXT NOT NULL,
@@ -429,7 +571,7 @@ public class DatabaseManager {
             // Tabela de Calendário Maçônico
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS calendario (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY,
                     descricao TEXT NOT NULL,
                     codigo_irmao INTEGER,
                     informe TEXT,
@@ -447,7 +589,7 @@ public class DatabaseManager {
             // Tabela de Fotos
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS foto (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY,
                     titulo TEXT NOT NULL,
                     descricao TEXT,
                     caminho_arquivo TEXT,
@@ -466,102 +608,10 @@ public class DatabaseManager {
                 )
             """);
             
-            // Tabela de Sessões
-            stmt.execute("""
-                CREATE TABLE IF NOT EXISTS sessao (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    tipo TEXT NOT NULL,
-                    data_hora TEXT NOT NULL,
-                    local TEXT,
-                    presidente TEXT,
-                    secretario TEXT,
-                    tesoureiro TEXT,
-                    orador TEXT,
-                    tema TEXT,
-                    pauta TEXT,
-                    observacoes TEXT,
-                    status TEXT DEFAULT 'PROGRAMADA',
-                    quantidade_presentes INTEGER DEFAULT 0,
-                    quantidade_visitantes INTEGER DEFAULT 0,
-                    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-                )
-            """);
-            
-            // Tabela de Caixa
-            stmt.execute("""
-                CREATE TABLE IF NOT EXISTS caixa (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    tipo TEXT NOT NULL,
-                    categoria TEXT,
-                    descricao TEXT NOT NULL,
-                    valor REAL NOT NULL,
-                    data_movimentacao TEXT NOT NULL,
-                    responsavel TEXT,
-                    forma_pagamento TEXT,
-                    numero_documento TEXT,
-                    status TEXT DEFAULT 'PENDENTE',
-                    observacoes TEXT,
-                    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-                )
-            """);
-            
-            // Tabela de Biblioteca
-            stmt.execute("""
-                CREATE TABLE IF NOT EXISTS biblioteca (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    tipo TEXT NOT NULL,
-                    titulo TEXT NOT NULL,
-                    autor TEXT,
-                    isbn TEXT,
-                    editora TEXT,
-                    ano_publicacao TEXT,
-                    categoria TEXT,
-                    localizacao TEXT,
-                    status TEXT DEFAULT 'DISPONIVEL',
-                    nome_leitor TEXT,
-                    data_emprestimo TEXT,
-                    data_devolucao_prevista TEXT,
-                    data_devolucao_real TEXT,
-                    responsavel_emprestimo TEXT,
-                    multa REAL DEFAULT 0,
-                    observacoes TEXT,
-                    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-                )
-            """);
-            
-            // Tabela de Lojas
-            stmt.execute("""
-                CREATE TABLE IF NOT EXISTS loja (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    nome TEXT NOT NULL,
-                    numero TEXT NOT NULL,
-                    endereco TEXT,
-                    bairro TEXT,
-                    cidade TEXT,
-                    estado TEXT,
-                    cep TEXT,
-                    telefone TEXT,
-                    email TEXT,
-                    presidente TEXT,
-                    secretario TEXT,
-                    tesoureiro TEXT,
-                    data_fundacao TEXT,
-                    rito TEXT,
-                    potencia TEXT,
-                    observacoes TEXT,
-                    status TEXT DEFAULT 'ATIVA',
-                    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-                )
-            """);
-            
             // Tabela de Despesas
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS despesas (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY,
                     descricao TEXT NOT NULL,
                     valor REAL NOT NULL,
                     data TEXT NOT NULL,
@@ -573,23 +623,35 @@ public class DatabaseManager {
                 )
             """);
             
-            connection.commit();
-            logger.info("Tabelas criadas com sucesso");
+            conn.commit(); // Commit da transação
+            logger.info("Tabelas criadas com sucesso (transação)");
         } catch (SQLException e) {
-            connection.rollback();
+            conn.rollback(); // Rollback em caso de erro
+            logger.error("Erro ao criar tabelas: {}", e.getMessage());
             throw e;
+        } finally {
+            // Single connection - não precisa devolver ao pool
         }
     }
     
     /**
-     * Insere dados iniciais para demonstração
+     * Insere dados iniciais para demonstração com transação otimizada
      */
     private void insertInitialData() throws SQLException {
-        String[] inserts = {
+        String url = "jdbc:postgresql://" + host + ":" + port + "/" + database;
+        Properties props = new Properties();
+        props.setProperty("user", username);
+        props.setProperty("password", password);
+        props.setProperty("ssl", "false");
+        props.setProperty("prepareThreshold", "3");
+        
+        Connection conn = DriverManager.getConnection(url, props);
+        try (Statement stmt = conn.createStatement()) {
+            conn.setAutoCommit(false); // Transação para melhor performance
             
             // Configurações iniciais
-            """
-            INSERT OR IGNORE INTO configuracao (chave, valor, descricao, tipo, categoria) VALUES
+            stmt.execute("""
+            INSERT INTO configuracao (chave, valor, descricao, tipo, categoria) VALUES
                 ('NOME_LOJA', 'Loja Simbólica ArteReal', 'Nome da loja', 'STRING', 'SISTEMA'),
                 ('NUMERO_LOJA', '123', 'Número da loja', 'STRING', 'SISTEMA'),
                 ('RITO', 'Escocês Antigo e Aceito', 'Rito maçônico', 'STRING', 'SISTEMA'),
@@ -598,50 +660,46 @@ public class DatabaseManager {
                 ('DIAS_AVISO_VENCIMENTO', '7', 'Dias para aviso de vencimento', 'NUMBER', 'FINANCEIRO'),
                 ('PERCENTUAL_MINIMO_FREQUENCIA', '75', 'Percentual mínimo de frequência', 'NUMBER', 'SISTEMA'),
                 ('BACKUP_AUTOMATICO', 'true', 'Backup automático habilitado', 'BOOLEAN', 'SISTEMA')
-            """,
+            ON CONFLICT (chave) DO NOTHING
+            """);
             
             // Usuário administrador inicial
-            """
-            INSERT OR IGNORE INTO usuario (nome, senha, administrador, data_inicio, permissao_pagar, permissao_receber, permissao_backup)
-            VALUES ('admin', 'admin123', 1, CURRENT_TIMESTAMP, 1, 1, 1)
-            """,
+            stmt.execute("""
+            DELETE FROM usuario WHERE nome = 'Administrador';
+            INSERT INTO usuario (nome, senha, administrador, data_inicio, permissao_pagar, permissao_receber, permissao_backup) 
+            VALUES ('Administrador', 'admin123', TRUE, CURRENT_TIMESTAMP, 1, 1, 1)
+            """);
             
-            // Sessões iniciais
-            """
-            INSERT OR IGNORE INTO sessao (data, tipo, descricao, pauta, realizada)
-            VALUES 
-                ('2024-01-12', 'Sessão Magna', 'Sessão de inauguração do ano maçônico', 
-                 'Abertura dos trabalhos, eleição da nova administração', 1),
-                ('2024-01-26', 'Sessão Branca', 'Sessão de estudos maçônicos', 
-                 'Estudos sobre simbolismo maçônico', 1)
-            """,
-            
-            // Eventos calendário iniciais
-            """
-            INSERT OR IGNORE INTO calendario (descricao, data_informe, tipo_evento, status, local, horario) VALUES
-                ('Sessão Magna de Inauguração', '2024-01-12', 'SESSAO_MAGNA', 'REALIZADO', 'Templo ArteReal', '20:00'),
-                ('Sessão Branca de Estudos', '2024-01-26', 'SESSAO_BRANCA', 'REALIZADO', 'Templo ArteReal', '20:00'),
-                ('Sessão de Eleição', '2024-12-05', 'SESSAO_ELEICAO', 'PROGRAMADO', 'Templo ArteReal', '20:00')
-            """
-        };
-        
-        try (Statement stmt = getConnection().createStatement()) {
-            for (String sql : inserts) {
-                stmt.execute(sql);
-            }
-            connection.commit();
-            logger.info("Dados iniciais inseridos com sucesso");
+            conn.commit(); // Commit da transação
+            logger.info("Dados iniciais inseridos com sucesso (transação)");
         } catch (SQLException e) {
-            connection.rollback();
+            conn.rollback(); // Rollback em caso de erro
+            logger.error("Erro ao inserir dados iniciais: {}", e.getMessage());
             throw e;
+        } finally {
+            // Single connection - não precisa devolver ao pool
         }
     }
     
     /**
-     * Verifica se o banco de dados existe
+     * Obtém estatísticas das conexões para monitoramento
      */
-    public boolean databaseExists() {
-        String dbPath = System.getProperty("user.home") + File.separator + ".artereal" + File.separator + "artereal.db";
-        return new File(dbPath).exists();
+    public String getConnectionStats() {
+        try {
+            int poolSize = connectionPool.size();
+            int activeConnections = 0;
+            
+            // Conta conexões ativas no pool
+            for (Connection conn : connectionPool) {
+                if (conn != null && !conn.isClosed()) {
+                    activeConnections++;
+                }
+            }
+            
+            return String.format("Pool: %d/%d conexões, Ativas: %d, Inicializado: %s", 
+                    poolSize, 10, activeConnections, initialized.get());
+        } catch (Exception e) {
+            return String.format("Pool: Erro - %s, Inicializado: %s", e.getMessage(), initialized.get());
+        }
     }
 }

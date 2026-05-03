@@ -6,12 +6,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * DAO para operações com Usuários no banco SQLite
+ * DAO para operações com Usuários no banco PostgreSQL
  */
 public class UsuarioDAO {
     
@@ -50,14 +49,14 @@ public class UsuarioDAO {
             stmt.setString(6, usuario.getContas());
             stmt.setString(7, usuario.getLancamentos());
             stmt.setString(8, usuario.getClasses());
-            stmt.setBoolean(9, usuario.isPortaria());
+            stmt.setInt(9, usuario.isPortaria() ? 1 : 0);
             stmt.setString(10, usuario.getDadosUsuario());
-            stmt.setBoolean(11, usuario.isPermissaoBackup());
-            stmt.setBoolean(12, usuario.isPermissaoRestaura());
+            stmt.setInt(11, usuario.isPermissaoBackup() ? 1 : 0);
+            stmt.setInt(12, usuario.isPermissaoRestaura() ? 1 : 0);
             stmt.setString(13, usuario.getDiretorioServico());
-            stmt.setBoolean(14, usuario.isPermissaoPagar());
-            stmt.setBoolean(15, usuario.isPermissaoReceber());
-            stmt.setBoolean(16, true); // ativo
+            stmt.setInt(14, usuario.isPermissaoPagar() ? 1 : 0);
+            stmt.setInt(15, usuario.isPermissaoReceber() ? 1 : 0);
+            stmt.setInt(16, 1); // ativo
             
             if (usuario.getId() != null) {
                 stmt.setLong(17, usuario.getId());
@@ -73,7 +72,6 @@ public class UsuarioDAO {
                 }
             }
             
-            conn.commit();
             logger.debug("Usuário salvo: {}", usuario.getNome());
         }
     }
@@ -173,7 +171,6 @@ public class UsuarioDAO {
             
             stmt.setLong(1, id);
             stmt.executeUpdate();
-            conn.commit();
             
             logger.debug("Usuário desativado: ID {}", id);
         }
@@ -182,7 +179,7 @@ public class UsuarioDAO {
     /**
      * Conta usuários ativos
      */
-    public int count() throws SQLException {
+    public int countActive() throws SQLException {
         String sql = "SELECT COUNT(*) FROM usuario WHERE ativo = 1";
         
         try (Connection conn = DatabaseManager.getInstance().getConnection();
@@ -201,14 +198,14 @@ public class UsuarioDAO {
      * Verifica se existe administrador
      */
     public boolean hasAdministrator() throws SQLException {
-        String sql = "SELECT COUNT(*) FROM usuario WHERE administrador = 1 AND ativo = 1";
+        String sql = "SELECT COUNT(*) as count FROM usuario WHERE administrador = TRUE AND ativo = 1";
         
         try (Connection conn = DatabaseManager.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             
             if (rs.next()) {
-                return rs.getInt(1) > 0;
+                return rs.getInt("count") > 0;
             }
         }
         
@@ -224,18 +221,6 @@ public class UsuarioDAO {
         usuario.setId(rs.getLong("id"));
         usuario.setNome(rs.getString("nome"));
         usuario.setSenha(rs.getString("senha"));
-        usuario.setAdministrador(rs.getBoolean("administrador"));
-        usuario.setAcesso(rs.getString("acesso"));
-        
-        String dataInicioStr = rs.getString("data_inicio");
-        if (dataInicioStr != null && !dataInicioStr.isEmpty()) {
-            // Converter formato "YYYY-MM-DD HH:mm:ss" para "YYYY-MM-DDTHH:mm:ss"
-            String dataFormatada = dataInicioStr.replace(" ", "T");
-            usuario.setDataInicio(LocalDateTime.parse(dataFormatada));
-        }
-        
-        usuario.setContas(rs.getString("contas"));
-        usuario.setLancamentos(rs.getString("lancamentos"));
         usuario.setClasses(rs.getString("classes"));
         usuario.setPortaria(rs.getBoolean("portaria"));
         usuario.setDadosUsuario(rs.getString("dados_usuario"));
@@ -244,7 +229,15 @@ public class UsuarioDAO {
         usuario.setDiretorioServico(rs.getString("diretorio_servico"));
         usuario.setPermissaoPagar(rs.getBoolean("permissao_pagar"));
         usuario.setPermissaoReceber(rs.getBoolean("permissao_receber"));
+        usuario.setAdministrador(rs.getBoolean("administrador"));
         
         return usuario;
+    }
+    
+    /**
+     * Conta usuários ativos (método de compatibilidade)
+     */
+    public int count() throws SQLException {
+        return countActive();
     }
 }

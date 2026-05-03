@@ -6,7 +6,7 @@ import java.time.LocalDate;
 /**
  * Modelo de dados para Biblioteca (Livros e Empréstimos)
  */
-public class Biblioteca {
+public class Biblioteca extends SimpleModel {
     
     private Long id;
     private String tipo; // LIVRO, EMPRESTIMO
@@ -100,13 +100,4 @@ public class Biblioteca {
     
     public String getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(String updatedAt) { this.updatedAt = updatedAt; }
-    
-    @Override
-    public String toString() {
-        if ("LIVRO".equals(tipo)) {
-            return titulo + " - " + autor + " (" + status + ")";
-        } else {
-            return "Empréstimo: " + nomeLeitor + " - " + titulo;
-        }
-    }
 }

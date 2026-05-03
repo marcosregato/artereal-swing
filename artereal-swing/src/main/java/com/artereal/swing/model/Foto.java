@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 /**
  * Modelo de dados para Foto
  */
-public class Foto {
+public class Foto extends SimpleModel {
     
     private Long id;
     private String titulo;
@@ -99,10 +99,5 @@ public class Foto {
         } else {
             return String.format("%.1f MB", tamanhoArquivo / (1024 * 1024));
         }
-    }
-    
-    @Override
-    public String toString() {
-        return titulo != null ? titulo : "Foto sem título";
     }
 }

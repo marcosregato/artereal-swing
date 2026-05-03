@@ -55,7 +55,7 @@ public class DocumentoDAO {
             stmt.setDouble(11, documento.getTamanhoArquivo());
             stmt.setString(12, documento.getFormatoArquivo());
             stmt.setString(13, documento.getUsuarioUpload());
-            stmt.setBoolean(14, documento.isAtivo());
+            stmt.setInt(14, documento.isAtivo() ? 1 : 0);
             
             if (documento.getId() != null) {
                 stmt.setLong(15, documento.getId());
@@ -63,16 +63,23 @@ public class DocumentoDAO {
             
             int rowsAffected = stmt.executeUpdate();
             
+            logger.info("DocumentoDAO - Linhas afetadas: {}", rowsAffected);
+            logger.info("DocumentoDAO - SQL executado: {}", documento.getId() == null ? "INSERT" : "UPDATE");
+            
             if (documento.getId() == null && rowsAffected > 0) {
                 try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         documento.setId(generatedKeys.getLong(1));
+                        logger.info("DocumentoDAO - ID gerado: {}", documento.getId());
+                    } else {
+                        logger.warn("DocumentoDAO - Nenhuma chave gerada retornada");
                     }
                 }
             }
             
-            conn.commit();
-            logger.debug("Documento salvo: {}", documento.getNomeArquivo());
+            // Auto-commit está ativado, não需要 commit manual
+            logger.info("Documento salvo com auto-commit: {}", documento.getNomeArquivo());
+            logger.info("Documento ID final: {}", documento.getId());
         }
     }
     
@@ -167,8 +174,8 @@ public class DocumentoDAO {
         List<Documento> documentos = new ArrayList<>();
         String sql = """
             SELECT * FROM documento 
-            WHERE data_expiracao < CURRENT_DATE AND ativo = 1 
-            ORDER BY data_expiracao
+            WHERE CAST(data_expiracao AS DATE) < CURRENT_DATE AND ativo = 1 
+            ORDER BY CAST(data_expiracao AS DATE)
             """;
         
         try (Connection conn = DatabaseManager.getInstance().getConnection();
@@ -190,7 +197,7 @@ public class DocumentoDAO {
         List<Documento> documentos = new ArrayList<>();
         String sql = """
             SELECT * FROM documento 
-            WHERE data_expiracao BETWEEN CURRENT_DATE AND DATE(CURRENT_DATE, '+{} days') 
+            WHERE CAST(data_expiracao AS DATE) BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '{}' day 
             AND ativo = 1 
             ORDER BY data_expiracao
             """.replace("{}", String.valueOf(dias));
@@ -247,7 +254,7 @@ public class DocumentoDAO {
      * Conta documentos expirados
      */
     public int countExpirados() throws SQLException {
-        String sql = "SELECT COUNT(*) FROM documento WHERE data_expiracao < CURRENT_DATE AND ativo = 1";
+        String sql = "SELECT COUNT(*) FROM documento WHERE CAST(data_expiracao AS DATE) < CURRENT_DATE AND ativo = 1";
         
         try (Connection conn = DatabaseManager.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -267,7 +274,7 @@ public class DocumentoDAO {
     public int countProximosExpiracao() throws SQLException {
         String sql = """
             SELECT COUNT(*) FROM documento 
-            WHERE data_expiracao BETWEEN CURRENT_DATE AND DATE(CURRENT_DATE, '+30 days') 
+            WHERE CAST(data_expiracao AS DATE) BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 day' 
             AND ativo = 1
             """;
         
@@ -294,9 +301,9 @@ public class DocumentoDAO {
             
             stmt.setLong(1, id);
             stmt.executeUpdate();
-            conn.commit();
             
-            logger.debug("Documento desativado: ID {}", id);
+            // Auto-commit está ativado, não precisa commit manual
+            logger.info("Documento desativado com auto-commit: ID {}", id);
         }
     }
     

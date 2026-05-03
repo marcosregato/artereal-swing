@@ -5,7 +5,7 @@ import java.util.Date;
 /**
  * Modelo de dados para Despesas
  */
-public class Despesa {
+public class Despesa extends SimpleModel {
     private Long id;
     private String descricao;
     private double valor;
@@ -84,11 +84,5 @@ public class Despesa {
     
     public void setNumeroDocumento(String numeroDocumento) {
         this.numeroDocumento = numeroDocumento;
-    }
-    
-    @Override
-    public String toString() {
-        return String.format("Despesa{id=%d, descricao='%s', valor=R$%.2f, data=%s, categoria='%s', fornecedor='%s'}", 
-                id, descricao, valor, data, categoria, fornecedor);
     }
 }

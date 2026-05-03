@@ -1,6 +1,6 @@
-# ArteReal - Versão Swing + SQLite
+# ArteReal - Versão Swing + PostgreSQL
 
-Sistema desktop para gestão administrativa de lojas maçônicas, desenvolvido com Java Swing e banco de dados SQLite.
+Sistema desktop para gestão administrativa de lojas maçônicas, desenvolvido com Java Swing e banco de dados PostgreSQL.
 
 ## 🎯 Visão Geral
 
@@ -10,7 +10,7 @@ Esta é a versão desktop do sistema ArteReal, criada a partir da engenharia rev
 
 - **Java 17**: Plataforma de desenvolvimento
 - **Swing**: Interface gráfica nativa
-- **SQLite**: Banco de dados embutido
+- **PostgreSQL**: Banco de dados relacional
 - **Maven**: Gerenciamento de dependências
 - **DAO Pattern**: Acesso a dados
 
@@ -21,7 +21,7 @@ artereal-swing/
 ├── src/main/java/com/artereal/swing/
 │   ├── ArteRealSwingApplication.java  # Classe principal
 │   ├── database/
-│   │   └── DatabaseManager.java      # Gerenciador do SQLite
+│   │   └── DatabaseManager.java      # Gerenciador do PostgreSQL
 │   ├── model/
 │   │   └── Irmao.java                # Modelo de dados
 │   ├── dao/
@@ -74,11 +74,13 @@ chmod +x run.sh
 
 ## 🗄️ Banco de Dados
 
-O sistema utiliza SQLite com as seguintes características:
+O sistema utiliza PostgreSQL com as seguintes características:
 
-- **Localização**: `~/.artereal/artereal.db`
+- **Servidor**: PostgreSQL (localhost:5432)
+- **Database**: artereal_db
 - **Inicialização**: Automática na primeira execução
-- **Backup**: Copiar o arquivo `.artereal/artereal.db`
+- **Migração**: Scripts SQL para criação de tabelas
+- **Backup**: Exportar dump do banco artereal_db
 - **Migração**: Scripts SQL integrados
 
 ### Tabelas Principais

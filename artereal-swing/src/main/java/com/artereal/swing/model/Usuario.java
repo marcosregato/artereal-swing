@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 /**
  * Modelo de dados para Usuário do sistema
  */
-public class Usuario {
+public class Usuario extends SimpleModel {
     
     private Long id;
     private String nome;
@@ -80,9 +80,4 @@ public class Usuario {
     
     public boolean isPermissaoReceber() { return permissaoReceber; }
     public void setPermissaoReceber(boolean permissaoReceber) { this.permissaoReceber = permissaoReceber; }
-    
-    @Override
-    public String toString() {
-        return nome + " (" + (administrador ? "Admin" : "Usuário") + ")";
-    }
 }

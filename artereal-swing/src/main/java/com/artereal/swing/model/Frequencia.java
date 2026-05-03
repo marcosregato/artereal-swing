@@ -5,7 +5,7 @@ import java.time.LocalDate;
 /**
  * Modelo de dados para Controle de Frequência e Presença
  */
-public class Frequencia {
+public class Frequencia extends SimpleModel {
     
     private Long id;
     private Long codigoIrmao;
@@ -97,10 +97,5 @@ public class Frequencia {
     public void incrementarFalta() {
         this.numeroFaltas++;
         this.numeroSecoes++;
-    }
-    
-    @Override
-    public String toString() {
-        return nomeIrmao + " - " + grau + " (" + numeroPresencas + "/" + numeroSecoes + " presenças)";
     }
 }

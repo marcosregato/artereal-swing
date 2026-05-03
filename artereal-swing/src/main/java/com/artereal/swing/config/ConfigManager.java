@@ -27,7 +27,7 @@ public class ConfigManager {
     private final Path configPath;
     
     // Configurações padrão
-    private static final String DEFAULT_DB_URL = "jdbc:sqlite:artereal.db";
+    private static final String DEFAULT_DB_URL = "jdbc:postgresql://localhost:5432/artereal_db";
     private static final String DEFAULT_APP_NAME = "ArteReal - Sistema de Gestão Maçônica";
     private static final String DEFAULT_APP_VERSION = "1.0.0";
     private static final String DEFAULT_THEME = "default";
@@ -162,6 +162,10 @@ public class ConfigManager {
      * Obtém uma configuração como String
      */
     public String getString(String key) {
+        if (key == null) {
+            logger.warn("Tentativa de obter configuração com chave nula - retornando null");
+            return null;
+        }
         return configurations.get(key);
     }
     
@@ -169,6 +173,10 @@ public class ConfigManager {
      * Obtém uma configuração como String com valor padrão
      */
     public String getString(String key, String defaultValue) {
+        if (key == null) {
+            logger.warn("Tentativa de obter configuração com chave nula - retornando valor padrão");
+            return defaultValue;
+        }
         return configurations.getOrDefault(key, defaultValue);
     }
     
@@ -207,7 +215,19 @@ public class ConfigManager {
     public boolean getBoolean(String key, boolean defaultValue) {
         String value = configurations.get(key);
         if (value != null) {
-            return Boolean.parseBoolean(value);
+            // Normalizar o valor para minúsculas
+            String normalizedValue = value.trim().toLowerCase();
+            
+            // Aceitar múltiplos formatos booleanos
+            if ("true".equals(normalizedValue) || "yes".equals(normalizedValue) || "1".equals(normalizedValue) || "sim".equals(normalizedValue)) {
+                return true;
+            } else if ("false".equals(normalizedValue) || "no".equals(normalizedValue) || "0".equals(normalizedValue) || "não".equals(normalizedValue) || "nao".equals(normalizedValue)) {
+                return false;
+            }
+            
+            // Se o valor não for reconhecido como boolean, retornar o padrão
+            logger.warn("Valor boolean não reconhecido para configuração {}: {}, retornando padrão: {}", key, value, defaultValue);
+            return defaultValue;
         }
         return defaultValue;
     }
@@ -238,8 +258,19 @@ public class ConfigManager {
      * Define uma configuração
      */
     public void set(String key, String value) {
-        configurations.put(key, value);
-        logger.debug("Configuração definida: {} = {}", key, value);
+        if (key == null) {
+            logger.warn("Tentativa de definir configuração com chave nula - ignorando");
+            return;
+        }
+        // Permitir valores nulos, mas tratá-los adequadamente
+        if (value == null) {
+            // Remover a chave se o valor for null
+            configurations.remove(key);
+            logger.debug("Configuração removida: {}", key);
+        } else {
+            configurations.put(key, value);
+            logger.debug("Configuração definida: {} = {}", key, value);
+        }
     }
     
     /**

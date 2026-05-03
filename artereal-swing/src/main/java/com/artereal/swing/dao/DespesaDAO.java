@@ -28,12 +28,12 @@ public class DespesaDAO extends BaseDAO<Despesa> {
     }
     
     @Override
-    protected String getSelectByIdSQL() {
+    protected String getFindByIdSQL() {
         return "SELECT * FROM despesas WHERE id = ?";
     }
     
     @Override
-    protected String getSelectAllSQL() {
+    protected String getFindAllSQL() {
         return "SELECT * FROM despesas ORDER BY data DESC, id DESC";
     }
     
@@ -78,7 +78,7 @@ public class DespesaDAO extends BaseDAO<Despesa> {
     }
     
     @Override
-    protected void setGeneratedId(Despesa despesa, Long id) {
+    protected void setGeneratedId(Despesa despesa, long id) {
         despesa.setId(id);
     }
     

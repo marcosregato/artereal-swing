@@ -6,7 +6,9 @@ import com.artereal.swing.ui.layout.PadraoLayout;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.text.*;
 import java.awt.*;
+import java.awt.event.*;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
@@ -112,7 +114,10 @@ public class IrmaosPanel extends JPanel {
         telefoneField = new JTextField();
         empresaField = new JTextField();
         telefoneEmpresaField = new JTextField();
-        enderecoEmpresaField = new JTextField();
+        
+        // Aplicar máscara de telefone aos campos
+        aplicarMascaraTelefone(telefoneField);
+        aplicarMascaraTelefone(telefoneEmpresaField);
         
         // Botões
         salvarButton = PadraoLayout.criarBotaoSalvar();
@@ -127,6 +132,105 @@ public class IrmaosPanel extends JPanel {
         
         pesquisarField = new JTextField(20);
     }
+    
+    /**
+     * Aplica máscara de telefone no formato (XX) XXXX-XXXX
+     */
+    private void aplicarMascaraTelefone(JTextField telefoneField) {
+        try {
+            // Remove qualquer formatação existente primeiro
+            PlainDocument document = new PlainDocument();
+            telefoneField.setDocument(document);
+            
+            // Define o tamanho máximo e formatação
+            document.setDocumentFilter(new DocumentFilter() {
+                @Override
+                public void insertString(DocumentFilter.FilterBypass fb, int offset, String str, AttributeSet attr) throws BadLocationException {
+                    // Remove caracteres não numéricos
+                    String cleaned = str.replaceAll("[^0-9]", "");
+                    
+                    // Limita a 15 caracteres
+                    if (document.getLength() + cleaned.length() > 15) {
+                        return;
+                    }
+                    
+                    // Aplica formatação: (XX) XXXX-XXXX
+                    String currentText = document.getText(0, document.getLength());
+                    int digits = currentText.replaceAll("[^0-9]", "").length();
+                    
+                    String formatted = cleaned;
+                    if (digits == 0) {
+                        // Primeiro dígito
+                        formatted = "(" + cleaned;
+                    } else if (digits <= 2) {
+                        // DDD
+                        formatted = "(" + cleaned + ") ";
+                    } else if (digits <= 6) {
+                        // DDD + primeiros 4 dígitos
+                        formatted = "(" + cleaned.substring(0, 2) + ") " + cleaned.substring(2);
+                    } else if (digits <= 10) {
+                        // DDD + prefixo + 4 dígitos
+                        formatted = "(" + cleaned.substring(0, 2) + ") " + cleaned.substring(2, 6) + "-" + cleaned.substring(6);
+                    } else {
+                        // DDD + prefixo + 4 dígitos + hífen + dígitos restantes
+                        formatted = "(" + cleaned.substring(0, 2) + ") " + cleaned.substring(2, 6) + "-" + cleaned.substring(6, 10);
+                    }
+                    
+                    super.insertString(fb, offset, formatted, attr);
+                }
+                
+                @Override
+                public void remove(DocumentFilter.FilterBypass fb, int offset, int length) throws BadLocationException {
+                    // Permite remoção normal
+                    super.remove(fb, offset, length);
+                }
+            });
+            
+            // Adiciona foco perdido para formatar quando o campo perder o foco
+            telefoneField.addFocusListener(new FocusAdapter() {
+                @Override
+                public void focusLost(FocusEvent e) {
+                    String text = telefoneField.getText();
+                    if (text != null && !text.trim().isEmpty()) {
+                        String digits = text.replaceAll("[^0-9]", "");
+                        if (digits.length() > 0) {
+                            String formatted = formatarTelefone(digits);
+                            telefoneField.setText(formatted);
+                        }
+                    }
+                }
+            });
+            
+        } catch (Exception e) {
+            System.err.println("Erro ao aplicar máscara de telefone: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Formata uma string de dígitos no formato (XX) XXXX-XXXX
+     */
+    private String formatarTelefone(String digits) {
+        if (digits == null || digits.trim().isEmpty()) {
+            return "";
+        }
+        
+        digits = digits.replaceAll("[^0-9]", "");
+        
+        if (digits.length() <= 2) {
+            // Apenas DDD
+            return "(" + digits;
+        } else if (digits.length() <= 6) {
+            // DDD + 4 dígitos
+            return "(" + digits.substring(0, 2) + ") " + digits.substring(2);
+        } else if (digits.length() <= 10) {
+            // DDD + prefixo + 4 dígitos
+            return "(" + digits.substring(0, 2) + ") " + digits.substring(2, 6) + "-" + digits.substring(6);
+        } else {
+            // DDD + prefixo + 4 dígitos + hífen + restante
+            return "(" + digits.substring(0, 2) + ") " + digits.substring(2, 6) + "-" + digits.substring(6);
+        }
+    }
+    
     
     private void setupLayout() {
         // Aplicar estilização padrão ao painel principal
