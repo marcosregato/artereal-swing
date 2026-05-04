@@ -665,9 +665,9 @@ public class DatabaseManager {
             
             // Usuário administrador inicial
             stmt.execute("""
-            DELETE FROM usuario WHERE nome = 'Administrador';
+            DELETE FROM usuario WHERE nome = 'admin';
             INSERT INTO usuario (nome, senha, administrador, data_inicio, permissao_pagar, permissao_receber, permissao_backup) 
-            VALUES ('Administrador', 'admin123', TRUE, CURRENT_TIMESTAMP, 1, 1, 1)
+            VALUES ('admin', 'admin123', TRUE, CURRENT_TIMESTAMP, 1, 1, 1)
             """);
             
             conn.commit(); // Commit da transação

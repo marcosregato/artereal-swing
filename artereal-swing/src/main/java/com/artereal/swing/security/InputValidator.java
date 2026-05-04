@@ -3,15 +3,12 @@ package com.artereal.swing.security;
 import java.util.regex.Pattern;
 import java.util.List;
 import java.util.Arrays;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Validador de entrada com foco em dados específicos do sistema ArteReal
  */
 public class InputValidator {
     
-    private static final Logger logger = LoggerFactory.getLogger(InputValidator.class);
     
     // Padrões específicos para dados do ArteReal
     private static final Pattern NOME_PATTERN = Pattern.compile("^[a-zA-ZÀ-ÿ\\s]{2,100}$");

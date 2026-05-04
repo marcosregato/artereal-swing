@@ -750,6 +750,12 @@ public class IrmaosPanel extends JPanel {
         try {
             logger.info("Iniciando refreshData() - Carregando dados da tabela de irmãos");
             
+            // Verificar se irmaoDAO foi inicializado
+            if (irmaoDAO == null) {
+                logger.warn("irmaoDAO é null, inicializando...");
+                irmaoDAO = new IrmaoDAO();
+            }
+            
             // Busca direta do banco sem cache
             List<Irmao> irmaos = irmaoDAO.findAll();
             logger.info("Encontrados {} irmãos no banco de dados", irmaos.size());
@@ -772,6 +778,12 @@ public class IrmaosPanel extends JPanel {
         logger.info("Iniciando refreshDataAsync() - Carregamento de dados");
         
         try {
+            // Verificar se irmaoDAO foi inicializado
+            if (irmaoDAO == null) {
+                logger.warn("irmaoDAO é null em refreshDataAsync, inicializando...");
+                irmaoDAO = new IrmaoDAO();
+            }
+            
             // Busca direta do banco sem cache para simplificar
             List<Irmao> irmaos = irmaoDAO.findAll();
             logger.info("Encontrados {} irmãos no banco", irmaos.size());

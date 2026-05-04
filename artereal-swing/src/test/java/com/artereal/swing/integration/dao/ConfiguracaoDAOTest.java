@@ -401,7 +401,6 @@ class ConfiguracaoDAOTest {
         // Arrange
         Configuracao config = criarConfiguracaoTeste();
         configuracaoDAO.save(config);
-        Long id = config.getId();
 
         // Act
         config.setValor("novo_valor");

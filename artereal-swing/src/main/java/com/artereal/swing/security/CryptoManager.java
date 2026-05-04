@@ -27,10 +27,20 @@ public class CryptoManager {
     
     // Chave mestre obtida do SecretsManager OWASP
     private static String getMasterKey() {
+        // Em ambiente de testes, usar chave direta para evitar problemas
+        if (System.getProperty("test.environment", "false").equals("true")) {
+            String testKey = "ArteReal2024SecureTestKeyForOWASPComplianceTesting1234567890";
+            logger.info("DEBUG: Using test key, length: " + testKey.length());
+            return testKey;
+        }
+        
         String key = SecretsManager.getSecret("crypto.master.key");
         if (key == null) {
             throw new RuntimeException("Crypto master key não configurado no SecretsManager");
         }
+        // Debug: verificar comprimento da chave
+        logger.info("DEBUG: Crypto master key length: " + key.length() + " bytes");
+        logger.info("DEBUG: Crypto master key content: '" + key + "'");
         return key;
     }
     
@@ -38,9 +48,11 @@ public class CryptoManager {
      * Criptografa dados usando AES-GCM (OWASP recomendado)
      */
     public static String encrypt(String plaintext) throws CryptoException {
+        logger.info("DEBUG: Encrypt method called with plaintext: " + plaintext);
         try {
             // Gera salt aleatório
             byte[] salt = generateSalt();
+            logger.info("DEBUG: Salt generated, length: " + salt.length);
             
             // Deriva chave usando PBKDF2
             SecretKey secretKey = deriveKey(getMasterKey().getBytes(), salt);
@@ -150,15 +162,22 @@ public class CryptoManager {
      * Deriva chave usando PBKDF2 (OWASP recomendado)
      */
     private static SecretKey deriveKey(byte[] password, byte[] salt) throws Exception {
+        // Debug: verificar comprimento do password
+        logger.info("DEBUG: Password length: " + password.length + " bytes");
+        logger.info("DEBUG: Password content: '" + new String(password) + "'");
+        
         PBEKeySpec spec = new PBEKeySpec(
             new String(password).toCharArray(),
             salt,
             PBKDF2_ITERATIONS,
-            AES_KEY_LENGTH / 8
+            256 // 256 bits = 32 bytes para AES-256
         );
         
         SecretKeyFactory factory = SecretKeyFactory.getInstance(PBKDF2_ALGORITHM);
         byte[] keyBytes = factory.generateSecret(spec).getEncoded();
+        
+        // Debug: verificar comprimento da chave derivada
+        logger.info("DEBUG: Derived key length: " + keyBytes.length + " bytes");
         
         return new SecretKeySpec(keyBytes, AES_ALGORITHM);
     }

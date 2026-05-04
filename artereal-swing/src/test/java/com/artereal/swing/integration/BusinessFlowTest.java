@@ -29,6 +29,9 @@ class BusinessFlowTest {
 
     @BeforeEach
     void setUp() throws Exception {
+        // Configurar ambiente de testes para OWASP
+        System.setProperty("test.environment", "true");
+        
         // Inicializa DAOs
         lojaDAO = DAOFactory.getInstance().getDAO(LojaDAO.class);
         irmaoDAO = DAOFactory.getInstance().getDAO(IrmaoDAO.class);

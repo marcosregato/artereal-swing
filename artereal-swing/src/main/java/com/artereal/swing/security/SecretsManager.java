@@ -62,7 +62,21 @@ public class SecretsManager {
         // Security secrets
         setSecret("security.pepper", System.getenv("ARTEAL_SECURITY_PEPPER"));
         
+        // Carrega de System Properties (para testes)
+        setSecretIfNotNull("crypto.master.key", System.getProperty("crypto.master.key"));
+        setSecretIfNotNull("database.password", System.getProperty("database.password"));
+        setSecretIfNotNull("jwt.secret", System.getProperty("jwt.secret"));
+        
         logger.debug("Secrets carregados de variáveis de ambiente");
+    }
+    
+    /**
+     * Define secret apenas se não for nulo
+     */
+    private static void setSecretIfNotNull(String key, String value) {
+        if (value != null && !value.trim().isEmpty()) {
+            setSecret(key, value);
+        }
     }
     
     /**

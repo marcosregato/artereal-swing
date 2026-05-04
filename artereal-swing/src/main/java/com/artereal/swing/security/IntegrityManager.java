@@ -156,34 +156,27 @@ public class IntegrityManager {
         List<String> issues = new ArrayList<>();
         
         // Verifica configurações críticas
-        try {
-            // Verifica se SecurityManager está intacto
-            String securityManagerHash = calculateChecksum("SecurityManager".getBytes());
-            if (!dataChecksums.containsKey("security_manager")) {
-                issues.add("Checksum do SecurityManager não registrado");
-            }
-            
-            // Verifica se CryptoManager está intacto
-            String cryptoManagerHash = calculateChecksum("CryptoManager".getBytes());
-            if (!dataChecksums.containsKey("crypto_manager")) {
-                issues.add("Checksum do CryptoManager não registrado");
-            }
-            
-            // Verifica integridade das configurações de segurança
-            Map<String, String> securityHeaders = SecurityConfigManager.getSecurityHeaders();
-            for (Map.Entry<String, String> header : securityHeaders.entrySet()) {
-                String headerChecksum = calculateChecksum(header.getKey() + ":" + header.getValue());
-                String configKey = "header_" + header.getKey().toLowerCase().replace("-", "_");
-                
-                if (!dataChecksums.containsKey(configKey)) {
-                    issues.add("Header de segurança não verificado: " + header.getKey());
-                }
-            }
-            
-        } catch (IntegrityException e) {
-            issues.add("Erro na validação de integridade: " + e.getMessage());
+        // Verifica se SecurityManager está intacto
+        if (!dataChecksums.containsKey("security_manager")) {
+            issues.add("Checksum do SecurityManager não registrado");
         }
         
+        // Verifica se CryptoManager está intacto
+        if (!dataChecksums.containsKey("crypto_manager")) {
+            issues.add("Checksum do CryptoManager não registrado");
+        }
+        
+        // Verifica integridade das configurações de segurança
+        Map<String, String> securityHeaders = SecurityConfigManager.getSecurityHeaders();
+        for (Map.Entry<String, String> header : securityHeaders.entrySet()) {
+            String configKey = "header_" + header.getKey().toLowerCase().replace("-", "_");
+            
+            if (!dataChecksums.containsKey(configKey)) {
+                issues.add("Header de segurança não verificado: " + header.getKey());
+            }
+        }
+            
+                
         logger.info("Validação de integridade concluída: {} problemas encontrados", issues.size());
         return issues;
     }

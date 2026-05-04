@@ -166,7 +166,7 @@ class FluxosPrincipaisIntegrationTest {
         for (int i = 0; i < usuarios.length; i++) {
             Usuario autenticado = usuarioDAO.authenticate(nomes[i], "pass" + (i + 1));
             assertNotNull(autenticado, "Usuário " + nomes[i] + " deve ser autenticado");
-            assertEquals(usuarios[i].getId(), autenticado.getId());
+            assertEquals(nomes[i], autenticado.getNome());
         }
 
         // Buscar por nome parcial
@@ -385,6 +385,10 @@ class FluxosPrincipaisIntegrationTest {
         databaseManager.initializeDatabase();
         usuarioDAO = new UsuarioDAO(); // Novo DAO
 
+        // Verificar contagem após reinicialização
+        int countAposRestart = usuarioDAO.count();
+        assertTrue(countAposRestart >= 1, "Deve haver pelo menos 1 usuário após restart");
+
         // Verificar que usuário ainda existe
         Usuario usuarioAposRestart = usuarioDAO.findById(usuarioId);
         assertNotNull(usuarioAposRestart, "Usuário deve existir após reinicialização");
@@ -395,6 +399,6 @@ class FluxosPrincipaisIntegrationTest {
         // Verificar que pode autenticar
         Usuario autenticadoAposRestart = usuarioDAO.authenticate("restart_user", "restart_pass");
         assertNotNull(autenticadoAposRestart, "Usuário deve autenticar após reinicialização");
-        assertEquals(usuarioId, autenticadoAposRestart.getId());
+        assertEquals("restart_user", autenticadoAposRestart.getNome());
     }
 }

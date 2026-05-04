@@ -26,6 +26,9 @@ class DespesaDAOTest {
 
     @BeforeEach
     void setUp() throws SQLException {
+        // Configurar ambiente de testes para OWASP
+        System.setProperty("test.environment", "true");
+        
         databaseManager = DatabaseManager.getInstance();
         despesaDAO = new DespesaDAO();
         

@@ -80,4 +80,9 @@ public class Usuario extends SimpleModel {
     
     public boolean isPermissaoReceber() { return permissaoReceber; }
     public void setPermissaoReceber(boolean permissaoReceber) { this.permissaoReceber = permissaoReceber; }
+    
+    @Override
+    public String toString() {
+        return "Usuario{id=" + id + ", nome='" + nome + "', administrador=" + administrador + "}";
+    }
 }

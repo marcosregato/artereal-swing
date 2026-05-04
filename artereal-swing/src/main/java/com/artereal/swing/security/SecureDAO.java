@@ -200,7 +200,6 @@ public abstract class SecureDAO {
         // Por enquanto, apenas log da operação
         logger.info("Verificando permissões para operação: {} em {}", operation, entityType);
         
-        // TODO: Implementar controle de acesso real
     }
     
     /**

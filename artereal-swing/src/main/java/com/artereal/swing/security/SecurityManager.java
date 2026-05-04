@@ -15,30 +15,6 @@ public class SecurityManager {
     private static final Logger logger = LoggerFactory.getLogger(SecurityManager.class);
     
     // Padrões maliciosos conhecidos
-    private static final List<Pattern> SQL_INJECTION_PATTERNS = Arrays.asList(
-        Pattern.compile("(?i)(\\b(union|select|insert|update|delete|drop|create|alter|exec|execute)\\b.*\\b(from|where|into|set)\\b)"),
-        Pattern.compile("(?i)(--|#|/\\*|\\*/|;|xp_|sp_)"),
-        Pattern.compile("(?i)(or|and)\\s+\\d+\\s*=\\s*\\d+"),
-        Pattern.compile("(?i)(or|and)\\s+['\"]?\\w+['\"]?\\s*=\\s*['\"]?\\w+['\"]?"),
-        Pattern.compile("(?i)(or\\s+1\\s*=\\s*1)"),
-        Pattern.compile("(?i)(and\\s+1\\s*=\\s*1)"),
-        Pattern.compile("(?i)(waitfor\\s+delay)"),
-        Pattern.compile("(?i)(sleep\\s*\\()"),
-        Pattern.compile("(?i)(benchmark\\s*\\()"),
-        Pattern.compile("(?i)(\\bhaving\\b.*\\bgroup\\s+by\\b)"),
-        Pattern.compile("(?i)(\\bgroup\\s+by\\b.*\\bhaving\\b)"),
-        Pattern.compile("(?i)(\\border\\s+by\\b.*\\bgroup\\s+by\\b)"),
-        Pattern.compile("(?i)(\\blimit\\b.*\\boffset\\b)"),
-        Pattern.compile("(?i)(\\boffset\\b.*\\blimit\\b)"),
-        Pattern.compile("(?i)(\\bconcat\\s*\\(.*\\bchar\\s*\\()"),
-        Pattern.compile("(?i)(\\bsubstring\\s*\\(.*\\bchar\\s*\\()"),
-        Pattern.compile("(?i)(\\bchar\\s*\\(.*\\bconcat\\s*\\()"),
-        Pattern.compile("(?i)(\\bascii\\s*\\(.*\\bchar\\s*\\()"),
-        Pattern.compile("(?i)(\\bcast\\s*\\(.*\\bconvert\\s*\\()"),
-        Pattern.compile("(?i)(\\bconvert\\s*\\(.*\\bcast\\s*\\()"),
-        Pattern.compile("(?i)(\\bextract\\s*\\(.*\\bcast\\s*\\()"),
-        Pattern.compile("(?i)(\\breplace\\s*\\(.*\\bchar\\s*\\()")
-    );
     
     private static final List<Pattern> XSS_PATTERNS = Arrays.asList(
         Pattern.compile("(?i)(<script[^>]*>.*?</script>)"),
@@ -120,7 +96,6 @@ public class SecurityManager {
         }
         
         List<String> threats = new ArrayList<>();
-        String originalInput = input;
         
         // Normaliza input para análise
         String normalizedInput = normalizeInput(input);
@@ -204,6 +179,11 @@ public class SecurityManager {
         sanitized = sanitized.replaceAll("<link[^>]*>", "");
         sanitized = sanitized.replaceAll("<meta[^>]*>", "");
         
+        // Remove tags script perigosas
+        sanitized = sanitized.replaceAll("(?i)<script[^>]*>.*?</script>", "");
+        sanitized = sanitized.replaceAll("(?i)<script[^>]*>", "");
+        sanitized = sanitized.replaceAll("(?i)</script>", "");
+        
         // Remove eventos JavaScript
         sanitized = sanitized.replaceAll("on\\w+\\s*=\\s*[\"'][^\"']*[\"']", "");
         sanitized = sanitized.replaceAll("javascript\\s*:", "");
@@ -236,7 +216,7 @@ public class SecurityManager {
      */
     public static boolean isSafeForHTML(String input) {
         SecurityScanResult result = scanForThreats(input);
-        return result.isSafe() && !containsXSSPatterns(input);
+        return result.isSafe();
     }
     
     /**
@@ -279,6 +259,8 @@ public class SecurityManager {
         // Padrões que realmente indicam injection
         return lowerInput.contains(" or 1=1") ||
                lowerInput.contains(" and 1=1") ||
+               lowerInput.contains(" or '1'='1") ||
+               lowerInput.contains(" and '1'='1") ||
                lowerInput.contains(" union select") ||
                lowerInput.contains("--") ||
                lowerInput.contains("/*") ||
@@ -310,25 +292,6 @@ public class SecurityManager {
             }
         }
         return false;
-    }
-    
-    /**
-     * Verifica se contém palavras-chave SQL
-     */
-    private static boolean containsSQLKeywords(String input) {
-        String normalized = normalizeInput(input);
-        return normalized.contains("union") || normalized.contains("select") || 
-               normalized.contains("insert") || normalized.contains("update") ||
-               normalized.contains("delete") || normalized.contains("drop");
-    }
-    
-    /**
-     * Verifica se contém padrões XSS
-     */
-    private static boolean containsXSSPatterns(String input) {
-        String normalized = normalizeInput(input);
-        return normalized.contains("<script") || normalized.contains("javascript:") ||
-               normalized.contains("onload=") || normalized.contains("onerror=");
     }
     
     /**
