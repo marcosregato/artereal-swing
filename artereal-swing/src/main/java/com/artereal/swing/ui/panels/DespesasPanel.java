@@ -64,6 +64,9 @@ public class DespesasPanel extends JPanel {
         
         // Componentes de busca
         pesquisarField = new JTextField(30);
+        PadraoLayout.estilizarCampoTexto(pesquisarField);
+        pesquisarField.setEditable(true);
+        pesquisarField.setEnabled(true);
         pesquisarButton = new JButton("🔍 Pesquisar");
         
         // Tabela

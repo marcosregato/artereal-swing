@@ -13,32 +13,32 @@ import java.util.List;
 public class DespesaDAO extends BaseDAO<Despesa> {
     
     @Override
-    protected String getInsertSQL() {
+    public String getInsertSQL() {
         return "INSERT INTO despesas (descricao, valor, data, categoria, fornecedor, numero_documento) VALUES (?, ?, ?, ?, ?, ?)";
     }
     
     @Override
-    protected String getUpdateSQL() {
+    public String getUpdateSQL() {
         return "UPDATE despesas SET descricao = ?, valor = ?, data = ?, categoria = ?, fornecedor = ?, numero_documento = ? WHERE id = ?";
     }
     
     @Override
-    protected String getDeleteSQL() {
+    public String getDeleteSQL() {
         return "DELETE FROM despesas WHERE id = ?";
     }
     
     @Override
-    protected String getFindByIdSQL() {
+    public String getFindByIdSQL() {
         return "SELECT * FROM despesas WHERE id = ?";
     }
     
     @Override
-    protected String getFindAllSQL() {
+    public String getFindAllSQL() {
         return "SELECT * FROM despesas ORDER BY data DESC, id DESC";
     }
     
     @Override
-    protected void setInsertParameters(PreparedStatement stmt, Despesa despesa) throws SQLException {
+    public void setInsertParameters(PreparedStatement stmt, Despesa despesa) throws SQLException {
         stmt.setString(1, despesa.getDescricao());
         stmt.setDouble(2, despesa.getValor());
         stmt.setDate(3, new java.sql.Date(despesa.getData().getTime()));
@@ -48,7 +48,7 @@ public class DespesaDAO extends BaseDAO<Despesa> {
     }
     
     @Override
-    protected void setUpdateParameters(PreparedStatement stmt, Despesa despesa) throws SQLException {
+    public void setUpdateParameters(PreparedStatement stmt, Despesa despesa) throws SQLException {
         stmt.setString(1, despesa.getDescricao());
         stmt.setDouble(2, despesa.getValor());
         stmt.setDate(3, new java.sql.Date(despesa.getData().getTime()));
@@ -60,7 +60,7 @@ public class DespesaDAO extends BaseDAO<Despesa> {
     
         
     @Override
-    protected Despesa mapResultSetToEntity(ResultSet rs) throws SQLException {
+    public Despesa mapResultSetToEntity(ResultSet rs) throws SQLException {
         Despesa despesa = new Despesa();
         despesa.setId(rs.getLong("id"));
         despesa.setDescricao(rs.getString("descricao"));
@@ -73,12 +73,12 @@ public class DespesaDAO extends BaseDAO<Despesa> {
     }
     
     @Override
-    protected boolean isNew(Despesa despesa) {
+    public boolean isNew(Despesa despesa) {
         return despesa.getId() == null;
     }
     
     @Override
-    protected void setGeneratedId(Despesa despesa, long id) {
+    public void setGeneratedId(Despesa despesa, long id) {
         despesa.setId(id);
     }
     

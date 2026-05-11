@@ -79,6 +79,9 @@ public class ChequesPanel extends JPanel {
         
         // Pesquisa
         pesquisarField = new JTextField(20);
+        PadraoLayout.estilizarCampoTexto(pesquisarField);
+        pesquisarField.setEditable(true);
+        pesquisarField.setEnabled(true);
         pesquisarButton = PadraoLayout.criarBotaoPesquisar();
         
         // Data atual como padrão

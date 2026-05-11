@@ -128,6 +128,9 @@ public class BibliotecaPanel extends JPanel {
         emprestarButton = PadraoLayout.criarBotao("Emprestar", new Color(255, 218, 185)); // Laranja pastel
         devolverButton = PadraoLayout.criarBotao("Devolver", new Color(152, 251, 152)); // Verde menta pastel
         pesquisarField = new JTextField(20);
+        PadraoLayout.estilizarCampoTexto(pesquisarField);
+        pesquisarField.setEditable(true);
+        pesquisarField.setEnabled(true);
         
         // Aplicar cores pastéis nos botões usando PadraoLayout
         PadraoLayout.aplicarCoresPastelBotoesPrincipais(salvarButton, novoButton, editarButton, excluirButton, limparButton);

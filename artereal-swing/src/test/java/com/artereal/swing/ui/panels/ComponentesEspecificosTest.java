@@ -1,10 +1,5 @@
 package com.artereal.swing.ui.panels;
 
-import com.artereal.swing.ui.panels.CaixaPanel;
-import com.artereal.swing.ui.panels.RelatoriosPanel;
-import com.artereal.swing.ui.panels.ConfiguracoesPanel;
-import com.artereal.swing.ui.panels.BibliotecaPanel;
-import com.artereal.swing.ui.panels.GaleriaFotosPanel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;

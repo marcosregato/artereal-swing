@@ -1,8 +1,6 @@
 package com.artereal.swing.ui.panels;
 
-import com.artereal.swing.ui.panels.CadastroIrmaosPanel;
-import com.artereal.swing.ui.panels.IrmaosPanel;
-import com.artereal.swing.ui.panels.DashboardPanel;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;

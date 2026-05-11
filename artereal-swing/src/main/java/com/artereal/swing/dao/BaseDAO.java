@@ -250,42 +250,42 @@ public abstract class BaseDAO<T> {
      * @param entity Entidade a ser verificada
      * @return true se for nova, false caso contrário
      */
-    protected abstract boolean isNew(T entity);
+    public abstract boolean isNew(T entity);
     
     /**
      * Obtém SQL para inserção
      * 
      * @return SQL de inserção
      */
-    protected abstract String getInsertSQL();
+    public abstract String getInsertSQL();
     
     /**
      * Obtém SQL para atualização
      * 
      * @return SQL de atualização
      */
-    protected abstract String getUpdateSQL();
+    public abstract String getUpdateSQL();
     
     /**
      * Obtém SQL para busca por ID
      * 
      * @return SQL de busca por ID
      */
-    protected abstract String getFindByIdSQL();
+    public abstract String getFindByIdSQL();
     
     /**
      * Obtém SQL para busca de todos
      * 
      * @return SQL de busca de todos
      */
-    protected abstract String getFindAllSQL();
+    public abstract String getFindAllSQL();
     
     /**
      * Obtém SQL para exclusão
      * 
      * @return SQL de exclusão
      */
-    protected abstract String getDeleteSQL();
+    public abstract String getDeleteSQL();
     
     /**
      * Define parâmetros para inserção
@@ -294,7 +294,7 @@ public abstract class BaseDAO<T> {
      * @param entity Entidade
      * @throws SQLException Em caso de erro
      */
-    protected abstract void setInsertParameters(PreparedStatement stmt, T entity) throws SQLException;
+    public abstract void setInsertParameters(PreparedStatement stmt, T entity) throws SQLException;
     
     /**
      * Define parâmetros para atualização
@@ -303,7 +303,7 @@ public abstract class BaseDAO<T> {
      * @param entity Entidade
      * @throws SQLException Em caso de erro
      */
-    protected abstract void setUpdateParameters(PreparedStatement stmt, T entity) throws SQLException;
+    public abstract void setUpdateParameters(PreparedStatement stmt, T entity) throws SQLException;
     
     /**
      * Mapeia ResultSet para entidade
@@ -312,7 +312,7 @@ public abstract class BaseDAO<T> {
      * @return Entidade mapeada
      * @throws SQLException Em caso de erro
      */
-    protected abstract T mapResultSetToEntity(ResultSet rs) throws SQLException;
+    public abstract T mapResultSetToEntity(ResultSet rs) throws SQLException;
     
     /**
      * Define ID gerado na entidade
@@ -320,7 +320,7 @@ public abstract class BaseDAO<T> {
      * @param entity Entidade
      * @param id ID gerado
      */
-    protected abstract void setGeneratedId(T entity, long id);
+    public abstract void setGeneratedId(T entity, long id);
     
     /**
      * Valida segurança da entidade automaticamente (desativada em testes)

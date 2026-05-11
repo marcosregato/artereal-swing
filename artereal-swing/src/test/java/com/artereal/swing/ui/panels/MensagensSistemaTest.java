@@ -6,7 +6,6 @@ import org.junit.jupiter.api.DisplayName;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.swing.*;
-import java.awt.*;
 import java.util.ResourceBundle;
 
 /**

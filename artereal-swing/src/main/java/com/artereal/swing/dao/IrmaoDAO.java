@@ -89,12 +89,12 @@ public class IrmaoDAO extends BaseDAO<Irmao> {
     // Implementação dos métodos abstratos do BaseDAO
     
     @Override
-    protected boolean isNew(Irmao irmao) {
+    public boolean isNew(Irmao irmao) {
         return irmao.getId() == null;
     }
     
     @Override
-    protected String getInsertSQL() {
+    public String getInsertSQL() {
         return """
             INSERT INTO irmao (nome, nascimento, estado_civil, naturalidade, identidade, tipo_sanguineo, 
                 cargo_loja, grau, endereco, bairro, cidade, estado, telefone, 
@@ -104,7 +104,7 @@ public class IrmaoDAO extends BaseDAO<Irmao> {
     }
     
     @Override
-    protected String getUpdateSQL() {
+    public String getUpdateSQL() {
         return """
             UPDATE irmao SET nome = ?, nascimento = ?, estado_civil = ?, naturalidade = ?, identidade = ?, 
                 tipo_sanguineo = ?, cargo_loja = ?, grau = ?, endereco = ?, 
@@ -115,22 +115,22 @@ public class IrmaoDAO extends BaseDAO<Irmao> {
     }
     
     @Override
-    protected String getFindByIdSQL() {
+    public String getFindByIdSQL() {
         return "SELECT * FROM irmao WHERE id = ?";
     }
     
     @Override
-    protected String getFindAllSQL() {
+    public String getFindAllSQL() {
         return "SELECT * FROM irmao ORDER BY nome";
     }
     
     @Override
-    protected String getDeleteSQL() {
+    public String getDeleteSQL() {
         return "DELETE FROM irmao WHERE id = ?";
     }
     
     @Override
-    protected void setInsertParameters(PreparedStatement stmt, Irmao irmao) throws SQLException {
+    public void setInsertParameters(PreparedStatement stmt, Irmao irmao) throws SQLException {
         stmt.setString(1, irmao.getNome());
         stmt.setString(2, irmao.getNascimento() != null ? irmao.getNascimento().toString() : null);
         stmt.setString(3, irmao.getEstadoCivil());
@@ -154,7 +154,7 @@ public class IrmaoDAO extends BaseDAO<Irmao> {
     }
     
     @Override
-    protected void setUpdateParameters(PreparedStatement stmt, Irmao irmao) throws SQLException {
+    public void setUpdateParameters(PreparedStatement stmt, Irmao irmao) throws SQLException {
         stmt.setString(1, irmao.getNome());
         stmt.setString(2, irmao.getNascimento() != null ? irmao.getNascimento().toString() : null);
         stmt.setString(3, irmao.getEstadoCivil());
@@ -177,7 +177,7 @@ public class IrmaoDAO extends BaseDAO<Irmao> {
     }
     
     @Override
-    protected Irmao mapResultSetToEntity(ResultSet rs) throws SQLException {
+    public Irmao mapResultSetToEntity(ResultSet rs) throws SQLException {
         Irmao irmao = new Irmao();
         irmao.setId(rs.getLong("id"));
         irmao.setNome(rs.getString("nome"));
@@ -208,7 +208,7 @@ public class IrmaoDAO extends BaseDAO<Irmao> {
     }
     
     @Override
-    protected void setGeneratedId(Irmao irmao, long id) {
+    public void setGeneratedId(Irmao irmao, long id) {
         irmao.setId(id);
     }
 }

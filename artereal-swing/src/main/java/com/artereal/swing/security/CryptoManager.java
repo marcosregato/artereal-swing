@@ -88,17 +88,18 @@ public class CryptoManager {
         try {
             byte[] encryptedBytes = Base64.getDecoder().decode(encrypted);
             
-            // Extrai salt, IV e ciphertext
+            // Extrai componentes
             byte[] salt = new byte[SALT_LENGTH];
-            byte[] iv = new byte[12];
-            byte[] ciphertext = new byte[encryptedBytes.length - SALT_LENGTH - 12];
+            byte[] iv = new byte[12]; // IV de 96 bits para GCM
+            System.arraycopy(encryptedBytes, 0, salt, 0, salt.length);
+            System.arraycopy(encryptedBytes, salt.length, iv, 0, iv.length);
             
-            System.arraycopy(encryptedBytes, 0, salt, 0, SALT_LENGTH);
-            System.arraycopy(encryptedBytes, SALT_LENGTH, iv, 0, 12);
-            System.arraycopy(encryptedBytes, SALT_LENGTH + 12, ciphertext, 0, ciphertext.length);
+            byte[] ciphertext = new byte[encryptedBytes.length - salt.length - iv.length];
+            System.arraycopy(encryptedBytes, salt.length + iv.length, ciphertext, 0, ciphertext.length);
             
-            // Deriva chave
-            SecretKey secretKey = deriveKey(getMasterKey().getBytes(), salt);
+            // Deriva chave usando PBKDF2
+            String password = getMasterKey();
+            SecretKey secretKey = deriveKey(password.getBytes(), salt);
             
             // Configura AES-GCM
             Cipher cipher = Cipher.getInstance(AES_TRANSFORMATION);
@@ -106,11 +107,90 @@ public class CryptoManager {
             cipher.init(Cipher.DECRYPT_MODE, secretKey, gcmSpec);
             
             byte[] plaintext = cipher.doFinal(ciphertext);
+            
             return new String(plaintext);
             
         } catch (Exception e) {
             logger.error("Erro na descriptografia", e);
             throw new CryptoException("Falha na descriptografia", e);
+        }
+    }
+    
+    /**
+     * Criptografa objeto genérico (para Decorator)
+     */
+    public static <T> T encryptData(T entity) throws CryptoException {
+        try {
+            if (entity == null) {
+                throw new CryptoException("Entidade não pode ser nula");
+            }
+            
+            String entityJson = convertToJson(entity);
+            return (T) encrypt(entityJson);
+            
+        } catch (Exception e) {
+            logger.error("Erro na criptografia de entidade", e);
+            throw new CryptoException("Falha na criptografia de entidade", e);
+        }
+    }
+    
+    /**
+     * Descriptografa objeto genérico (para Decorator)
+     */
+    public static <T> T decryptData(T encryptedEntity) throws CryptoException {
+        try {
+            if (encryptedEntity == null) {
+                throw new CryptoException("Entidade criptografada não pode ser nula");
+            }
+            
+            String entityJson = decrypt(encryptedEntity.toString());
+            return convertFromJson(entityJson);
+            
+        } catch (Exception e) {
+            logger.error("Erro na descriptografia de entidade", e);
+            throw new CryptoException("Falha na descriptografia de entidade", e);
+        }
+    }
+    
+    /**
+     * Converte objeto para JSON (simplificado)
+     */
+    private static String convertToJson(Object obj) throws CryptoException {
+        try {
+            // Em produção, usar biblioteca JSON real
+            return "{\"data\":\"" + obj.toString().replace("\"", "\\\"") + "\"}";
+        } catch (Exception e) {
+            throw new CryptoException("Erro na conversão para JSON", e);
+        }
+    }
+    
+    /**
+     * Converte JSON para objeto (simplificado)
+     */
+    @SuppressWarnings("unchecked")
+    private static <T> T convertFromJson(String json) throws CryptoException {
+        try {
+            // Em produção, usar biblioteca JSON real
+            if (json.startsWith("{\"data\":\"") && json.endsWith("\"}")) {
+                String data = json.substring(9, json.length() - 1);
+                return (T) data;
+            }
+            throw new CryptoException("Formato JSON inválido");
+        } catch (Exception e) {
+            throw new CryptoException("Erro na conversão de JSON", e);
+        }
+    }
+    
+    /**
+     * Exceção personalizada para operações criptográficas
+     */
+    public static class CryptoException extends Exception {
+        public CryptoException(String message) {
+            super(message);
+        }
+        
+        public CryptoException(String message, Exception cause) {
+            super(message, cause);
         }
     }
     
@@ -222,14 +302,5 @@ public class CryptoManager {
         byte[] sessionId = new byte[64];
         new SecureRandom().nextBytes(sessionId);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(sessionId);
-    }
-    
-    /**
-     * Exceção customizada para operações criptográficas
-     */
-    public static class CryptoException extends Exception {
-        public CryptoException(String message, Throwable cause) {
-            super(message, cause);
-        }
     }
 }

@@ -131,6 +131,9 @@ public class IrmaosPanel extends JPanel {
         PadraoLayout.aplicarCoresPastelBotoesPrincipais(salvarButton, novoButton, editarButton, excluirButton, limparButton);
         
         pesquisarField = new JTextField(20);
+        PadraoLayout.estilizarCampoTexto(pesquisarField);
+        pesquisarField.setEditable(true);
+        pesquisarField.setEnabled(true);
     }
     
     /**

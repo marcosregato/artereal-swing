@@ -3,6 +3,7 @@ package com.artereal.swing.ui.panels;
 import com.artereal.swing.dao.CandidatoDAO;
 import com.artereal.swing.model.Candidato;
 import com.artereal.swing.ui.layout.PadraoLayout;
+import com.artereal.swing.ui.panels.candidatos.CandidatosFormPanel;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -36,6 +37,7 @@ public class CandidatosPanel extends JPanel {
     private JButton rejeitarButton;
     private JButton iniciarButton;
     private Candidato candidatoAtual;
+    private CandidatosFormPanel candidatosFormPanel;
     
     public CandidatosPanel() {
         candidatoDAO = new CandidatoDAO();
@@ -71,6 +73,9 @@ public class CandidatosPanel extends JPanel {
         
         // Pesquisa
         pesquisarField = new JTextField(20);
+        PadraoLayout.estilizarCampoTexto(pesquisarField);
+        pesquisarField.setEditable(true);
+        pesquisarField.setEnabled(true);
         pesquisarButton = PadraoLayout.criarBotaoPesquisar();
         
         // Botões usando PadraoLayout com cores pastéis
@@ -85,6 +90,9 @@ public class CandidatosPanel extends JPanel {
         PadraoLayout.aplicarCoresPastelBotoesCandidatos(salvarButton, novoButton, excluirButton, aprovarButton, rejeitarButton, iniciarButton);
         
         candidatoAtual = null;
+        
+        // Inicializar formulário otimizado
+        candidatosFormPanel = new CandidatosFormPanel();
     }
     
     private void setupLayout() {
@@ -107,163 +115,28 @@ public class CandidatosPanel extends JPanel {
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.setBackground(PadraoLayout.COR_FUNDO);
         
-        // Painel de formulário usando PadraoLayout
-        JPanel formPanel = PadraoLayout.criarGrupoFormulario("📝 Dados do Candidato");
+        // Painel de formulário otimizado usando CandidatosFormPanel
+        JPanel formPanel = PadraoLayout.criarGrupoFormulario("📝 Dados do Candidato - UX Otimizada");
         JPanel formContainer = new JPanel(new BorderLayout());
         formContainer.setBackground(Color.WHITE);
         
-        // Formulário usando BoxLayout vertical para organizar JPanel um de baixo do outro
-        JPanel formContent = new JPanel();
-        formContent.setLayout(new BoxLayout(formContent, BoxLayout.Y_AXIS));
-        formContent.setBackground(Color.WHITE);
-        
-        // SEÇÃO 1: Dados do Candidato
-        JPanel dadosCandidatoPanel = new JPanel(new BorderLayout());
-        dadosCandidatoPanel.setBackground(Color.WHITE);
-        dadosCandidatoPanel.setBorder(BorderFactory.createTitledBorder("👤 Dados do Candidato"));
-        
-        JPanel dadosCandidatoContent = new JPanel();
-        dadosCandidatoContent.setLayout(new BoxLayout(dadosCandidatoContent, BoxLayout.Y_AXIS));
-        dadosCandidatoContent.setBackground(Color.WHITE);
-        
-        // Primeira linha: Código e Nome
-        JPanel primeiraLinhaCandidatoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        primeiraLinhaCandidatoPanel.setBackground(Color.WHITE);
-        
-        // Campo Código
-        JPanel codigoCandidatoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        codigoCandidatoPanel.setBackground(Color.WHITE);
-        codigoCandidatoPanel.add(PadraoLayout.criarLabelFormularioCodigo("Código:"));
-        PadraoLayout.estilizarCampoCodigo(codigoField);
-        codigoCandidatoPanel.add(codigoField);
-        
-        // Campo Nome
-        JPanel nomeCandidatoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        nomeCandidatoPanel.setBackground(Color.WHITE);
-        nomeCandidatoPanel.add(PadraoLayout.criarLabelFormulario("Nome:"));
-        PadraoLayout.estilizarCampoTexto(nomeField);
-        nomeCandidatoPanel.add(nomeField);
-        
-        // Adicionar os painéis à primeira linha
-        primeiraLinhaCandidatoPanel.add(codigoCandidatoPanel);
-        primeiraLinhaCandidatoPanel.add(Box.createHorizontalStrut(20)); // Espaço entre os campos
-        primeiraLinhaCandidatoPanel.add(nomeCandidatoPanel);
-        
-        // Adicionar o painel da primeira linha ao conteúdo
-        dadosCandidatoContent.add(primeiraLinhaCandidatoPanel);
-        dadosCandidatoContent.add(Box.createVerticalStrut(5)); // Espaço vertical
-        
-        // Segunda linha: Profissão e Status
-        JPanel segundaLinhaCandidatoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        segundaLinhaCandidatoPanel.setBackground(Color.WHITE);
-        
-        // Campo Profissão
-        JPanel profissaoCandidatoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        profissaoCandidatoPanel.setBackground(Color.WHITE);
-        profissaoCandidatoPanel.add(PadraoLayout.criarLabelFormulario("Profissão:"));
-        PadraoLayout.estilizarCampoTexto(profissaoField);
-        profissaoCandidatoPanel.add(profissaoField);
-        
-        // Campo Status
-        JPanel statusCandidatoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        statusCandidatoPanel.setBackground(Color.WHITE);
-        statusCandidatoPanel.add(PadraoLayout.criarLabelFormulario("Status:"));
-        PadraoLayout.estilizarComboBox(statusComboBox);
-        statusCandidatoPanel.add(statusComboBox);
-        
-        // Adicionar os painéis à segunda linha
-        segundaLinhaCandidatoPanel.add(profissaoCandidatoPanel);
-        segundaLinhaCandidatoPanel.add(Box.createHorizontalStrut(20)); // Espaço entre os campos
-        segundaLinhaCandidatoPanel.add(statusCandidatoPanel);
-        
-        // Adicionar o painel da segunda linha ao conteúdo
-        dadosCandidatoContent.add(segundaLinhaCandidatoPanel);
-        
-        dadosCandidatoPanel.add(dadosCandidatoContent, BorderLayout.CENTER);
-        formContent.add(dadosCandidatoPanel);
-        
-        // SEÇÃO 2: Endereço
-        JPanel enderecoCandidatoPanel = new JPanel(new BorderLayout());
-        enderecoCandidatoPanel.setBackground(Color.WHITE);
-        enderecoCandidatoPanel.setBorder(BorderFactory.createTitledBorder("📍 Endereço"));
-        
-        JPanel enderecoCandidatoContent = new JPanel();
-        enderecoCandidatoContent.setLayout(new BoxLayout(enderecoCandidatoContent, BoxLayout.Y_AXIS));
-        enderecoCandidatoContent.setBackground(Color.WHITE);
-        
-        // Primeira linha: Endereço (ocupa linha inteira)
-        JPanel enderecoPrincipalCandidatoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        enderecoPrincipalCandidatoPanel.setBackground(Color.WHITE);
-        enderecoPrincipalCandidatoPanel.add(PadraoLayout.criarLabelFormulario("Endereço:"));
-        PadraoLayout.estilizarCampoTexto(enderecoField);
-        enderecoPrincipalCandidatoPanel.add(enderecoField);
-        
-        // Adicionar o painel do Endereço ao conteúdo
-        enderecoCandidatoContent.add(enderecoPrincipalCandidatoPanel);
-        enderecoCandidatoContent.add(Box.createVerticalStrut(5)); // Espaço vertical
-        
-        // Segunda linha: Cidade e Estado
-        JPanel segundaLinhaEnderecoCandidatoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        segundaLinhaEnderecoCandidatoPanel.setBackground(Color.WHITE);
-        
-        // Campo Cidade
-        JPanel cidadeCandidatoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        cidadeCandidatoPanel.setBackground(Color.WHITE);
-        cidadeCandidatoPanel.add(PadraoLayout.criarLabelFormulario("Cidade:"));
-        PadraoLayout.estilizarCampoTexto(cidadeField);
-        cidadeCandidatoPanel.add(cidadeField);
-        
-        // Campo Estado
-        JPanel estadoCandidatoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        estadoCandidatoPanel.setBackground(Color.WHITE);
-        estadoCandidatoPanel.add(PadraoLayout.criarLabelFormulario("Estado:"));
-        PadraoLayout.estilizarCampoTexto(estadoField);
-        estadoCandidatoPanel.add(estadoField);
-        
-        // Adicionar os painéis à segunda linha
-        segundaLinhaEnderecoCandidatoPanel.add(cidadeCandidatoPanel);
-        segundaLinhaEnderecoCandidatoPanel.add(Box.createHorizontalStrut(20)); // Espaço entre os campos
-        segundaLinhaEnderecoCandidatoPanel.add(estadoCandidatoPanel);
-        
-        // Adicionar o painel da segunda linha ao conteúdo
-        enderecoCandidatoContent.add(segundaLinhaEnderecoCandidatoPanel);
-        enderecoCandidatoContent.add(Box.createVerticalStrut(5)); // Espaço vertical
-        
-        // Terceira linha: Telefone
-        JPanel terceiraLinhaEnderecoCandidatoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        terceiraLinhaEnderecoCandidatoPanel.setBackground(Color.WHITE);
-        terceiraLinhaEnderecoCandidatoPanel.add(PadraoLayout.criarLabelFormulario("Telefone:"));
-        PadraoLayout.estilizarCampoTexto(foneField);
-        terceiraLinhaEnderecoCandidatoPanel.add(foneField);
-        
-        // Adicionar o painel da terceira linha ao conteúdo
-        enderecoCandidatoContent.add(terceiraLinhaEnderecoCandidatoPanel);
-        
-        enderecoCandidatoPanel.add(enderecoCandidatoContent, BorderLayout.CENTER);
-        formContent.add(enderecoCandidatoPanel);
-        
-        // Informações adicionais
-        formContent.add(PadraoLayout.criarLabelFormulario("Informações:"));
-        informacoesArea.setRows(3);
-        informacoesArea.setColumns(30);
-        formContent.add(informacoesArea);
+        // Usar o formulário otimizado
+        formContainer.add(candidatosFormPanel, BorderLayout.CENTER);
         
         // Painel de botões
-        JPanel botoesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        JPanel botoesPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         botoesPanel.setBackground(Color.WHITE);
-        botoesPanel.add(salvarButton);
         botoesPanel.add(novoButton);
+        botoesPanel.add(salvarButton);
         botoesPanel.add(excluirButton);
         botoesPanel.add(aprovarButton);
         botoesPanel.add(rejeitarButton);
         botoesPanel.add(iniciarButton);
         
-        formContainer.add(formContent, BorderLayout.CENTER);
         formContainer.add(botoesPanel, BorderLayout.SOUTH);
         
         formPanel.add(formContainer, BorderLayout.CENTER);
         
-                
         // Painel de tabela usando PadraoLayout
         JPanel tabelaPanel = PadraoLayout.criarGrupoFormulario("👥 Candidatos Cadastrados");
         PadraoLayout.configurarTabela(candidatosTable);
