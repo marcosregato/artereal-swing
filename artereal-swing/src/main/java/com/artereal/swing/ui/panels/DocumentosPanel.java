@@ -4,6 +4,7 @@ import com.artereal.swing.dao.DocumentoDAO;
 import com.artereal.swing.database.DatabaseManager;
 import com.artereal.swing.model.Documento;
 import com.artereal.swing.ui.layout.PadraoLayout;
+import com.artereal.swing.ui.panels.documentos.DocumentosFormPanel;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -24,28 +25,17 @@ public class DocumentosPanel extends JPanel {
     private DocumentoDAO documentoDAO;
     private DefaultTableModel tableModel;
     private JTable documentosTable;
-    private JTextField nomeArquivoField;
-    private JTextField caminhoArquivoField;
-    private JTextField descricaoField;
-    private JTextField dataExpiracaoField;
-    private JTextField usuarioUploadField;
-    private JTextField tamanhoField;
-    private JTextField formatoField;
     private JTextField pesquisarField;
     private JButton pesquisarButton;
-    private JComboBox<String> tipoComboBox;
-    private JTextArea hashArea;
     private JButton salvarButton;
     private JButton novoButton;
     private JButton excluirButton;
     private JButton selecionarArquivoButton;
     private JButton visualizarButton;
-    private JButton uploadButton;
-    private JButton relatorioButton;
     private JButton emailButton;
-    private JButton agendarButton;
     private JButton whatsappButton;
     private Documento documentoAtual;
+    private DocumentosFormPanel documentosFormPanel;
     
     public DocumentosPanel() {
         // DocumentoDAO já usa DatabaseManager.getInstance() internamente
@@ -66,20 +56,8 @@ public class DocumentosPanel extends JPanel {
         };
         documentosTable = new JTable(tableModel);
         
-        // Formulário
-        nomeArquivoField = new JTextField(40);
-        caminhoArquivoField = new JTextField(50);
-        descricaoField = new JTextField(40);
-        dataExpiracaoField = new JTextField(8);
-        usuarioUploadField = new JTextField(20);
-        tamanhoField = new JTextField(10);
-        tamanhoField.setEditable(false);
-        formatoField = new JTextField(6);
-        formatoField.setEditable(false);
-        tipoComboBox = new JComboBox<>(new String[]{"IDENTIDADE", "DIPLOMA", "CERTIFICADO", "FOTO", "OUTRO"});
-        hashArea = new JTextArea(2, 40);
-        hashArea.setEditable(false);
-        hashArea.setFont(new Font("Monospaced", Font.PLAIN, 10));
+        // Inicializar formulário otimizado
+        documentosFormPanel = new DocumentosFormPanel();
         
         // Pesquisa
         pesquisarField = new JTextField(20);
@@ -91,21 +69,14 @@ public class DocumentosPanel extends JPanel {
         excluirButton = PadraoLayout.criarBotaoExcluir();
         selecionarArquivoButton = PadraoLayout.criarBotao("Selecionar Arquivo", new Color(173, 216, 230)); // Azul pastel
         visualizarButton = PadraoLayout.criarBotao("Visualizar", new Color(255, 250, 205)); // Amarelo pastel
-        uploadButton = PadraoLayout.criarBotao("Upload", new Color(221, 160, 221)); // Lavanda pastel
-        relatorioButton = PadraoLayout.criarBotao("Relatório", new Color(200, 200, 255)); // Azul claro
         emailButton = PadraoLayout.criarBotao("Enviar por Email", new Color(255, 182, 193)); // Rosa pastel
-        agendarButton = PadraoLayout.criarBotao("Agendar", new Color(255, 218, 185)); // Pêssego pastel
         whatsappButton = PadraoLayout.criarBotao("📱 WhatsApp", new Color(129, 230, 217)); // Verde WhatsApp
         
         // Aplicar cores pastéis nos botões usando PadraoLayout
         PadraoLayout.aplicarCoresPastelBotoesUsuarios(salvarButton, novoButton, excluirButton); // Usa método de usuários (3 botões)
         PadraoLayout.aplicarCoresPastelBotao(selecionarArquivoButton, "novo"); // Usa cor de novo para selecionar
         PadraoLayout.aplicarCoresPastelBotao(visualizarButton, "limpar"); // Usa cor de limpar para visualizar
-        PadraoLayout.aplicarCoresPastelBotao(uploadButton, "salvar"); // Usa cor de salvar para upload
-        PadraoLayout.aplicarCoresPastelBotao(uploadButton, "editar"); // Usa cor de editar para upload
-        PadraoLayout.aplicarCoresPastelBotao(relatorioButton, "novo"); // Usa cor de novo para relatório
         PadraoLayout.aplicarCoresPastelBotao(emailButton, "editar"); // Usa cor de editar para email
-        PadraoLayout.aplicarCoresPastelBotao(agendarButton, "salvar"); // Usa cor de salvar para agendar
         PadraoLayout.aplicarCoresPastelBotao(whatsappButton, "novo"); // Usa cor de novo para WhatsApp
         
         documentoAtual = null;
@@ -131,17 +102,34 @@ public class DocumentosPanel extends JPanel {
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.setBackground(PadraoLayout.COR_FUNDO);
         
-        // Painel de formulário usando PadraoLayout
-        JPanel formPanel = PadraoLayout.criarGrupoFormulario("📝 Dados do Documento");
-        JPanel formContainer = new JPanel(new BorderLayout());
-        formContainer.setBackground(Color.WHITE);
+        // Painel de formulário otimizado usando DocumentosFormPanel
+        JPanel formPanel = new JPanel(new BorderLayout());
+        formPanel.setBackground(PadraoLayout.COR_PAINEL);
+        formPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
         
-        // Painel direito - Formulário (padrão SessoesPanel)
-        JPanel rightPanel = new JPanel(new BorderLayout());
-        rightPanel.setBackground(Color.WHITE);
-        rightPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 10));
+        // Usar o formulário otimizado
+        formPanel.add(documentosFormPanel, BorderLayout.CENTER);
         
-        // Painel de estatísticas usando PadraoLayout - CORREÇÃO EM LOTE
+        // Painel de botões
+        JPanel botoesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        botoesPanel.setBackground(Color.WHITE);
+        
+        botoesPanel.add(salvarButton);
+        botoesPanel.add(novoButton);
+        botoesPanel.add(excluirButton);
+        botoesPanel.add(selecionarArquivoButton);
+        botoesPanel.add(visualizarButton);
+        botoesPanel.add(emailButton);
+        botoesPanel.add(whatsappButton);
+        
+        formPanel.add(botoesPanel, BorderLayout.SOUTH);
+        
+        // Painel de tabela usando PadraoLayout
+        JPanel tabelaPanel = new JPanel(new BorderLayout());
+        tabelaPanel.setBackground(PadraoLayout.COR_PAINEL);
+        tabelaPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
+        
+        // Painel de estatísticas e alertas
         JPanel statsPanel = new JPanel(new GridLayout(1, 4, 10, 10));
         statsPanel.setBackground(PadraoLayout.COR_PAINEL);
         statsPanel.setBorder(PadraoLayout.BORDA_GRUPO);
@@ -196,266 +184,6 @@ public class DocumentosPanel extends JPanel {
         } catch (SQLException e) {
             alertasPanel.add(new JLabel("Erro ao carregar alertas"));
         }
-        
-        // Título do formulário
-        JPanel formHeaderPanel = new JPanel(new BorderLayout());
-        formHeaderPanel.setBackground(new Color(245, 245, 250));
-        formHeaderPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
-        
-        JLabel formTitleLabel = new JLabel("📝 Dados do Documento", SwingConstants.LEFT);
-        formTitleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        formTitleLabel.setForeground(new Color(70, 130, 180));
-        
-        formHeaderPanel.add(formTitleLabel, BorderLayout.CENTER);
-        rightPanel.add(formHeaderPanel, BorderLayout.NORTH);
-        
-        // Painel de formulário
-        JPanel formularioPanel = new JPanel(new BorderLayout());
-        formularioPanel.setBackground(Color.WHITE);
-        formularioPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
-        
-        //JLabel formTitle = new JLabel("📝 Dados do Documento");
-        //formTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        //formTitle.setForeground(new Color(70, 130, 180));
-        
-                
-        // SEÇÃO 1: Dados do Documento
-        JPanel dadosDocumentoPanel = new JPanel(new BorderLayout());
-        dadosDocumentoPanel.setBackground(Color.WHITE);
-        dadosDocumentoPanel.setBorder(BorderFactory.createTitledBorder("📄 Dados do Documento"));
-        
-        JPanel dadosDocumentoContent = new JPanel(PadraoLayout.criarLayoutFormularioAlinhado());
-        dadosDocumentoContent.setBackground(Color.WHITE);
-        
-        // Primeira linha: Nome Arquivo (ocupa linha inteira)
-        GridBagConstraints nomeLabelConstraints = new GridBagConstraints();
-        nomeLabelConstraints.gridx = 0;
-        nomeLabelConstraints.gridy = 0;
-        nomeLabelConstraints.insets = new Insets(5, 8, 5, 8);
-        nomeLabelConstraints.anchor = GridBagConstraints.WEST;
-        nomeLabelConstraints.fill = GridBagConstraints.NONE;
-        dadosDocumentoContent.add(PadraoLayout.criarLabelFormulario("Nome Arquivo:"), nomeLabelConstraints);
-        
-        JPanel nomeArquivoPanel = new JPanel(new BorderLayout());
-        PadraoLayout.estilizarCampoNomeArquivo(nomeArquivoField);
-        nomeArquivoPanel.add(nomeArquivoField, BorderLayout.CENTER);
-        nomeArquivoPanel.add(selecionarArquivoButton, BorderLayout.EAST);
-        
-        GridBagConstraints nomeFieldConstraints = new GridBagConstraints();
-        nomeFieldConstraints.gridx = 1;
-        nomeFieldConstraints.gridy = 0;
-        nomeFieldConstraints.gridwidth = 3;
-        nomeFieldConstraints.weightx = 1.0;
-        nomeFieldConstraints.insets = new Insets(5, 8, 5, 8);
-        nomeFieldConstraints.fill = GridBagConstraints.HORIZONTAL;
-        nomeFieldConstraints.anchor = GridBagConstraints.WEST;
-        dadosDocumentoContent.add(nomeArquivoPanel, nomeFieldConstraints);
-        
-        // Segunda linha: Caminho e Tipo lado a lado
-        GridBagConstraints caminhoLabelConstraints = new GridBagConstraints();
-        caminhoLabelConstraints.gridx = 0;
-        caminhoLabelConstraints.gridy = 1;
-        caminhoLabelConstraints.insets = new Insets(5, 8, 5, 8);
-        caminhoLabelConstraints.anchor = GridBagConstraints.WEST;
-        caminhoLabelConstraints.fill = GridBagConstraints.NONE;
-        dadosDocumentoContent.add(PadraoLayout.criarLabelFormulario("Caminho:"), caminhoLabelConstraints);
-        
-        GridBagConstraints caminhoFieldConstraints = new GridBagConstraints();
-        caminhoFieldConstraints.gridx = 1;
-        caminhoFieldConstraints.gridy = 1;
-        caminhoFieldConstraints.gridwidth = 1;
-        caminhoFieldConstraints.weightx = 0.6;
-        caminhoFieldConstraints.insets = new Insets(5, 8, 5, 8);
-        caminhoFieldConstraints.fill = GridBagConstraints.HORIZONTAL;
-        caminhoFieldConstraints.anchor = GridBagConstraints.WEST;
-        PadraoLayout.estilizarCampoCaminhoArquivo(caminhoArquivoField);
-        dadosDocumentoContent.add(caminhoArquivoField, caminhoFieldConstraints);
-        
-        GridBagConstraints tipoLabelConstraints = new GridBagConstraints();
-        tipoLabelConstraints.gridx = 2;
-        tipoLabelConstraints.gridy = 1;
-        tipoLabelConstraints.insets = new Insets(5, 8, 5, 8);
-        tipoLabelConstraints.anchor = GridBagConstraints.WEST;
-        tipoLabelConstraints.fill = GridBagConstraints.NONE;
-        dadosDocumentoContent.add(PadraoLayout.criarLabelFormulario("Tipo:"), tipoLabelConstraints);
-        
-        GridBagConstraints tipoFieldConstraints = new GridBagConstraints();
-        tipoFieldConstraints.gridx = 3;
-        tipoFieldConstraints.gridy = 1;
-        tipoFieldConstraints.gridwidth = 1;
-        tipoFieldConstraints.weightx = 0.4;
-        tipoFieldConstraints.insets = new Insets(5, 8, 5, 8);
-        tipoFieldConstraints.fill = GridBagConstraints.HORIZONTAL;
-        tipoFieldConstraints.anchor = GridBagConstraints.WEST;
-        PadraoLayout.estilizarComboBox(tipoComboBox);
-        dadosDocumentoContent.add(tipoComboBox, tipoFieldConstraints);
-        
-        // Terceira linha: Descrição (ocupa linha inteira)
-        GridBagConstraints descricaoLabelConstraints = new GridBagConstraints();
-        descricaoLabelConstraints.gridx = 0;
-        descricaoLabelConstraints.gridy = 2;
-        descricaoLabelConstraints.insets = new Insets(5, 8, 5, 8);
-        descricaoLabelConstraints.anchor = GridBagConstraints.WEST;
-        descricaoLabelConstraints.fill = GridBagConstraints.NONE;
-        dadosDocumentoContent.add(PadraoLayout.criarLabelFormulario("Descrição:"), descricaoLabelConstraints);
-        
-        GridBagConstraints descricaoFieldConstraints = new GridBagConstraints();
-        descricaoFieldConstraints.gridx = 1;
-        descricaoFieldConstraints.gridy = 2;
-        descricaoFieldConstraints.gridwidth = 3;
-        descricaoFieldConstraints.weightx = 1.0;
-        descricaoFieldConstraints.insets = new Insets(5, 8, 5, 8);
-        descricaoFieldConstraints.fill = GridBagConstraints.HORIZONTAL;
-        descricaoFieldConstraints.anchor = GridBagConstraints.WEST;
-        PadraoLayout.estilizarCampoDescricao(descricaoField);
-        dadosDocumentoContent.add(descricaoField, descricaoFieldConstraints);
-        
-        dadosDocumentoPanel.add(dadosDocumentoContent, BorderLayout.CENTER);
-        formContainer.add(dadosDocumentoPanel, BorderLayout.NORTH);
-        
-        // SEÇÃO 2: Informações Adicionais
-        JPanel infoAdicionaisPanel = new JPanel(new BorderLayout());
-        infoAdicionaisPanel.setBackground(Color.WHITE);
-        infoAdicionaisPanel.setBorder(BorderFactory.createTitledBorder("📝 Informações Adicionais"));
-        
-        JPanel infoAdicionaisContent = new JPanel(PadraoLayout.criarLayoutFormularioAlinhado());
-        infoAdicionaisContent.setBackground(Color.WHITE);
-        
-        // Data Expiração e Usuário Upload na mesma linha
-        GridBagConstraints dataLabelConstraints = new GridBagConstraints();
-        dataLabelConstraints.gridx = 0;
-        dataLabelConstraints.gridy = 0;
-        dataLabelConstraints.insets = new Insets(5, 8, 5, 8);
-        dataLabelConstraints.anchor = GridBagConstraints.WEST;
-        dataLabelConstraints.fill = GridBagConstraints.NONE;
-        infoAdicionaisContent.add(PadraoLayout.criarLabelFormulario("Data Expiração:"), dataLabelConstraints);
-        
-        GridBagConstraints dataFieldConstraints = new GridBagConstraints();
-        dataFieldConstraints.gridx = 1;
-        dataFieldConstraints.gridy = 0;
-        dataFieldConstraints.weightx = 0.3;
-        dataFieldConstraints.insets = new Insets(5, 8, 5, 8);
-        dataFieldConstraints.fill = GridBagConstraints.HORIZONTAL;
-        dataFieldConstraints.anchor = GridBagConstraints.WEST;
-        PadraoLayout.estilizarCampoData(dataExpiracaoField);
-        infoAdicionaisContent.add(dataExpiracaoField, dataFieldConstraints);
-        
-        GridBagConstraints usuarioLabelConstraints = new GridBagConstraints();
-        usuarioLabelConstraints.gridx = 2;
-        usuarioLabelConstraints.gridy = 0;
-        usuarioLabelConstraints.insets = new Insets(5, 8, 5, 8);
-        usuarioLabelConstraints.anchor = GridBagConstraints.WEST;
-        usuarioLabelConstraints.fill = GridBagConstraints.NONE;
-        infoAdicionaisContent.add(PadraoLayout.criarLabelFormulario("Usuário Upload:"), usuarioLabelConstraints);
-        
-        GridBagConstraints usuarioFieldConstraints = new GridBagConstraints();
-        usuarioFieldConstraints.gridx = 3;
-        usuarioFieldConstraints.gridy = 0;
-        usuarioFieldConstraints.weightx = 0.7;
-        usuarioFieldConstraints.insets = new Insets(5, 8, 5, 8);
-        usuarioFieldConstraints.fill = GridBagConstraints.HORIZONTAL;
-        usuarioFieldConstraints.anchor = GridBagConstraints.WEST;
-        PadraoLayout.estilizarCampoUsuarioUpload(usuarioUploadField);
-        infoAdicionaisContent.add(usuarioUploadField, usuarioFieldConstraints);
-        
-        // Tamanho e Formato na mesma linha
-        GridBagConstraints tamanhoLabelConstraints = new GridBagConstraints();
-        tamanhoLabelConstraints.gridx = 0;
-        tamanhoLabelConstraints.gridy = 1;
-        tamanhoLabelConstraints.insets = new Insets(5, 8, 5, 8);
-        tamanhoLabelConstraints.anchor = GridBagConstraints.WEST;
-        tamanhoLabelConstraints.fill = GridBagConstraints.NONE;
-        infoAdicionaisContent.add(PadraoLayout.criarLabelFormulario("Tamanho:"), tamanhoLabelConstraints);
-        
-        GridBagConstraints tamanhoFieldConstraints = new GridBagConstraints();
-        tamanhoFieldConstraints.gridx = 1;
-        tamanhoFieldConstraints.gridy = 1;
-        tamanhoFieldConstraints.weightx = 0.5;
-        tamanhoFieldConstraints.insets = new Insets(5, 8, 5, 8);
-        tamanhoFieldConstraints.fill = GridBagConstraints.HORIZONTAL;
-        tamanhoFieldConstraints.anchor = GridBagConstraints.WEST;
-        PadraoLayout.estilizarCampoTexto(tamanhoField);
-        tamanhoField.setColumns(10); // Ajustar manualmente para tamanho ideal
-        infoAdicionaisContent.add(tamanhoField, tamanhoFieldConstraints);
-        
-        GridBagConstraints formatoLabelConstraints = new GridBagConstraints();
-        formatoLabelConstraints.gridx = 2;
-        formatoLabelConstraints.gridy = 1;
-        formatoLabelConstraints.insets = new Insets(5, 8, 5, 8);
-        formatoLabelConstraints.anchor = GridBagConstraints.WEST;
-        formatoLabelConstraints.fill = GridBagConstraints.NONE;
-        infoAdicionaisContent.add(PadraoLayout.criarLabelFormulario("Formato:"), formatoLabelConstraints);
-        
-        GridBagConstraints formatoFieldConstraints = new GridBagConstraints();
-        formatoFieldConstraints.gridx = 3;
-        formatoFieldConstraints.gridy = 1;
-        formatoFieldConstraints.weightx = 0.5;
-        formatoFieldConstraints.insets = new Insets(5, 8, 5, 8);
-        formatoFieldConstraints.fill = GridBagConstraints.HORIZONTAL;
-        formatoFieldConstraints.anchor = GridBagConstraints.WEST;
-        PadraoLayout.estilizarCampoFormatoArquivo(formatoField);
-        infoAdicionaisContent.add(formatoField, formatoFieldConstraints);
-        
-        infoAdicionaisPanel.add(infoAdicionaisContent, BorderLayout.CENTER);
-        formContainer.add(infoAdicionaisPanel, BorderLayout.CENTER);
-        
-        // Grupo 3: Segurança e Validação
-        JPanel segurancaPanel = createFormGroup("🔒 Segurança e Validação");
-        JPanel segurancaContent = new JPanel(new BorderLayout());
-        segurancaContent.setBackground(Color.WHITE);
-        
-        // Painel de opções de segurança
-        JPanel textAreasPanel = new JPanel(new GridLayout(1, 1, 10, 10));
-        textAreasPanel.setBackground(Color.WHITE);
-        
-        JPanel hashPanel = new JPanel(new BorderLayout());
-        hashPanel.setBackground(Color.WHITE);
-        hashPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(200, 200, 210), 1),
-            BorderFactory.createEmptyBorder(5, 5, 5, 5)
-        ));
-        hashPanel.add(new JLabel("🔐 Hash do Documento:"), BorderLayout.NORTH);
-        hashPanel.add(new JScrollPane(hashArea), BorderLayout.CENTER);
-        
-        textAreasPanel.add(hashPanel);
-        segurancaContent.add(textAreasPanel, BorderLayout.CENTER);
-        segurancaPanel.add(segurancaContent);
-        
-        // Organizar grupos verticalmente usando PadraoLayout
-        JPanel allGroups = PadraoLayout.criarFormularioMultiplosGrupos(
-            dadosDocumentoPanel, infoAdicionaisPanel, segurancaPanel
-        );
-        
-        // Adicionar scroll ao formulário usando PadraoLayout
-        JScrollPane formScroll = PadraoLayout.criarFormularioComScroll(allGroups);
-        
-        formContainer.add(formScroll, BorderLayout.CENTER);
-        
-        // Painel de botões - apenas essenciais
-        JPanel botoesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        botoesPanel.setBackground(Color.WHITE);
-        
-        botoesPanel.add(salvarButton);
-        botoesPanel.add(novoButton);
-        botoesPanel.add(excluirButton);
-        botoesPanel.add(selecionarArquivoButton);
-        botoesPanel.add(visualizarButton);
-        botoesPanel.add(emailButton);
-        botoesPanel.add(whatsappButton);
-        // Removidos: uploadButton, agendarButton, relatorioButton, assinarButton
-        
-        //formularioPanel.add(formTitle, BorderLayout.NORTH);
-        formularioPanel.add(formContainer, BorderLayout.CENTER);
-        formularioPanel.add(botoesPanel, BorderLayout.SOUTH);
-        
-        rightPanel.add(formularioPanel, BorderLayout.CENTER);
-        
-        formPanel.add(rightPanel, BorderLayout.CENTER);
-        
-        // Painel de tabela usando PadraoLayout
-        JPanel tabelaPanel = new JPanel(new BorderLayout());
-        tabelaPanel.setBackground(PadraoLayout.COR_PAINEL);
-        tabelaPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
         
         // Painel de estatísticas e alertas
         JPanel topPanel = new JPanel(new BorderLayout());
@@ -542,16 +270,16 @@ public class DocumentosPanel extends JPanel {
         int resultado = fileChooser.showOpenDialog(this);
         if (resultado == JFileChooser.APPROVE_OPTION) {
             File arquivoSelecionado = fileChooser.getSelectedFile();
-            caminhoArquivoField.setText(arquivoSelecionado.getAbsolutePath());
-            nomeArquivoField.setText(arquivoSelecionado.getName());
+            documentosFormPanel.getCaminhoArquivoField().setText(arquivoSelecionado.getAbsolutePath());
+            documentosFormPanel.getNomeArquivoField().setText(arquivoSelecionado.getName());
             
             // Extrair informações do arquivo
-            tamanhoField.setText(formatarTamanho(arquivoSelecionado.length()));
-            formatoField.setText(obterFormatoArquivo(arquivoSelecionado.getName()));
+            documentosFormPanel.getTamanhoField().setText(formatarTamanho(arquivoSelecionado.length()));
+            documentosFormPanel.getFormatoField().setText(obterFormatoArquivo(arquivoSelecionado.getName()));
             
             // Gerar hash (simulação)
             String hash = gerarHashSimulado(arquivoSelecionado.getAbsolutePath());
-            hashArea.setText(hash);
+            documentosFormPanel.getHashArea().setText(hash);
         }
     }
     
@@ -580,31 +308,31 @@ public class DocumentosPanel extends JPanel {
     
     private void salvarDocumento() {
         try {
-            if (nomeArquivoField.getText().trim().isEmpty()) {
+            if (documentosFormPanel.getNomeArquivoField().getText().trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Nome do arquivo é obrigatório!", "Erro", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
-            if (caminhoArquivoField.getText().trim().isEmpty()) {
+            if (documentosFormPanel.getCaminhoArquivoField().getText().trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Caminho do arquivo é obrigatório!", "Erro", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
             Documento documento = documentoAtual != null ? documentoAtual : new Documento();
-            documento.setNomeArquivo(nomeArquivoField.getText().trim());
+            documento.setNomeArquivo(documentosFormPanel.getNomeArquivoField().getText().trim());
             
             // Garantir que documento esteja ativo ao salvar
             documento.setAtivo(true);
-            documento.setCaminhoArquivo(caminhoArquivoField.getText().trim());
-            documento.setDescricao(descricaoField.getText().trim());
-            documento.setTipo((String) tipoComboBox.getSelectedItem());
-            documento.setTamanhoArquivo(parseTamanho(tamanhoField.getText()));
-            documento.setFormatoArquivo(formatoField.getText());
-            documento.setHashArquivo(hashArea.getText().trim());
-            documento.setUsuarioUpload(usuarioUploadField.getText().trim());
+            documento.setCaminhoArquivo(documentosFormPanel.getCaminhoArquivoField().getText().trim());
+            documento.setDescricao(documentosFormPanel.getDescricaoField().getText().trim());
+            documento.setTipo((String) documentosFormPanel.getTipoComboBox().getSelectedItem());
+            documento.setTamanhoArquivo(parseTamanho(documentosFormPanel.getTamanhoField().getText()));
+            documento.setFormatoArquivo(documentosFormPanel.getFormatoField().getText());
+            documento.setHashArquivo(documentosFormPanel.getHashArea().getText().trim());
+            documento.setUsuarioUpload(documentosFormPanel.getUsuarioUploadField().getText().trim());
             
-            if (!dataExpiracaoField.getText().trim().isEmpty()) {
-                String dataStr = dataExpiracaoField.getText().trim();
+            if (!documentosFormPanel.getDataExpiracaoField().getText().trim().isEmpty()) {
+                String dataStr = documentosFormPanel.getDataExpiracaoField().getText().trim();
                 // Converter formato xx/xx/xxxx para LocalDateTime
                 if (dataStr.matches("\\d{2}/\\d{2}/\\d{4}")) {
                     String[] partes = dataStr.split("/");
@@ -618,17 +346,10 @@ public class DocumentosPanel extends JPanel {
                 }
             }
             
-            System.out.println("[DocumentosPanel] salvarDocumento() - Salvando documento: " + documento.getNomeArquivo());
-            System.out.println("[DocumentosPanel] salvarDocumento() - Usuário: " + documento.getUsuarioUpload());
-            System.out.println("[DocumentosPanel] salvarDocumento() - Data Expiração: " + documento.getDataExpiracao());
             
             try {
-                System.out.println("[DocumentosPanel] Chamando documentoDAO.save()...");
                 documentoDAO.save(documento);
-                System.out.println("[DocumentosPanel] documentoDAO.save() executado com sucesso!");
-                System.out.println("[DocumentosPanel] Documento salvo com ID: " + documento.getId());
             } catch (Exception daoEx) {
-                System.out.println("[DocumentosPanel] ERRO no documentoDAO.save(): " + daoEx.getMessage());
                 daoEx.printStackTrace();
                 throw daoEx;
             }
@@ -659,16 +380,9 @@ public class DocumentosPanel extends JPanel {
     
     private void limparFormulario() {
         documentoAtual = null;
-        nomeArquivoField.setText("");
-        caminhoArquivoField.setText("");
-        descricaoField.setText("");
-        dataExpiracaoField.setText("");
-        usuarioUploadField.setText("");
-        tamanhoField.setText("");
-        formatoField.setText("");
-        hashArea.setText("");
-        tipoComboBox.setSelectedItem("OUTRO");
-        nomeArquivoField.requestFocus();
+        documentosFormPanel.clearForm();
+        documentosFormPanel.getTipoComboBox().setSelectedItem("OUTRO");
+        documentosFormPanel.getNomeArquivoField().requestFocus();
         atualizarBotoesAcao();
     }
     
@@ -726,20 +440,20 @@ public class DocumentosPanel extends JPanel {
             try {
                 documentoAtual = documentoDAO.findById(id);
                 if (documentoAtual != null) {
-                    nomeArquivoField.setText(documentoAtual.getNomeArquivo());
-                    caminhoArquivoField.setText(documentoAtual.getCaminhoArquivo());
-                    descricaoField.setText(documentoAtual.getDescricao());
-                    tipoComboBox.setSelectedItem(documentoAtual.getTipo());
-                    tamanhoField.setText(documentoAtual.getTamanhoFormatado());
-                    formatoField.setText(documentoAtual.getFormatoArquivo());
-                    hashArea.setText(documentoAtual.getHashArquivo());
-                    usuarioUploadField.setText(documentoAtual.getUsuarioUpload());
+                    documentosFormPanel.getNomeArquivoField().setText(documentoAtual.getNomeArquivo());
+                    documentosFormPanel.getCaminhoArquivoField().setText(documentoAtual.getCaminhoArquivo());
+                    documentosFormPanel.getDescricaoField().setText(documentoAtual.getDescricao());
+                    documentosFormPanel.getTipoComboBox().setSelectedItem(documentoAtual.getTipo());
+                    documentosFormPanel.getTamanhoField().setText(documentoAtual.getTamanhoFormatado());
+                    documentosFormPanel.getFormatoField().setText(documentoAtual.getFormatoArquivo());
+                    documentosFormPanel.getHashArea().setText(documentoAtual.getHashArquivo());
+                    documentosFormPanel.getUsuarioUploadField().setText(documentoAtual.getUsuarioUpload());
                     
                     if (documentoAtual.getDataExpiracao() != null) {
                         LocalDateTime data = documentoAtual.getDataExpiracao();
                         String dataFormatada = String.format("%02d/%02d/%04d", 
                             data.getDayOfMonth(), data.getMonthValue(), data.getYear());
-                        dataExpiracaoField.setText(dataFormatada);
+                        documentosFormPanel.getDataExpiracaoField().setText(dataFormatada);
                     }
                     
                     atualizarBotoesAcao();
@@ -758,7 +472,6 @@ public class DocumentosPanel extends JPanel {
     }
     
     private void enviarDocumentoPorEmail() {
-        System.out.println("[DocumentosPanel] enviarDocumentoPorEmail() - Iniciando envio de documento por e-mail");
         
         if (documentoAtual == null) {
             JOptionPane.showMessageDialog(this, 
@@ -768,7 +481,6 @@ public class DocumentosPanel extends JPanel {
             return;
         }
         
-        System.out.println("[DocumentosPanel] enviarDocumentoPorEmail() - Documento selecionado: " + documentoAtual.getNomeArquivo());
         
         // Criar diálogo para envio de e-mail
         JTextField emailField = new JTextField("", 30);
@@ -807,7 +519,6 @@ public class DocumentosPanel extends JPanel {
                 return;
             }
             
-            System.out.println("[DocumentosPanel] enviarDocumentoPorEmail() - Enviando para: " + email);
             
             // Verificar configurações de e-mail
             com.artereal.swing.service.EmailService emailService = new com.artereal.swing.service.EmailService();
@@ -856,7 +567,6 @@ public class DocumentosPanel extends JPanel {
     }
     
     private void enviarDocumentoPorWhatsApp() {
-        System.out.println("[DocumentosPanel] enviarDocumentoPorWhatsApp() - Iniciando envio de documento por WhatsApp");
         
         if (documentoAtual == null) {
             JOptionPane.showMessageDialog(this, 
@@ -866,7 +576,6 @@ public class DocumentosPanel extends JPanel {
             return;
         }
         
-        System.out.println("[DocumentosPanel] enviarDocumentoPorWhatsApp() - Documento selecionado: " + documentoAtual.getNomeArquivo());
         
         // Criar diálogo para envio via WhatsApp
         JTextField telefoneField = new JTextField("", 30);
@@ -911,7 +620,6 @@ public class DocumentosPanel extends JPanel {
                 return;
             }
             
-            System.out.println("[DocumentosPanel] enviarDocumentoPorWhatsApp() - Enviando para: " + telefone);
             
             // Enviar via WhatsApp
             boolean enviado = com.artereal.swing.service.WhatsAppService.enviarDocumentoWhatsApp(
@@ -944,32 +652,24 @@ public class DocumentosPanel extends JPanel {
     
     public void refreshData() {
         try {
-            System.out.println("[DocumentosPanel] refreshData() - Iniciando carregamento de documentos");
-            System.out.println("[DocumentosPanel] refreshData() - DatabaseManager instance: " + DatabaseManager.getInstance().hashCode());
             
             List<Documento> documentos = documentoDAO.findAll();
-            System.out.println("[DocumentosPanel] refreshData() - Encontrados " + documentos.size() + " documentos");
             
             if (documentos.isEmpty()) {
-                System.out.println("[DocumentosPanel] refreshData() - Nenhum documento encontrado. Verificando se há dados no banco...");
                 // Verificar se há algum registro no banco
                 try (Connection conn = DatabaseManager.getInstance().getConnection();
                      PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) FROM documento WHERE ativo = 1");
                      ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
                         int count = rs.getInt(1);
-                        System.out.println("[DocumentosPanel] refreshData() - Total de registros ativos no banco: " + count);
                     }
                 }
             }
             
             tableModel.setRowCount(0);
-            System.out.println("[DocumentosPanel] refreshData() - Linhas da tabela limpas");
             
             int linha = 0;
             for (Documento documento : documentos) {
-                System.out.println("[DocumentosPanel] refreshData() - Processando documento " + (linha + 1) + ": " + documento.getNomeArquivo());
-                System.out.println("[DocumentosPanel] refreshData() - ID: " + documento.getId() + ", Status: " + documento.getStatus());
                 
                 String status = "";
                 if (documento.isExpirado()) {
@@ -988,15 +688,12 @@ public class DocumentosPanel extends JPanel {
                     documento.getStatus() + (status.isEmpty() ? "" : " (" + status + ")")
                 };
                 
-                System.out.println("[DocumentosPanel] refreshData() - Adicionando linha: " + java.util.Arrays.toString(row));
                 tableModel.addRow(row);
                 linha++;
             }
             
-            System.out.println("[DocumentosPanel] refreshData() - Total de linhas na tabela após carregamento: " + tableModel.getRowCount());
             
         } catch (SQLException ex) {
-            System.err.println("[DocumentosPanel] refreshData() - Erro SQL: " + ex.getMessage());
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this, "Erro ao carregar documentos: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }

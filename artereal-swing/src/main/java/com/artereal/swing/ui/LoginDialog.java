@@ -172,7 +172,6 @@ public class LoginDialog extends JDialog {
         
         try {
             // Debug: mostrar valores sendo testados
-            System.out.println("Tentando login com: usuario='" + usuario + "', senha='" + senha + "'");
             
             usuarioLogado = usuarioDAO.authenticate(usuario.trim(), senha.trim());
             

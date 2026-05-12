@@ -1,9 +1,8 @@
 package com.artereal.swing.ui;
 
-import com.artereal.swing.database.DatabaseManager;
 import com.artereal.swing.ui.panels.*;
 import com.artereal.swing.ui.panels.screens.*;
-import com.artereal.swing.model.Usuario;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,7 +10,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.sql.SQLException;
+
 
 /**
  * Janela principal otimizada do sistema ArteReal com UX moderna

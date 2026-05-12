@@ -3,6 +3,7 @@ package com.artereal.swing.ui.panels;
 import com.artereal.swing.dao.CaixaDAO;
 import com.artereal.swing.model.Caixa;
 import com.artereal.swing.ui.layout.PadraoLayout;
+import com.artereal.swing.ui.panels.caixa.CaixaFormPanel;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -26,21 +27,9 @@ public class CaixaPanel extends JPanel {
     private JTable caixaTable;
     private Caixa caixaAtual;
     private JTextField pesquisarField;
+    private CaixaFormPanel caixaFormPanel;
     
-    // Formulário
-    private JTextField codigoField;
-    private JTextField dataField;
-    private JTextField descricaoField;
-    private JTextField valorField;
-    private JTextField numeroDocumentoField;
-    private JTextArea observacoesArea;
-    
-    // ComboBox
-    private JComboBox<String> tipoCombo;
-    private JComboBox<String> categoriaCombo;
-    private JComboBox<String> formaPagamentoCombo;
-    private JComboBox<String> statusCombo;
-    
+        
     // Labels de resumo
     private JLabel receitasLabel;
     private JLabel despesasLabel;
@@ -76,25 +65,6 @@ public class CaixaPanel extends JPanel {
         };
         caixaTable = new JTable(tableModel);
         
-        // Formulário
-        codigoField = new JTextField();
-        dataField = new JTextField(); // Já configurado para receber data no formato dd/MM/yyyy
-        descricaoField = new JTextField();
-        valorField = new JTextField();
-        numeroDocumentoField = new JTextField(25);
-        observacoesArea = new JTextArea(3, 40);
-        
-        // ComboBox
-        tipoCombo = new JComboBox<>(new String[]{"Receita", "Despesa"});
-        categoriaCombo = new JComboBox<>(new String[]{
-            "Mensalidades", "Doações", "Eventos", "Material", "Aluguel", 
-            "Água", "Luz", "Telefone", "Outros"
-        });
-        formaPagamentoCombo = new JComboBox<>(new String[]{
-            "Dinheiro", "Transferência", "Cheque", "Cartão", "Pix"
-        });
-        statusCombo = new JComboBox<>(new String[]{"Pendente", "Processado", "Cancelado"});
-        
         // Botões
         salvarButton = PadraoLayout.criarBotaoSalvar();
         novoButton = PadraoLayout.criarBotaoNovo();
@@ -104,6 +74,9 @@ public class CaixaPanel extends JPanel {
         pesquisarButton = PadraoLayout.criarBotaoPesquisar();
         relatorioButton = PadraoLayout.criarBotao("📊 Relatório", new Color(200, 200, 255));
         pesquisarField = new JTextField(20);
+        
+        // Inicializar formulário otimizado
+        caixaFormPanel = new CaixaFormPanel();
         
         // Aplicar cores pastéis nos botões usando PadraoLayout
         PadraoLayout.aplicarCoresPastelBotoesPrincipais(salvarButton, novoButton, editarButton, excluirButton, limparButton);
@@ -137,112 +110,13 @@ public class CaixaPanel extends JPanel {
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.setBackground(PadraoLayout.COR_FUNDO);
         
-        // Painel de formulário usando PadraoLayout
-        JPanel formPanel = PadraoLayout.criarGrupoFormulario("💳 Detalhes da Movimentação");
-        JPanel formContainer = new JPanel(new BorderLayout());
-        formContainer.setBackground(Color.WHITE);
+        // Painel de formulário otimizado usando CaixaFormPanel
+        JPanel formPanel = new JPanel(new BorderLayout());
+        formPanel.setBackground(PadraoLayout.COR_PAINEL);
+        formPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
         
-        // Formulário usando BoxLayout vertical para organizar JPanel um de baixo do outro
-        JPanel formContent = new JPanel();
-        formContent.setLayout(new BoxLayout(formContent, BoxLayout.Y_AXIS));
-        formContent.setBackground(Color.WHITE);
-        
-        // SEÇÃO 1: Detalhe da Movimentação usando PadraoLayout com alinhamento correto
-        JPanel detalheMovimentacaoPanel = PadraoLayout.criarGrupoFormulario("📋 Detalhe da Movimentação");
-        JPanel detalheMovimentacaoContent = new JPanel(PadraoLayout.criarLayoutFormularioAlinhado());
-        detalheMovimentacaoContent.setBackground(Color.WHITE);
-        
-        // Layout com painéis separados para evitar sobreposição
-        // Painel principal com BoxLayout vertical
-        JPanel camposPanel = new JPanel();
-        camposPanel.setLayout(new BoxLayout(camposPanel, BoxLayout.Y_AXIS));
-        camposPanel.setBackground(Color.WHITE);
-        
-        // Linha 1: Identificação, Classificação, Financeiro e Documentação (Código, Data, Tipo, Categoria, Valor, Status e Forma Pagamento)
-        JPanel linha1Panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 2));
-        linha1Panel.setBackground(Color.WHITE);
-        linha1Panel.add(PadraoLayout.criarLabelFormularioCodigo("Código:"));
-        PadraoLayout.estilizarCampoCodigo(codigoField);
-        linha1Panel.add(codigoField);
-        linha1Panel.add(PadraoLayout.criarLabelFormulario("Data:"));
-        PadraoLayout.estilizarCampoData(dataField);
-        dataField.setColumns(10); // Tamanho ideal para formato xx/xx/xxxx (10 caracteres)
-        linha1Panel.add(dataField);
-        linha1Panel.add(PadraoLayout.criarLabelFormulario("Tipo:"));
-        PadraoLayout.estilizarComboBox(tipoCombo);
-        linha1Panel.add(tipoCombo);
-        linha1Panel.add(PadraoLayout.criarLabelFormulario("Categoria:"));
-        PadraoLayout.estilizarComboBox(categoriaCombo);
-        linha1Panel.add(categoriaCombo);
-        linha1Panel.add(PadraoLayout.criarLabelFormulario("Valor:"));
-        PadraoLayout.estilizarCampoValorFinanceiro(valorField);
-        linha1Panel.add(valorField);
-        linha1Panel.add(PadraoLayout.criarLabelFormulario("Status:"));
-        PadraoLayout.estilizarComboBox(statusCombo);
-        linha1Panel.add(statusCombo);
-        linha1Panel.add(PadraoLayout.criarLabelFormulario("Forma Pagto:"));
-        PadraoLayout.estilizarComboBox(formaPagamentoCombo);
-        linha1Panel.add(formaPagamentoCombo);
-        camposPanel.add(linha1Panel);
-        
-        // Linha 2: Documentação (Número Documento)
-        JPanel linha2Panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 2));
-        linha2Panel.setBackground(Color.WHITE);
-        linha2Panel.add(PadraoLayout.criarLabelFormulario("Nº Documento:"));
-        PadraoLayout.estilizarCampoNumeroDocumento(numeroDocumentoField);
-        linha2Panel.add(numeroDocumentoField);
-        camposPanel.add(linha2Panel);
-        
-        // Linha 3: Descrição (largura total)
-        JPanel linha3Panel = new JPanel(new BorderLayout(5, 2));
-        linha3Panel.setBackground(Color.WHITE);
-        linha3Panel.add(PadraoLayout.criarLabelFormulario("Descrição:"), BorderLayout.NORTH);
-        PadraoLayout.estilizarCampoDescricao(descricaoField);
-        linha3Panel.add(descricaoField, BorderLayout.CENTER);
-        camposPanel.add(linha3Panel);
-        
-        // Adicionar o painel principal ao conteúdo
-        detalheMovimentacaoContent.add(camposPanel, PadraoLayout.criarConstraintsFormulario(0, 0));
-        
-                detalheMovimentacaoPanel.add(detalheMovimentacaoContent);
-        formContent.add(detalheMovimentacaoPanel);
-        
-        // SEÇÃO 2: Observações
-        JPanel observacoesPanel = PadraoLayout.criarGrupoFormulario("� Observações");
-        JPanel observacoesContent = new JPanel(new BorderLayout());
-        observacoesContent.setBackground(Color.WHITE);
-        
-        observacoesArea.setBorder(PadraoLayout.BORDA_CAMPO);
-        observacoesArea.setBackground(Color.WHITE);
-        observacoesContent.add(new JScrollPane(observacoesArea), BorderLayout.CENTER);
-        
-        observacoesPanel.add(observacoesContent);
-        formContent.add(observacoesPanel);
-        
-        // Resumo Financeiro no formulário
-        JPanel resumoPanel = new JPanel(new GridLayout(1, 3, 10, 5));
-        resumoPanel.setBackground(Color.WHITE);
-        resumoPanel.setBorder(BorderFactory.createTitledBorder("📊 Resumo Financeiro"));
-        
-        resumoPanel.add(receitasLabel);
-        resumoPanel.add(despesasLabel);
-        resumoPanel.add(saldoLabel);
-        
-        // Painel de botões
-        JPanel botoesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        botoesPanel.setBackground(Color.WHITE);
-        botoesPanel.add(salvarButton);
-        botoesPanel.add(novoButton);
-        botoesPanel.add(editarButton);
-        botoesPanel.add(excluirButton);
-        botoesPanel.add(limparButton);
-        botoesPanel.add(relatorioButton);
-        
-        formContainer.add(formContent, BorderLayout.CENTER);
-        formContainer.add(resumoPanel, BorderLayout.NORTH);
-        formContainer.add(botoesPanel, BorderLayout.SOUTH);
-        
-        formPanel.add(formContainer, BorderLayout.CENTER);
+        // Usar o formulário otimizado
+        formPanel.add(caixaFormPanel, BorderLayout.CENTER);
         
         // Painel de tabela usando PadraoLayout
         JPanel tabelaPanel = PadraoLayout.criarGrupoFormulario("📊 Movimentações Financeiras");
@@ -283,15 +157,15 @@ public class CaixaPanel extends JPanel {
     private void salvarMovimentacao() {
         try {
             Caixa caixa = new Caixa();
-            caixa.setDataMovimentacao(LocalDateTime.parse(dataField.getText() + " 00:00", DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
-            caixa.setTipo(tipoCombo.getSelectedItem().toString());
-            caixa.setCategoria(categoriaCombo.getSelectedItem().toString());
-            caixa.setDescricao(descricaoField.getText());
-            caixa.setValor(new BigDecimal(valorField.getText()));
-            caixa.setFormaPagamento(formaPagamentoCombo.getSelectedItem().toString());
-            caixa.setNumeroDocumento(numeroDocumentoField.getText());
-            caixa.setStatus(statusCombo.getSelectedItem().toString());
-            caixa.setObservacoes(observacoesArea.getText());
+            caixa.setDataMovimentacao(LocalDateTime.parse(caixaFormPanel.getDataField().getText() + " 00:00", DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+            caixa.setTipo(caixaFormPanel.getTipoCombo().getSelectedItem().toString());
+            caixa.setCategoria(caixaFormPanel.getCategoriaCombo().getSelectedItem().toString());
+            caixa.setDescricao(caixaFormPanel.getDescricaoField().getText());
+            caixa.setValor(new BigDecimal(caixaFormPanel.getValorField().getText()));
+            caixa.setFormaPagamento(caixaFormPanel.getFormaPagamentoCombo().getSelectedItem().toString());
+            caixa.setNumeroDocumento(caixaFormPanel.getNumeroDocumentoField().getText());
+            caixa.setStatus(caixaFormPanel.getStatusCombo().getSelectedItem().toString());
+            caixa.setObservacoes(caixaFormPanel.getObservacoesArea().getText());
             
             if (caixaAtual == null) {
                 caixaDAO.save(caixa);
@@ -330,16 +204,7 @@ public class CaixaPanel extends JPanel {
     
     private void limparFormulario() {
         caixaAtual = null;
-        codigoField.setText("");
-        dataField.setText(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        descricaoField.setText("");
-        valorField.setText("");
-        numeroDocumentoField.setText("");
-        observacoesArea.setText("");
-        tipoCombo.setSelectedIndex(0);
-        categoriaCombo.setSelectedIndex(0);
-        formaPagamentoCombo.setSelectedIndex(0);
-        statusCombo.setSelectedIndex(0);
+        caixaFormPanel.clearForm();
         caixaTable.clearSelection();
     }
     
@@ -350,16 +215,16 @@ public class CaixaPanel extends JPanel {
                 Long id = (Long) tableModel.getValueAt(selectedRow, 0);
                 caixaAtual = caixaDAO.findById(id);
                 if (caixaAtual != null) {
-                    codigoField.setText(String.valueOf(caixaAtual.getId()));
-                    dataField.setText(caixaAtual.getDataMovimentacao().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-                    tipoCombo.setSelectedItem(caixaAtual.getTipo());
-                    categoriaCombo.setSelectedItem(caixaAtual.getCategoria());
-                    descricaoField.setText(caixaAtual.getDescricao());
-                    valorField.setText(caixaAtual.getValor().toString());
-                    formaPagamentoCombo.setSelectedItem(caixaAtual.getFormaPagamento());
-                    numeroDocumentoField.setText(caixaAtual.getNumeroDocumento());
-                    statusCombo.setSelectedItem(caixaAtual.getStatus());
-                    observacoesArea.setText(caixaAtual.getObservacoes());
+                    caixaFormPanel.getCodigoField().setText(String.valueOf(caixaAtual.getId()));
+                    caixaFormPanel.getDataField().setText(caixaAtual.getDataMovimentacao().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+                    caixaFormPanel.getTipoCombo().setSelectedItem(caixaAtual.getTipo());
+                    caixaFormPanel.getCategoriaCombo().setSelectedItem(caixaAtual.getCategoria());
+                    caixaFormPanel.getDescricaoField().setText(caixaAtual.getDescricao());
+                    caixaFormPanel.getValorField().setText(caixaAtual.getValor().toString());
+                    caixaFormPanel.getFormaPagamentoCombo().setSelectedItem(caixaAtual.getFormaPagamento());
+                    caixaFormPanel.getNumeroDocumentoField().setText(caixaAtual.getNumeroDocumento());
+                    caixaFormPanel.getStatusCombo().setSelectedItem(caixaAtual.getStatus());
+                    caixaFormPanel.getObservacoesArea().setText(caixaAtual.getObservacoes());
                 }
             } catch (SQLException e) {
                 JOptionPane.showMessageDialog(this, "Erro ao carregar movimentação: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);

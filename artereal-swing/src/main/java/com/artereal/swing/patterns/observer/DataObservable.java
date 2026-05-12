@@ -71,7 +71,6 @@ public class DataObservable {
                 observer.onComplete(source, success);
             } catch (Exception e) {
                 // Log erro mas não interrompe notificação para outros observers
-                System.err.println("Erro em observer onComplete: " + e.getMessage());
             }
         }
     }
@@ -105,7 +104,6 @@ public class DataObservable {
                 }
             } catch (Exception e) {
                 // Log erro mas não interrompe notificação para outros observers
-                System.err.println("Erro em observer: " + e.getMessage());
             }
         }
     }

@@ -1,7 +1,5 @@
 package com.artereal.swing.ui.panels.screens;
 
-import com.artereal.swing.ui.layout.PadraoLayout;
-
 import javax.swing.*;
 import java.awt.*;
 

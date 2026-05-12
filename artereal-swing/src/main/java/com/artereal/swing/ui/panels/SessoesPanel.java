@@ -3,6 +3,7 @@ package com.artereal.swing.ui.panels;
 import com.artereal.swing.dao.SessaoDAO;
 import com.artereal.swing.model.Sessao;
 import com.artereal.swing.ui.layout.PadraoLayout;
+import com.artereal.swing.ui.panels.sessoes.SessoesEnhancedFormPanel;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -50,6 +51,7 @@ public class SessoesPanel extends JPanel {
     private JComboBox<String> statusCombo;
     
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private SessoesEnhancedFormPanel sessoesEnhancedFormPanel;
     
     public SessoesPanel() {
         sessaoDAO = new SessaoDAO();
@@ -95,6 +97,9 @@ public class SessoesPanel extends JPanel {
         editarButton = PadraoLayout.criarBotaoEditar();
         excluirButton = PadraoLayout.criarBotaoExcluir();
         limparButton = PadraoLayout.criarBotaoLimpar();
+        
+        // Inicializar formulário otimizado
+        sessoesEnhancedFormPanel = new SessoesEnhancedFormPanel();
         pesquisarButton = PadraoLayout.criarBotaoPesquisar();
         pesquisarField = new JTextField(20);
     }
@@ -126,10 +131,13 @@ public class SessoesPanel extends JPanel {
         PadraoLayout.configurarTabela(sessoesTable);
         tabelaPanel.add(new JScrollPane(sessoesTable), BorderLayout.CENTER);
         
-        // Painel de formulário usando PadraoLayout
-        JPanel formularioPanel = new JPanel(new BorderLayout());
-        formularioPanel.setBackground(PadraoLayout.COR_PAINEL);
-        formularioPanel.setBorder(PadraoLayout.BORDA_GRUPO);
+        // Painel de formulário otimizado usando SessoesEnhancedFormPanel
+        JPanel formPanel = new JPanel(new BorderLayout());
+        formPanel.setBackground(PadraoLayout.COR_PAINEL);
+        formPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
+        
+        // Usar o formulário otimizado
+        formPanel.add(sessoesEnhancedFormPanel, BorderLayout.CENTER);
         
         JLabel formTitle = PadraoLayout.criarLabelFormulario("📝 Dados da Sessão");
         formTitle.setFont(PadraoLayout.FONTE_GRUPO);
@@ -261,12 +269,11 @@ public class SessoesPanel extends JPanel {
             PadraoLayout.criarBotao("Limpar", PadraoLayout.COR_BOTAO_LIMPAR)
         );
         
-        formularioPanel.add(formTitle, BorderLayout.NORTH);
-        formularioPanel.add(formContainer, BorderLayout.CENTER);
-        formularioPanel.add(botoesPanel, BorderLayout.SOUTH);
+        formPanel.add(formContainer, BorderLayout.CENTER);
+        formPanel.add(botoesPanel, BorderLayout.SOUTH);
         
         // Split vertical: Formulário acima, Tabela abaixo
-        JSplitPane verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formularioPanel, tabelaPanel);
+        JSplitPane verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formPanel, tabelaPanel);
         verticalSplitPane.setDividerLocation(350);
         verticalSplitPane.setResizeWeight(0.4);
         

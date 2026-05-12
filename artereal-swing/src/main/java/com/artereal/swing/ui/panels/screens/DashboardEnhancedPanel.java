@@ -1,6 +1,5 @@
 package com.artereal.swing.ui.panels.screens;
 
-import com.artereal.swing.ui.panels.screens.BaseEnhancedScreenPanel.*;
 
 import javax.swing.*;
 import java.awt.*;

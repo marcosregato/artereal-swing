@@ -205,7 +205,6 @@ public class IrmaosPanel extends JPanel {
             });
             
         } catch (Exception e) {
-            System.err.println("Erro ao aplicar máscara de telefone: " + e.getMessage());
         }
     }
     

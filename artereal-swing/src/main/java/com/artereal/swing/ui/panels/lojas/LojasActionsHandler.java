@@ -2,8 +2,6 @@ package com.artereal.swing.ui.panels.lojas;
 
 import com.artereal.swing.dao.LojaDAO;
 import com.artereal.swing.model.Loja;
-import com.artereal.swing.ui.panels.lojas.LojasFormPanel;
-import com.artereal.swing.ui.panels.lojas.LojasTablePanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

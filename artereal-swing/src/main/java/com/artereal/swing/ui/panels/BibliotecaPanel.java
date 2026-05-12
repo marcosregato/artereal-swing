@@ -3,6 +3,7 @@ package com.artereal.swing.ui.panels;
 import com.artereal.swing.dao.BibliotecaDAO;
 import com.artereal.swing.model.Biblioteca;
 import com.artereal.swing.ui.layout.PadraoLayout;
+import com.artereal.swing.ui.panels.biblioteca.BibliotecaFormPanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,17 +27,10 @@ public class BibliotecaPanel extends JPanel {
     private DefaultTableModel tableModel;
     private JTable bibliotecaTable;
     private Biblioteca bibliotecaAtual;
+    private BibliotecaFormPanel bibliotecaFormPanel;
     
-    // Formulário
-    private JTextField codigoField;
+    // Formulário - campos movidos para BibliotecaFormPanel
     private JComboBox<String> tipoCombo;
-    private JTextField tituloField;
-    private JTextField autorField;
-    private JTextField isbnField;
-    private JTextField editoraField;
-    private JTextField anoPublicacaoField;
-    private JTextField categoriaField;
-    private JTextField localizacaoField;
     private JComboBox<String> statusCombo;
     
     // Campos para empréstimo
@@ -46,8 +40,6 @@ public class BibliotecaPanel extends JPanel {
     private JTextField dataDevolucaoRealField;
     private JTextField responsavelEmprestimoField;
     private JTextField multaField;
-    
-    private JTextArea observacoesArea;
     
     // Botões
     private JButton salvarButton;
@@ -89,19 +81,8 @@ public class BibliotecaPanel extends JPanel {
         };
         bibliotecaTable = new JTable(tableModel);
         
-        // Formulário
-        codigoField = new JTextField();
-        codigoField.setEditable(false);
-        
+        // Formulário - campos movidos para BibliotecaFormPanel
         tipoCombo = new JComboBox<>(new String[]{"LIVRO", "EMPRESTIMO"});
-        tituloField = new JTextField();
-        autorField = new JTextField(30);
-        isbnField = new JTextField(15);
-        editoraField = new JTextField(25);
-        anoPublicacaoField = new JTextField(6);
-        categoriaField = new JTextField(20);
-        localizacaoField = new JTextField(15);
-        
         statusCombo = new JComboBox<>(new String[]{
             "DISPONIVEL", "EMPRESTADO", "EM_MANUTENCAO", "BAIXADO"
         });
@@ -113,10 +94,6 @@ public class BibliotecaPanel extends JPanel {
         dataDevolucaoRealField = new JTextField();
         responsavelEmprestimoField = new JTextField();
         multaField = new JTextField();
-        
-        observacoesArea = new JTextArea(3, 40);
-        observacoesArea.setLineWrap(true);
-        observacoesArea.setWrapStyleWord(true);
         
         // Botões usando PadraoLayout com cores pastéis
         salvarButton = PadraoLayout.criarBotaoSalvar();
@@ -131,6 +108,9 @@ public class BibliotecaPanel extends JPanel {
         PadraoLayout.estilizarCampoTexto(pesquisarField);
         pesquisarField.setEditable(true);
         pesquisarField.setEnabled(true);
+        
+        // Inicializar formulário otimizado
+        bibliotecaFormPanel = new BibliotecaFormPanel();
         
         // Aplicar cores pastéis nos botões usando PadraoLayout
         PadraoLayout.aplicarCoresPastelBotoesPrincipais(salvarButton, novoButton, editarButton, excluirButton, limparButton);
@@ -163,175 +143,13 @@ public class BibliotecaPanel extends JPanel {
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.setBackground(PadraoLayout.COR_FUNDO);
         
-        // Painel de formulário usando PadraoLayout
-        JPanel formPanel = PadraoLayout.criarGrupoFormulario("📚 Dados do Livro");
-        JPanel formContainer = new JPanel(new BorderLayout());
-        formContainer.setBackground(Color.WHITE);
+        // Painel de formulário otimizado usando BibliotecaFormPanel
+        JPanel formPanel = new JPanel(new BorderLayout());
+        formPanel.setBackground(PadraoLayout.COR_PAINEL);
+        formPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
         
-        // Formulário usando BoxLayout vertical para organizar JPanel um de baixo do outro
-        JPanel formContent = new JPanel();
-        formContent.setLayout(new BoxLayout(formContent, BoxLayout.Y_AXIS));
-        formContent.setBackground(Color.WHITE);
-        
-        // SEÇÃO 1: Dados do Livro
-        JPanel dadosLivroPanel = new JPanel(new BorderLayout());
-        dadosLivroPanel.setBackground(Color.WHITE);
-        dadosLivroPanel.setBorder(BorderFactory.createTitledBorder("📚 Dados do Livro"));
-        
-        JPanel dadosLivroContent = new JPanel();
-        dadosLivroContent.setLayout(new BoxLayout(dadosLivroContent, BoxLayout.Y_AXIS));
-        dadosLivroContent.setBackground(Color.WHITE);
-        
-        // Primeira linha: Código e Tipo
-        JPanel primeiraLinhaLivroPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        primeiraLinhaLivroPanel.setBackground(Color.WHITE);
-        
-        // Campo Código
-        JPanel codigoLivroPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        codigoLivroPanel.setBackground(Color.WHITE);
-        codigoLivroPanel.add(PadraoLayout.criarLabelFormularioCodigo("Código:"));
-        PadraoLayout.estilizarCampoCodigo(codigoField);
-        codigoLivroPanel.add(codigoField);
-        
-        // Campo Tipo
-        JPanel tipoLivroPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        tipoLivroPanel.setBackground(Color.WHITE);
-        tipoLivroPanel.add(PadraoLayout.criarLabelFormulario("Tipo:"));
-        PadraoLayout.estilizarComboBox(tipoCombo);
-        tipoLivroPanel.add(tipoCombo);
-        
-        // Campo ISBN
-        JPanel isbnLivroPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        isbnLivroPanel.setBackground(Color.WHITE);
-        isbnLivroPanel.add(PadraoLayout.criarLabelFormulario("ISBN:"));
-        PadraoLayout.estilizarCampoISBN(isbnField);
-        isbnLivroPanel.add(isbnField);
-        
-        // Campo Ano
-        JPanel anoLivroPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        anoLivroPanel.setBackground(Color.WHITE);
-        anoLivroPanel.add(PadraoLayout.criarLabelFormulario("Ano:"));
-        PadraoLayout.estilizarCampoAnoPublicacao(anoPublicacaoField);
-        anoLivroPanel.add(anoPublicacaoField);
-        
-        // Adicionar os painéis à primeira linha (Código, Tipo, ISBN, Ano)
-        primeiraLinhaLivroPanel.add(codigoLivroPanel);
-        primeiraLinhaLivroPanel.add(Box.createHorizontalStrut(20)); // Espaço entre os campos
-        primeiraLinhaLivroPanel.add(tipoLivroPanel);
-        primeiraLinhaLivroPanel.add(Box.createHorizontalStrut(20)); // Espaço entre os campos
-        primeiraLinhaLivroPanel.add(isbnLivroPanel);
-        primeiraLinhaLivroPanel.add(Box.createHorizontalStrut(20)); // Espaço entre os campos
-        primeiraLinhaLivroPanel.add(anoLivroPanel);
-        
-        // Adicionar o painel da primeira linha ao conteúdo
-        dadosLivroContent.add(primeiraLinhaLivroPanel);
-        dadosLivroContent.add(Box.createVerticalStrut(5)); // Espaço vertical
-        
-        dadosLivroPanel.add(dadosLivroContent, BorderLayout.CENTER);
-        formContent.add(dadosLivroPanel);
-        
-        // SEÇÃO 2: Informações Bibliográficas
-        JPanel bibliograficasPanel = new JPanel(new BorderLayout());
-        bibliograficasPanel.setBackground(Color.WHITE);
-        bibliograficasPanel.setBorder(BorderFactory.createTitledBorder("📖 Informações Bibliográficas"));
-        
-        JPanel bibliograficasContent = new JPanel(PadraoLayout.criarLayoutFormularioAlinhado());
-        bibliograficasContent.setBackground(Color.WHITE);
-        
-        // Título (ocupa duas colunas)
-        GridBagConstraints tituloLabelConstraints = PadraoLayout.criarConstraintsFormulario(0, 0);
-        tituloLabelConstraints.gridwidth = 2;
-        tituloLabelConstraints.fill = GridBagConstraints.HORIZONTAL;
-        bibliograficasContent.add(PadraoLayout.criarLabelFormulario("Título:"), tituloLabelConstraints);
-        
-        GridBagConstraints tituloFieldConstraints = PadraoLayout.criarConstraintsFormulario(1, 0);
-        tituloFieldConstraints.gridwidth = 2;
-        tituloFieldConstraints.fill = GridBagConstraints.HORIZONTAL;
-        PadraoLayout.estilizarCampoNome(tituloField);
-        bibliograficasContent.add(tituloField, tituloFieldConstraints);
-        
-        // Autor (ocupa duas colunas)
-        GridBagConstraints autorLabelConstraints = PadraoLayout.criarConstraintsFormulario(2, 0);
-        autorLabelConstraints.gridwidth = 2;
-        autorLabelConstraints.fill = GridBagConstraints.HORIZONTAL;
-        bibliograficasContent.add(PadraoLayout.criarLabelFormulario("Autor:"), autorLabelConstraints);
-        
-        GridBagConstraints autorFieldConstraints = PadraoLayout.criarConstraintsFormulario(3, 0);
-        autorFieldConstraints.gridwidth = 2;
-        autorFieldConstraints.fill = GridBagConstraints.HORIZONTAL;
-        PadraoLayout.estilizarCampoNome(autorField);
-        bibliograficasContent.add(autorField, autorFieldConstraints);
-        
-        // Editora (ocupa duas colunas)
-        GridBagConstraints editoraLabelConstraints = PadraoLayout.criarConstraintsFormulario(4, 0);
-        editoraLabelConstraints.gridwidth = 2;
-        editoraLabelConstraints.fill = GridBagConstraints.HORIZONTAL;
-        bibliograficasContent.add(PadraoLayout.criarLabelFormulario("Editora:"), editoraLabelConstraints);
-        
-        GridBagConstraints editoraFieldConstraints = PadraoLayout.criarConstraintsFormulario(5, 0);
-        editoraFieldConstraints.gridwidth = 2;
-        editoraFieldConstraints.fill = GridBagConstraints.HORIZONTAL;
-        PadraoLayout.estilizarCampoNome(editoraField);
-        bibliograficasContent.add(editoraField, editoraFieldConstraints);
-        
-        bibliograficasPanel.add(bibliograficasContent, BorderLayout.CENTER);
-        formContent.add(bibliograficasPanel);
-        
-        // SEÇÃO 3: Classificação
-        JPanel classificacaoPanel = new JPanel(new BorderLayout());
-        classificacaoPanel.setBackground(Color.WHITE);
-        classificacaoPanel.setBorder(BorderFactory.createTitledBorder("🏷️ Classificação"));
-        
-        JPanel classificacaoContent = new JPanel(PadraoLayout.criarLayoutFormularioAlinhado());
-        classificacaoContent.setBackground(Color.WHITE);
-        
-        // Categoria (ocupa duas colunas)
-        GridBagConstraints categoriaLabelConstraints = PadraoLayout.criarConstraintsFormulario(0, 0);
-        categoriaLabelConstraints.gridwidth = 2;
-        categoriaLabelConstraints.fill = GridBagConstraints.HORIZONTAL;
-        classificacaoContent.add(PadraoLayout.criarLabelFormulario("Categoria:"), categoriaLabelConstraints);
-        
-        GridBagConstraints categoriaFieldConstraints = PadraoLayout.criarConstraintsFormulario(1, 0);
-        categoriaFieldConstraints.gridwidth = 2;
-        categoriaFieldConstraints.fill = GridBagConstraints.HORIZONTAL;
-        PadraoLayout.estilizarCampoCategoriaBiblioteca(categoriaField);
-        classificacaoContent.add(categoriaField, categoriaFieldConstraints);
-        
-        // Localização (ocupa duas colunas)
-        GridBagConstraints localizacaoLabelConstraints = PadraoLayout.criarConstraintsFormulario(2, 0);
-        localizacaoLabelConstraints.gridwidth = 2;
-        localizacaoLabelConstraints.fill = GridBagConstraints.HORIZONTAL;
-        classificacaoContent.add(PadraoLayout.criarLabelFormulario("Localização:"), localizacaoLabelConstraints);
-        
-        GridBagConstraints localizacaoFieldConstraints = PadraoLayout.criarConstraintsFormulario(3, 0);
-        localizacaoFieldConstraints.gridwidth = 2;
-        localizacaoFieldConstraints.fill = GridBagConstraints.HORIZONTAL;
-        PadraoLayout.estilizarCampoLocalizacaoBiblioteca(localizacaoField);
-        classificacaoContent.add(localizacaoField, localizacaoFieldConstraints);
-        
-        // Status
-        classificacaoContent.add(PadraoLayout.criarLabelFormulario("Status:"), PadraoLayout.criarConstraintsFormulario(4, 0));
-        PadraoLayout.estilizarComboBox(statusCombo);
-        classificacaoContent.add(statusCombo, PadraoLayout.criarConstraintsFormulario(4, 1));
-        
-        classificacaoPanel.add(classificacaoContent, BorderLayout.CENTER);
-        formContent.add(classificacaoPanel);
-        
-        // Painel de botões
-        JPanel botoesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        botoesPanel.setBackground(Color.WHITE);
-        botoesPanel.add(salvarButton);
-        botoesPanel.add(novoButton);
-        botoesPanel.add(editarButton);
-        botoesPanel.add(excluirButton);
-        botoesPanel.add(limparButton);
-        botoesPanel.add(emprestarButton);
-        botoesPanel.add(devolverButton);
-        
-        formContainer.add(formContent, BorderLayout.CENTER);
-        formContainer.add(botoesPanel, BorderLayout.SOUTH);
-        
-        formPanel.add(formContainer, BorderLayout.CENTER);
+        // Usar o formulário otimizado
+        formPanel.add(bibliotecaFormPanel, BorderLayout.CENTER);
         
         // Painel de tabela usando PadraoLayout
         JPanel tabelaPanel = new JPanel(new BorderLayout());
@@ -354,78 +172,6 @@ public class BibliotecaPanel extends JPanel {
         mainPanel.add(contentPanel, BorderLayout.CENTER);
         
         add(mainPanel, BorderLayout.CENTER);
-        
-                
-        // Estilizar botões com cores pastéis
-        salvarButton.setBackground(new Color(144, 238, 144)); // Verde pastel suave
-        salvarButton.setForeground(new Color(34, 89, 34));
-        salvarButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        salvarButton.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(144, 238, 144), 2),
-            BorderFactory.createEmptyBorder(10, 20, 10, 20)
-        ));
-        salvarButton.setFocusPainted(false);
-        salvarButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        novoButton.setBackground(new Color(173, 216, 230)); // Azul pastel suave
-        novoButton.setForeground(new Color(25, 84, 123));
-        novoButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        novoButton.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(173, 216, 230), 2),
-            BorderFactory.createEmptyBorder(10, 20, 10, 20)
-        ));
-        novoButton.setFocusPainted(false);
-        novoButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        editarButton.setBackground(new Color(255, 239, 213)); // Amarelo pastel suave
-        editarButton.setForeground(new Color(180, 140, 45));
-        editarButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        editarButton.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(255, 239, 213), 2),
-            BorderFactory.createEmptyBorder(10, 20, 10, 20)
-        ));
-        editarButton.setFocusPainted(false);
-        editarButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        excluirButton.setBackground(new Color(255, 182, 193)); // Rosa pastel suave
-        excluirButton.setForeground(new Color(180, 82, 92));
-        excluirButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        excluirButton.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(255, 182, 193), 2),
-            BorderFactory.createEmptyBorder(10, 20, 10, 20)
-        ));
-        excluirButton.setFocusPainted(false);
-        excluirButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        limparButton.setBackground(new Color(211, 211, 211)); // Cinza pastel suave
-        limparButton.setForeground(new Color(84, 84, 84));
-        limparButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        limparButton.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(211, 211, 211), 2),
-            BorderFactory.createEmptyBorder(10, 20, 10, 20)
-        ));
-        limparButton.setFocusPainted(false);
-        limparButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        emprestarButton.setBackground(new Color(176, 224, 230)); // Azul-bebê pastel
-        emprestarButton.setForeground(new Color(38, 84, 124));
-        emprestarButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        emprestarButton.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(176, 224, 230), 2),
-            BorderFactory.createEmptyBorder(10, 20, 10, 20)
-        ));
-        emprestarButton.setFocusPainted(false);
-        emprestarButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        devolverButton.setBackground(new Color(152, 251, 152)); // Verde-claro pastel
-        devolverButton.setForeground(new Color(34, 139, 34));
-        devolverButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        devolverButton.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(152, 251, 152), 2),
-            BorderFactory.createEmptyBorder(10, 20, 10, 20)
-        ));
-        devolverButton.setFocusPainted(false);
-        devolverButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
     }
     
     private void setupEvents() {
@@ -464,12 +210,12 @@ public class BibliotecaPanel extends JPanel {
         boolean isLivro = "LIVRO".equals(tipo);
         
         // Habilitar/desabilitar campos
-        autorField.setEnabled(isLivro);
-        isbnField.setEnabled(isLivro);
-        editoraField.setEnabled(isLivro);
-        anoPublicacaoField.setEnabled(isLivro);
-        categoriaField.setEnabled(isLivro);
-        localizacaoField.setEnabled(isLivro);
+        bibliotecaFormPanel.getAutorField().setEnabled(isLivro);
+        bibliotecaFormPanel.getIsbnField().setEnabled(isLivro);
+        bibliotecaFormPanel.getEditoraField().setEnabled(isLivro);
+        bibliotecaFormPanel.getAnoField().setEnabled(isLivro);
+        bibliotecaFormPanel.getCategoriaField().setEnabled(isLivro);
+        bibliotecaFormPanel.getLocalizacaoField().setEnabled(isLivro);
         
         nomeLeitorField.setEnabled(!isLivro);
         dataEmprestimoField.setEnabled(!isLivro);
@@ -487,33 +233,33 @@ public class BibliotecaPanel extends JPanel {
             responsavelEmprestimoField.setText("");
             multaField.setText("0.00");
         } else {
-            autorField.setText("");
-            isbnField.setText("");
-            editoraField.setText("");
-            anoPublicacaoField.setText("");
-            categoriaField.setText("");
-            localizacaoField.setText("");
+            bibliotecaFormPanel.getAutorField().setText("");
+            bibliotecaFormPanel.getIsbnField().setText("");
+            bibliotecaFormPanel.getEditoraField().setText("");
+            bibliotecaFormPanel.getAnoField().setText("");
+            bibliotecaFormPanel.getCategoriaField().setText("");
+            bibliotecaFormPanel.getLocalizacaoField().setText("");
         }
     }
     
     private void salvarItem() {
         try {
-            if (tituloField.getText().trim().isEmpty()) {
+            if (bibliotecaFormPanel.getTituloField().getText().trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Título é obrigatório!", "Erro", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
             Biblioteca biblioteca = bibliotecaAtual != null ? bibliotecaAtual : new Biblioteca();
             biblioteca.setTipo((String) tipoCombo.getSelectedItem());
-            biblioteca.setTitulo(tituloField.getText().trim());
-            biblioteca.setAutor(autorField.getText().trim());
-            biblioteca.setIsbn(isbnField.getText().trim());
-            biblioteca.setEditora(editoraField.getText().trim());
-            biblioteca.setAnoPublicacao(anoPublicacaoField.getText().trim());
-            biblioteca.setCategoria(categoriaField.getText().trim());
-            biblioteca.setLocalizacao(localizacaoField.getText().trim());
+            biblioteca.setTitulo(bibliotecaFormPanel.getTituloField().getText().trim());
+            biblioteca.setAutor(bibliotecaFormPanel.getAutorField().getText().trim());
+            biblioteca.setIsbn(bibliotecaFormPanel.getIsbnField().getText().trim());
+            biblioteca.setEditora(bibliotecaFormPanel.getEditoraField().getText().trim());
+            biblioteca.setAnoPublicacao(bibliotecaFormPanel.getAnoField().getText().trim());
+            biblioteca.setCategoria(bibliotecaFormPanel.getCategoriaField().getText().trim());
+            biblioteca.setLocalizacao(bibliotecaFormPanel.getLocalizacaoField().getText().trim());
             biblioteca.setStatus((String) statusCombo.getSelectedItem());
-            biblioteca.setObservacoes(observacoesArea.getText().trim());
+            biblioteca.setObservacoes(bibliotecaFormPanel.getObservacoesArea().getText().trim());
             
             // Dados de empréstimo
             biblioteca.setNomeLeitor(nomeLeitorField.getText().trim());
@@ -568,24 +314,19 @@ public class BibliotecaPanel extends JPanel {
     
     private void limparFormulario() {
         bibliotecaAtual = null;
-        codigoField.setText("");
-        tipoCombo.setSelectedIndex(0);
-        tituloField.setText("");
-        autorField.setText("");
-        isbnField.setText("");
-        editoraField.setText("");
-        anoPublicacaoField.setText("");
-        categoriaField.setText("");
-        localizacaoField.setText("");
+        bibliotecaFormPanel.clearForm();
         statusCombo.setSelectedIndex(0);
+        
+        // Limpar campos de empréstimo
         nomeLeitorField.setText("");
         dataEmprestimoField.setText("");
         dataDevolucaoPrevistaField.setText("");
         dataDevolucaoRealField.setText("");
         responsavelEmprestimoField.setText("");
         multaField.setText("0.00");
-        observacoesArea.setText("");
-        tituloField.requestFocus();
+        
+        bibliotecaTable.clearSelection();
+        bibliotecaFormPanel.getTituloField().requestFocus();
         atualizarCamposPorTipo();
         atualizarBotoesAcao();
     }
@@ -655,15 +396,15 @@ public class BibliotecaPanel extends JPanel {
             try {
                 bibliotecaAtual = bibliotecaDAO.findById(id);
                 if (bibliotecaAtual != null) {
-                    codigoField.setText(String.valueOf(bibliotecaAtual.getId()));
+                    bibliotecaFormPanel.getCodigoField().setText(String.valueOf(bibliotecaAtual.getId()));
                     tipoCombo.setSelectedItem(bibliotecaAtual.getTipo());
-                    tituloField.setText(bibliotecaAtual.getTitulo());
-                    autorField.setText(bibliotecaAtual.getAutor());
-                    isbnField.setText(bibliotecaAtual.getIsbn());
-                    editoraField.setText(bibliotecaAtual.getEditora());
-                    anoPublicacaoField.setText(bibliotecaAtual.getAnoPublicacao());
-                    categoriaField.setText(bibliotecaAtual.getCategoria());
-                    localizacaoField.setText(bibliotecaAtual.getLocalizacao());
+                    bibliotecaFormPanel.getTituloField().setText(bibliotecaAtual.getTitulo());
+                    bibliotecaFormPanel.getAutorField().setText(bibliotecaAtual.getAutor());
+                    bibliotecaFormPanel.getIsbnField().setText(bibliotecaAtual.getIsbn());
+                    bibliotecaFormPanel.getEditoraField().setText(bibliotecaAtual.getEditora());
+                    bibliotecaFormPanel.getAnoField().setText(bibliotecaAtual.getAnoPublicacao());
+                    bibliotecaFormPanel.getCategoriaField().setText(bibliotecaAtual.getCategoria());
+                    bibliotecaFormPanel.getLocalizacaoField().setText(bibliotecaAtual.getLocalizacao());
                     statusCombo.setSelectedItem(bibliotecaAtual.getStatus());
                     nomeLeitorField.setText(bibliotecaAtual.getNomeLeitor());
                     dataEmprestimoField.setText(bibliotecaAtual.getDataEmprestimo() != null ? bibliotecaAtual.getDataEmprestimo().format(DATE_FORMATTER) : "");
@@ -671,7 +412,7 @@ public class BibliotecaPanel extends JPanel {
                     dataDevolucaoRealField.setText(bibliotecaAtual.getDataDevolucaoReal() != null ? bibliotecaAtual.getDataDevolucaoReal().format(DATE_FORMATTER) : "");
                     responsavelEmprestimoField.setText(bibliotecaAtual.getResponsavelEmprestimo());
                     multaField.setText(bibliotecaAtual.getMulta() != null ? bibliotecaAtual.getMulta().toString() : "0.00");
-                    observacoesArea.setText(bibliotecaAtual.getObservacoes());
+                    bibliotecaFormPanel.getObservacoesArea().setText(bibliotecaAtual.getObservacoes());
                     atualizarCamposPorTipo();
                     atualizarBotoesAcao();
                 }

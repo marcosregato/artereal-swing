@@ -4,7 +4,6 @@ import com.artereal.swing.ui.layout.PadraoLayout;
 import com.artereal.swing.ui.panels.forms.BaseEnhancedFormPanel;
 
 import javax.swing.*;
-import java.awt.*;
 
 /**
  * Painel de formulário para gestão de Biblioteca com UX otimizada

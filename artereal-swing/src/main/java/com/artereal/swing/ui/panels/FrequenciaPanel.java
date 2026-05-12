@@ -3,6 +3,7 @@ package com.artereal.swing.ui.panels;
 import com.artereal.swing.dao.FrequenciaDAO;
 import com.artereal.swing.model.Frequencia;
 import com.artereal.swing.ui.layout.PadraoLayout;
+import com.artereal.swing.ui.panels.frequencia.FrequenciaFormPanel;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -20,13 +21,7 @@ public class FrequenciaPanel extends JPanel {
     private JTable frequenciaTable;
     private Frequencia frequenciaAtual;
     private JTextField pesquisarField;
-    
-    // Formulário
-    private JTextField nomeField;
-    private JTextField grauField;
-    private JTextField presencasField;
-    private JTextField faltasField;
-    private JTextField totalField;
+    private FrequenciaFormPanel frequenciaFormPanel;
     
     // Botões
     private JButton salvarButton;
@@ -58,12 +53,8 @@ public class FrequenciaPanel extends JPanel {
         };
         frequenciaTable = new JTable(tableModel);
         
-        // Formulário
-        nomeField = new JTextField(40);
-        grauField = new JTextField(20);
-        presencasField = new JTextField(10);
-        faltasField = new JTextField(10);
-        totalField = new JTextField(10);
+        // Inicializar formulário otimizado
+        frequenciaFormPanel = new FrequenciaFormPanel();
         
         // Botões
         salvarButton = PadraoLayout.criarBotaoSalvar();
@@ -96,127 +87,13 @@ public class FrequenciaPanel extends JPanel {
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.setBackground(PadraoLayout.COR_FUNDO);
         
-        // Painel de formulário usando PadraoLayout
-        JPanel formPanel = PadraoLayout.criarGrupoFormulario("📝 Dados da Frequência");
-        JPanel formContainer = new JPanel(new BorderLayout());
-        formContainer.setBackground(Color.WHITE);
+        // Painel de formulário otimizado usando FrequenciaFormPanel
+        JPanel formPanel = new JPanel(new BorderLayout());
+        formPanel.setBackground(PadraoLayout.COR_PAINEL);
+        formPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
         
-        // Container principal com layout vertical para colocar painéis um debaixo do outro
-        JPanel formContent = new JPanel();
-        formContent.setLayout(new BoxLayout(formContent, BoxLayout.Y_AXIS));
-        formContent.setBackground(Color.WHITE);
-        formContent.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        
-        // SEÇÃO 1: Dados do Irmão
-        JPanel dadosIrmaoPanel = new JPanel(new BorderLayout());
-        dadosIrmaoPanel.setBackground(Color.WHITE);
-        dadosIrmaoPanel.setBorder(BorderFactory.createTitledBorder("👤 Dados do Irmão"));
-        dadosIrmaoPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
-        JPanel dadosIrmaoContent = new JPanel(PadraoLayout.criarLayoutFormulario());
-        dadosIrmaoContent.setBackground(Color.WHITE);
-        
-        dadosIrmaoContent.add(PadraoLayout.criarLabelFormulario("Irmão:"));
-        PadraoLayout.estilizarCampoNomeIrmao(nomeField);
-        dadosIrmaoContent.add(nomeField);
-        
-        dadosIrmaoContent.add(PadraoLayout.criarLabelFormulario("Grau:"));
-        PadraoLayout.estilizarCampoGrauMasonicoFrequencia(grauField);
-        dadosIrmaoContent.add(grauField);
-        
-        dadosIrmaoPanel.add(dadosIrmaoContent, BorderLayout.CENTER);
-        formContent.add(dadosIrmaoPanel);
-        formContent.add(Box.createVerticalStrut(15)); // Espaçamento entre painéis
-        
-        // SEÇÃO 2: Controle de Frequência
-        JPanel frequenciaPanel = new JPanel(new BorderLayout());
-        frequenciaPanel.setBackground(Color.WHITE);
-        frequenciaPanel.setBorder(BorderFactory.createTitledBorder("📊 Controle de Frequência"));
-        frequenciaPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
-        // Layout personalizado com 3 colunas para Presenças, Faltas e Total na mesma linha
-        JPanel frequenciaContent = new JPanel(new GridBagLayout());
-        frequenciaContent.setBackground(Color.WHITE);
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        
-        // Presenças - coluna 0
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        frequenciaContent.add(PadraoLayout.criarLabelFormulario("Presenças:"), gbc);
-        gbc.gridx = 1;
-        PadraoLayout.estilizarCampoContagemFrequencia(presencasField);
-        frequenciaContent.add(presencasField, gbc);
-        
-        // Faltas - coluna 2
-        gbc.gridx = 2;
-        gbc.gridy = 0;
-        frequenciaContent.add(PadraoLayout.criarLabelFormulario("Faltas:"), gbc);
-        gbc.gridx = 3;
-        PadraoLayout.estilizarCampoContagemFrequencia(faltasField);
-        frequenciaContent.add(faltasField, gbc);
-        
-        // Total - coluna 4
-        gbc.gridx = 4;
-        gbc.gridy = 0;
-        frequenciaContent.add(PadraoLayout.criarLabelFormulario("Total:"), gbc);
-        gbc.gridx = 5;
-        PadraoLayout.estilizarCampoContagemFrequencia(totalField);
-        frequenciaContent.add(totalField, gbc);
-        
-        frequenciaPanel.add(frequenciaContent, BorderLayout.CENTER);
-        formContent.add(frequenciaPanel);
-        formContent.add(Box.createVerticalStrut(15)); // Espaçamento após o segundo painel
-        
-        // Painel de botões
-        JPanel botoesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        botoesPanel.setBackground(Color.WHITE);
-        botoesPanel.add(salvarButton);
-        botoesPanel.add(novoButton);
-        botoesPanel.add(editarButton);
-        botoesPanel.add(excluirButton);
-        botoesPanel.add(limparButton);
-        botoesPanel.add(registrarPresencaButton);
-        botoesPanel.add(registrarFaltaButton);
-        
-        formContainer.add(formContent, BorderLayout.CENTER);
-        formContainer.add(botoesPanel, BorderLayout.SOUTH);
-        
-        formPanel.add(formContainer, BorderLayout.CENTER);
-        
-        // Painel de estatísticas separado do formulário
-        JPanel statsPanel = new JPanel(new GridLayout(2, 3, 10, 5));
-        statsPanel.setBackground(Color.WHITE);
-        statsPanel.setBorder(BorderFactory.createTitledBorder("📊 Estatísticas por Grau"));
-        
-        try {
-            List<Object[]> estatisticas = frequenciaDAO.getEstatisticasPorGrau();
-            for (Object[] est : estatisticas) {
-                String grau = (String) est[0];
-                int total = (Integer) est[1];
-                double media = (Double) est[2];
-                
-                JPanel grauPanel = new JPanel(new BorderLayout());
-                grauPanel.setBackground(new Color(240, 240, 245));
-                grauPanel.setBorder(BorderFactory.createEtchedBorder());
-                
-                JLabel grauLabel = new JLabel(grau + " (" + total + ")", SwingConstants.CENTER);
-                grauLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
-                grauLabel.setForeground(new Color(70, 130, 180));
-                grauPanel.add(grauLabel, BorderLayout.NORTH);
-                
-                JLabel mediaLabel = new JLabel(String.format("%.1f%%", media), SwingConstants.CENTER);
-                mediaLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
-                mediaLabel.setForeground(new Color(46, 125, 50));
-                grauPanel.add(mediaLabel, BorderLayout.CENTER);
-                
-                statsPanel.add(grauPanel);
-            }
-        } catch (SQLException e) {
-            statsPanel.add(new JLabel("Erro ao carregar estatísticas"));
-        }
+        // Usar o formulário otimizado
+        formPanel.add(frequenciaFormPanel, BorderLayout.CENTER);
         
         // Painel de tabela usando PadraoLayout
         JPanel tabelaPanel = PadraoLayout.criarGrupoFormulario("📊 Registros de Frequência");
@@ -225,20 +102,12 @@ public class FrequenciaPanel extends JPanel {
         
         tabelaPanel.add(tableScrollPane, BorderLayout.CENTER);
         
-        // Adicionar painel de estatísticas entre formulário e tabela
-        JPanel statsContainer = new JPanel(new BorderLayout());
-        statsContainer.setBackground(Color.WHITE);
-        statsContainer.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
-        statsContainer.add(statsPanel, BorderLayout.CENTER);
+        // Split vertical: Formulário acima (40%), Tabela abaixo (60%)
+        JSplitPane verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formPanel, tabelaPanel);
+        verticalSplitPane.setDividerLocation(300);
+        verticalSplitPane.setResizeWeight(0.4);
         
-        // Estrutura vertical: Formulário → Tabela → Estatísticas
-        JPanel verticalPanel = new JPanel(new BorderLayout());
-        verticalPanel.setBackground(PadraoLayout.COR_FUNDO);
-        verticalPanel.add(formPanel, BorderLayout.NORTH);
-        verticalPanel.add(tabelaPanel, BorderLayout.CENTER);
-        verticalPanel.add(statsContainer, BorderLayout.SOUTH);
-        
-        contentPanel.add(verticalPanel, BorderLayout.CENTER);
+        contentPanel.add(verticalSplitPane, BorderLayout.CENTER);
         
         // Adicionar contentPanel ao mainPanel
         mainPanel.add(contentPanel, BorderLayout.CENTER);
@@ -266,11 +135,11 @@ public class FrequenciaPanel extends JPanel {
     private void salvarFrequencia() {
         try {
             Frequencia frequencia = new Frequencia();
-            frequencia.setNomeIrmao(nomeField.getText());
-            frequencia.setGrau(grauField.getText());
-            frequencia.setNumeroPresencas(Integer.parseInt(presencasField.getText()));
-            frequencia.setNumeroFaltas(Integer.parseInt(faltasField.getText()));
-            frequencia.setNumeroSecoes(Integer.parseInt(totalField.getText()));
+            frequencia.setNomeIrmao(frequenciaFormPanel.getNomeField().getText());
+            frequencia.setGrau(frequenciaFormPanel.getGrauField().getText());
+            frequencia.setNumeroPresencas(Integer.parseInt(frequenciaFormPanel.getPresencasField().getText()));
+            frequencia.setNumeroFaltas(Integer.parseInt(frequenciaFormPanel.getFaltasField().getText()));
+            frequencia.setNumeroSecoes(Integer.parseInt(frequenciaFormPanel.getTotalField().getText()));
             
             if (frequenciaAtual == null) {
                 frequenciaDAO.save(frequencia);
@@ -307,11 +176,7 @@ public class FrequenciaPanel extends JPanel {
     
     private void limparFormulario() {
         frequenciaAtual = null;
-        nomeField.setText("");
-        grauField.setText("");
-        presencasField.setText("");
-        faltasField.setText("");
-        totalField.setText("");
+        frequenciaFormPanel.clearForm();
         frequenciaTable.clearSelection();
     }
     
@@ -322,11 +187,11 @@ public class FrequenciaPanel extends JPanel {
                 Long id = (Long) tableModel.getValueAt(selectedRow, 0);
                 frequenciaAtual = frequenciaDAO.findById(id);
                 if (frequenciaAtual != null) {
-                    nomeField.setText(frequenciaAtual.getNomeIrmao());
-                    grauField.setText(frequenciaAtual.getGrau());
-                    presencasField.setText(String.valueOf(frequenciaAtual.getNumeroPresencas()));
-                    faltasField.setText(String.valueOf(frequenciaAtual.getNumeroFaltas()));
-                    totalField.setText(String.valueOf(frequenciaAtual.getNumeroSecoes()));
+                    frequenciaFormPanel.getNomeField().setText(frequenciaAtual.getNomeIrmao());
+                    frequenciaFormPanel.getGrauField().setText(frequenciaAtual.getGrau());
+                    frequenciaFormPanel.getPresencasField().setText(String.valueOf(frequenciaAtual.getNumeroPresencas()));
+                    frequenciaFormPanel.getFaltasField().setText(String.valueOf(frequenciaAtual.getNumeroFaltas()));
+                    frequenciaFormPanel.getTotalField().setText(String.valueOf(frequenciaAtual.getNumeroSecoes()));
                 }
             } catch (SQLException e) {
                 JOptionPane.showMessageDialog(this, "Erro ao carregar registro: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);

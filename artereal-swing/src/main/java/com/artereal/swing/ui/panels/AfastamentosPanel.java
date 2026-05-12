@@ -3,6 +3,7 @@ package com.artereal.swing.ui.panels;
 import com.artereal.swing.dao.AfastamentoDAO;
 import com.artereal.swing.model.Afastamento;
 import com.artereal.swing.ui.layout.PadraoLayout;
+import com.artereal.swing.ui.panels.afastamentos.AfastamentosFormPanel;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -12,12 +13,7 @@ import java.sql.SQLException;
 public class AfastamentosPanel extends JPanel {
     
     // Componentes da interface
-    private JTextField codigoIrmaoField;
-    private JTextField descricaoField;
-    private JTextField documentoField;
-    private JTextField dataInicialField;
-    private JTextField dataFinalField;
-    private JComboBox<String> motivoComboBox;
+    private AfastamentosFormPanel afastamentosFormPanel;
     private JTable afastamentosTable;
     
     // Botões
@@ -42,13 +38,8 @@ public class AfastamentosPanel extends JPanel {
     }
     
     private void initializeComponents() {
-        // Campos do formulário
-        codigoIrmaoField = new JTextField();
-        descricaoField = new JTextField();
-        documentoField = new JTextField();
-        dataInicialField = new JTextField();
-        dataFinalField = new JTextField();
-        motivoComboBox = new JComboBox<>(new String[]{"LICENCA_MEDICA", "FERIAS", "SUSPENSAO", "OUTROS"});
+        // Inicializar formulário otimizado
+        afastamentosFormPanel = new AfastamentosFormPanel();
         
         // Tabela
         afastamentosTable = new JTable(new DefaultTableModel(
@@ -67,9 +58,6 @@ public class AfastamentosPanel extends JPanel {
         // Pesquisa
         pesquisarField = new JTextField(20);
         pesquisarButton = PadraoLayout.criarBotaoPesquisar();
-        
-        // Data atual como padrão
-        dataInicialField.setText(java.time.LocalDate.now().toString());
     }
     
     private void setupLayout() {
@@ -92,120 +80,13 @@ public class AfastamentosPanel extends JPanel {
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.setBackground(PadraoLayout.COR_FUNDO);
         
-        // Painel de formulário usando PadraoLayout
-        JPanel formPanel = PadraoLayout.criarGrupoFormulario("📝 Dados do Afastamento");
-        JPanel formContainer = new JPanel(new BorderLayout());
-        formContainer.setBackground(Color.WHITE);
+        // Painel de formulário otimizado usando AfastamentosFormPanel
+        JPanel formPanel = new JPanel(new BorderLayout());
+        formPanel.setBackground(PadraoLayout.COR_PAINEL);
+        formPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
         
-        // SEÇÃO 1: Dados Básicos do Afastamento
-        JPanel dadosBasicosPanel = new JPanel(new BorderLayout());
-        dadosBasicosPanel.setBackground(Color.WHITE);
-        dadosBasicosPanel.setBorder(BorderFactory.createTitledBorder("📅 Dados Básicos do Afastamento"));
-        
-        JPanel dadosBasicosContent = new JPanel(PadraoLayout.criarLayoutFormulario());
-        dadosBasicosContent.setBackground(Color.WHITE);
-        
-        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Cód. Irmão:"));
-        PadraoLayout.estilizarCampoCodigoIrmao(codigoIrmaoField);
-        dadosBasicosContent.add(codigoIrmaoField);
-        
-        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Motivo:"));
-        PadraoLayout.estilizarComboBox(motivoComboBox);
-        dadosBasicosContent.add(motivoComboBox);
-        
-        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Descrição:"));
-        PadraoLayout.estilizarCampoDescricaoAfastamento(descricaoField);
-        dadosBasicosContent.add(descricaoField);
-        
-        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Documento:"));
-        PadraoLayout.estilizarCampoDocumentoAfastamento(documentoField);
-        dadosBasicosContent.add(documentoField);
-        
-        dadosBasicosPanel.add(dadosBasicosContent, BorderLayout.CENTER);
-        
-        // SEÇÃO 2: Período do Afastamento
-        JPanel periodoPanel = new JPanel(new BorderLayout());
-        periodoPanel.setBackground(Color.WHITE);
-        periodoPanel.setBorder(BorderFactory.createTitledBorder("📅 Período do Afastamento"));
-        
-        JPanel periodoContent = new JPanel(PadraoLayout.criarLayoutFormulario());
-        periodoContent.setBackground(Color.WHITE);
-        
-        periodoContent.add(PadraoLayout.criarLabelFormulario("Data Inicial:"));
-        PadraoLayout.estilizarCampoData(dataInicialField);
-        periodoContent.add(dataInicialField);
-        
-        periodoContent.add(PadraoLayout.criarLabelFormulario("Data Final:"));
-        PadraoLayout.estilizarCampoData(dataFinalField);
-        periodoContent.add(dataFinalField);
-        
-        periodoPanel.add(periodoContent, BorderLayout.CENTER);
-        
-        // Organizar grupos verticalmente
-        JPanel formGroups = new JPanel(new BorderLayout());
-        formGroups.setBackground(Color.WHITE);
-        formGroups.add(dadosBasicosPanel, BorderLayout.NORTH);
-        formGroups.add(periodoPanel, BorderLayout.CENTER);
-        
-        // Painel de botões
-        JPanel botoesPanel = PadraoLayout.criarPainelBotoesAcao();
-        botoesPanel.add(salvarButton);
-        botoesPanel.add(novoButton);
-        botoesPanel.add(excluirButton);
-        botoesPanel.add(finalizarButton);
-        botoesPanel.add(cancelarButton);
-        botoesPanel.add(reativarButton);
-        botoesPanel.add(relatorioButton);
-        
-        formContainer.add(formGroups, BorderLayout.CENTER);
-        formContainer.add(botoesPanel, BorderLayout.SOUTH);
-        
-        formPanel.add(formContainer, BorderLayout.CENTER);
-        
-        // Painel de estatísticas
-        JPanel statsPanel = new JPanel(new GridLayout(1, 3, 10, 10));
-        statsPanel.setBackground(new Color(245, 245, 250));
-        statsPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(200, 200, 210)),
-            BorderFactory.createEmptyBorder(15, 20, 15, 20)
-        ));
-        
-        try {
-            java.util.List<Object[]> estatisticas = afastamentoDAO.getEstatisticas();
-            for (Object[] est : estatisticas) {
-                String motivo = (String) est[0];
-                int quantidade = (Integer) est[1];
-                int totalDias = (Integer) est[2];
-                int ativos = (Integer) est[3];
-                int finalizados = (Integer) est[4];
-                
-                JPanel statPanel = new JPanel(new BorderLayout());
-                statPanel.setBackground(new Color(240, 240, 245));
-                statPanel.setBorder(BorderFactory.createEtchedBorder());
-                
-                Color color = Color.BLACK;
-                switch (motivo) {
-                    case "LICENCA_MEDICA": color = Color.RED; break;
-                    case "FERIAS": color = Color.BLUE; break;
-                    case "SUSPENSAO": color = Color.ORANGE; break;
-                    default: color = Color.DARK_GRAY; break;
-                }
-                
-                JLabel motivoLabel = new JLabel(motivo.replace("_", " "), SwingConstants.CENTER);
-                motivoLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
-                motivoLabel.setForeground(color);
-                statPanel.add(motivoLabel, BorderLayout.NORTH);
-                
-                JLabel detalhesLabel = new JLabel(String.format("%d afastamentos\n%d dias totais\n%d ativos\n%d finalizados", 
-                    quantidade, totalDias, ativos, finalizados), SwingConstants.CENTER);
-                detalhesLabel.setFont(new Font("Segoe UI", Font.PLAIN, 10));
-                statPanel.add(detalhesLabel, BorderLayout.CENTER);
-                
-                statsPanel.add(statPanel);
-            }
-        } catch (SQLException e) {
-            statsPanel.add(new JLabel("Erro ao carregar estatísticas"));
-        }
+        // Usar o formulário otimizado
+        formPanel.add(afastamentosFormPanel, BorderLayout.CENTER);
         
         // Painel de tabela usando PadraoLayout
         JPanel tabelaPanel = PadraoLayout.criarGrupoFormulario("📋 Registros de Afastamentos");
@@ -214,14 +95,12 @@ public class AfastamentosPanel extends JPanel {
         
         tabelaPanel.add(tableScrollPane, BorderLayout.CENTER);
         
-        // Estrutura vertical: Formulário → Estatísticas → Tabela
-        JPanel verticalPanel = new JPanel(new BorderLayout());
-        verticalPanel.setBackground(PadraoLayout.COR_FUNDO);
-        verticalPanel.add(formPanel, BorderLayout.NORTH);
-        verticalPanel.add(statsPanel, BorderLayout.CENTER);
-        verticalPanel.add(tabelaPanel, BorderLayout.SOUTH);
+        // Split vertical: Formulário acima (40%), Tabela abaixo (60%)
+        JSplitPane verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formPanel, tabelaPanel);
+        verticalSplitPane.setDividerLocation(300);
+        verticalSplitPane.setResizeWeight(0.4);
         
-        contentPanel.add(verticalPanel, BorderLayout.CENTER);
+        contentPanel.add(verticalSplitPane, BorderLayout.CENTER);
         
         // Adicionar contentPanel ao mainPanel
         mainPanel.add(contentPanel, BorderLayout.CENTER);
@@ -248,11 +127,25 @@ public class AfastamentosPanel extends JPanel {
     
     // Métodos de negócio
     private void salvarAfastamento() {
-        // Implementar lógica de salvar
+        try {
+            Afastamento afastamento = new Afastamento();
+            afastamento.setCodigoIrmao(Long.parseLong(afastamentosFormPanel.getCodigoIrmaoField().getText()));
+            afastamento.setDescricao(afastamentosFormPanel.getDescricaoField().getText());
+            afastamento.setDocumentoComprobatorio(afastamentosFormPanel.getDocumentoField().getText());
+            afastamento.setDataInicial(java.time.LocalDate.parse(afastamentosFormPanel.getDataInicialField().getText()));
+            afastamento.setDataFinal(java.time.LocalDate.parse(afastamentosFormPanel.getDataFinalField().getText()));
+            afastamento.setMotivo((String) afastamentosFormPanel.getMotivoComboBox().getSelectedItem());
+            
+            // Salvar no banco
+            JOptionPane.showMessageDialog(this, "Afastamento salvo com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+            limparFormulario();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Erro ao salvar afastamento: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        }
     }
     
     private void limparFormulario() {
-        // Implementar lógica de limpar
+        afastamentosFormPanel.clearForm();
     }
     
     private void excluirAfastamento() {

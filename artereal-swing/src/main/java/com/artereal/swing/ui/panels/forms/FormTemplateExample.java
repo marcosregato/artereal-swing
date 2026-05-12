@@ -3,7 +3,6 @@ package com.artereal.swing.ui.panels.forms;
 import com.artereal.swing.ui.layout.PadraoLayout;
 
 import javax.swing.*;
-import java.awt.*;
 
 /**
  * Template de exemplo para criar novos formulários usando BaseEnhancedFormPanel

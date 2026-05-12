@@ -3,6 +3,7 @@ package com.artereal.swing.ui.panels;
 import com.artereal.swing.dao.FotoDAO;
 import com.artereal.swing.model.Foto;
 import com.artereal.swing.ui.layout.PadraoLayout;
+import com.artereal.swing.ui.panels.galeria.GaleriaFotosFormPanel;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -20,9 +21,6 @@ public class GaleriaFotosPanel extends JPanel {
     private FotoDAO fotoDAO;
     private DefaultTableModel tableModel;
     private JTable fotosTable;
-    private JTextField descricaoField;
-    private JTextField caminhoField;
-    private JComboBox<String> categoriaComboBox;
     private JButton salvarButton;
     private JButton novoButton;
     private JButton excluirButton;
@@ -30,6 +28,7 @@ public class GaleriaFotosPanel extends JPanel {
     private JButton visualizarButton;
     private JButton relatorioButton;
     private Foto fotoAtual;
+    private GaleriaFotosFormPanel galeriaFotosFormPanel;
     
     public GaleriaFotosPanel() {
         fotoDAO = new FotoDAO();
@@ -49,13 +48,8 @@ public class GaleriaFotosPanel extends JPanel {
         };
         fotosTable = new JTable(tableModel);
         
-        // Formulário
-        descricaoField = new JTextField(40);
-        caminhoField = new JTextField(50);
-        caminhoField.setEditable(false);
-        categoriaComboBox = new JComboBox<>(new String[]{
-            "IRMAO", "LOJA", "SESSAO", "EVENTO", "DOCUMENTO", "OUTRA"
-        });
+        // Inicializar formulário otimizado
+        galeriaFotosFormPanel = new GaleriaFotosFormPanel();
         
         // Botões usando PadraoLayout com cores pastéis
         salvarButton = PadraoLayout.criarBotaoSalvar();
@@ -90,52 +84,13 @@ public class GaleriaFotosPanel extends JPanel {
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.setBackground(PadraoLayout.COR_FUNDO);
         
-        // Painel de formulário usando PadraoLayout
+        // Painel de formulário otimizado usando GaleriaFotosFormPanel
         JPanel formPanel = PadraoLayout.criarGrupoFormulario("📸 Dados da Foto");
         JPanel formContainer = new JPanel(new BorderLayout());
         formContainer.setBackground(Color.WHITE);
         
-        // Formulário usando PadraoLayout
-        JPanel formContent = new JPanel(PadraoLayout.criarLayoutFormulario());
-        formContent.setBackground(Color.WHITE);
-        
-        // SEÇÃO 1: Dados da Foto
-        JPanel dadosFotoPanel = new JPanel(new BorderLayout());
-        dadosFotoPanel.setBackground(Color.WHITE);
-        dadosFotoPanel.setBorder(BorderFactory.createTitledBorder("📸 Dados da Foto"));
-        
-        JPanel dadosFotoContent = new JPanel(PadraoLayout.criarLayoutFormulario());
-        dadosFotoContent.setBackground(Color.WHITE);
-        
-        dadosFotoContent.add(PadraoLayout.criarLabelFormulario("Descrição:"));
-        PadraoLayout.estilizarCampoDescricaoFoto(descricaoField);
-        dadosFotoContent.add(descricaoField);
-        
-        dadosFotoContent.add(PadraoLayout.criarLabelFormulario("Categoria:"));
-        PadraoLayout.estilizarComboBox(categoriaComboBox);
-        dadosFotoContent.add(categoriaComboBox);
-        
-        dadosFotoPanel.add(dadosFotoContent, BorderLayout.CENTER);
-        formContainer.add(dadosFotoPanel, BorderLayout.NORTH);
-        
-        // SEÇÃO 2: Arquivo da Foto
-        JPanel arquivoFotoPanel = new JPanel(new BorderLayout());
-        arquivoFotoPanel.setBackground(Color.WHITE);
-        arquivoFotoPanel.setBorder(BorderFactory.createTitledBorder("📁 Arquivo da Foto"));
-        
-        JPanel arquivoFotoContent = new JPanel(PadraoLayout.criarLayoutFormulario());
-        arquivoFotoContent.setBackground(Color.WHITE);
-        
-        arquivoFotoContent.add(PadraoLayout.criarLabelFormulario("Caminho do Arquivo:"));
-        PadraoLayout.estilizarCampoCaminhoFoto(caminhoField);
-        caminhoField.setEditable(false);
-        arquivoFotoContent.add(caminhoField);
-        
-        arquivoFotoContent.add(PadraoLayout.criarLabelFormulario("Selecionar Arquivo:"));
-        arquivoFotoContent.add(selecionarArquivoButton);
-        
-        arquivoFotoPanel.add(arquivoFotoContent, BorderLayout.CENTER);
-        formContainer.add(arquivoFotoPanel, BorderLayout.CENTER);
+        // Usar o formulário otimizado
+        formContainer.add(galeriaFotosFormPanel, BorderLayout.CENTER);
         
         // Painel de estatísticas no formulário
         JPanel statsPanel = new JPanel(new GridLayout(1, 3, 10, 5));
@@ -200,7 +155,6 @@ public class GaleriaFotosPanel extends JPanel {
         botoesPanel.add(visualizarButton);
         botoesPanel.add(selecionarArquivoButton);
         
-        formContainer.add(formContent, BorderLayout.CENTER);
         formContainer.add(statsPanel, BorderLayout.NORTH);
         formContainer.add(botoesPanel, BorderLayout.SOUTH);
         
@@ -245,20 +199,20 @@ public class GaleriaFotosPanel extends JPanel {
     
     private void salvarFoto() {
         try {
-            if (descricaoField.getText().trim().isEmpty()) {
+            if (galeriaFotosFormPanel.getDescricaoField().getText().trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Descrição é obrigatória!", "Erro", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
-            if (caminhoField.getText().trim().isEmpty()) {
+            if (galeriaFotosFormPanel.getCaminhoField().getText().trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Selecione um arquivo de imagem!", "Erro", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
             Foto foto = fotoAtual != null ? fotoAtual : new Foto();
-            foto.setDescricao(descricaoField.getText().trim());
-            foto.setCaminhoArquivo(caminhoField.getText().trim());
-            foto.setCategoria((String) categoriaComboBox.getSelectedItem());
+            foto.setDescricao(galeriaFotosFormPanel.getDescricaoField().getText().trim());
+            foto.setCaminhoArquivo(galeriaFotosFormPanel.getCaminhoField().getText().trim());
+            foto.setCategoria((String) galeriaFotosFormPanel.getCategoriaComboBox().getSelectedItem());
             foto.setDataFoto(LocalDateTime.now());
             
             fotoDAO.save(foto);
@@ -274,10 +228,9 @@ public class GaleriaFotosPanel extends JPanel {
     
     private void limparFormulario() {
         fotoAtual = null;
-        descricaoField.setText("");
-        caminhoField.setText("");
-        categoriaComboBox.setSelectedItem("IRMAO");
-        descricaoField.requestFocus();
+        galeriaFotosFormPanel.clearForm();
+        galeriaFotosFormPanel.getCategoriaComboBox().setSelectedItem("IRMAO");
+        galeriaFotosFormPanel.getDescricaoField().requestFocus();
         atualizarBotoesAcao();
     }
     
@@ -312,16 +265,16 @@ public class GaleriaFotosPanel extends JPanel {
         
         if (resultado == JFileChooser.APPROVE_OPTION) {
             File arquivoSelecionado = fileChooser.getSelectedFile();
-            caminhoField.setText(arquivoSelecionado.getAbsolutePath());
+            galeriaFotosFormPanel.getCaminhoField().setText(arquivoSelecionado.getAbsolutePath());
             
             // Preencher descrição com nome do arquivo se estiver vazia
-            if (descricaoField.getText().trim().isEmpty()) {
+            if (galeriaFotosFormPanel.getDescricaoField().getText().trim().isEmpty()) {
                 String nomeSemExtensao = arquivoSelecionado.getName();
                 int pontoIndex = nomeSemExtensao.lastIndexOf('.');
                 if (pontoIndex > 0) {
                     nomeSemExtensao = nomeSemExtensao.substring(0, pontoIndex);
                 }
-                descricaoField.setText(nomeSemExtensao);
+                galeriaFotosFormPanel.getDescricaoField().setText(nomeSemExtensao);
             }
         }
     }
@@ -403,9 +356,9 @@ public class GaleriaFotosPanel extends JPanel {
             try {
                 fotoAtual = fotoDAO.findById(id);
                 if (fotoAtual != null) {
-                    descricaoField.setText(fotoAtual.getDescricao());
-                    caminhoField.setText(fotoAtual.getCaminhoArquivo());
-                    categoriaComboBox.setSelectedItem(fotoAtual.getCategoria());
+                    galeriaFotosFormPanel.getDescricaoField().setText(fotoAtual.getDescricao());
+                    galeriaFotosFormPanel.getCaminhoField().setText(fotoAtual.getCaminhoArquivo());
+                    galeriaFotosFormPanel.getCategoriaComboBox().setSelectedItem(fotoAtual.getCategoria());
                     atualizarBotoesAcao();
                 }
             } catch (SQLException ex) {

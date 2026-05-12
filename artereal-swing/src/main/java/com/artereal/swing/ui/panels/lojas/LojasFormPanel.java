@@ -3,7 +3,7 @@ package com.artereal.swing.ui.panels.lojas;
 import com.artereal.swing.ui.layout.PadraoLayout;
 
 import javax.swing.*;
-import javax.swing.border.TitledBorder;
+
 import java.awt.*;
 
 /**

@@ -3,6 +3,7 @@ package com.artereal.swing.ui.panels;
 import com.artereal.swing.dao.VisitanteDAO;
 import com.artereal.swing.model.Visitante;
 import com.artereal.swing.ui.layout.PadraoLayout;
+import com.artereal.swing.ui.panels.visitantes.VisitantesFormPanel;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -40,6 +41,7 @@ public class VisitantesPanel extends JPanel {
     private JTextField pesquisarField;
     private JButton pesquisarButton;
     private Visitante visitanteAtual;
+    private VisitantesFormPanel visitantesFormPanel;
     
     public VisitantesPanel() {
         visitanteDAO = new VisitanteDAO();
@@ -100,6 +102,9 @@ public class VisitantesPanel extends JPanel {
         dataVisitaField.setText(LocalDate.now().toString());
         
         visitanteAtual = null;
+        
+        // Inicializar formulário otimizado
+        visitantesFormPanel = new VisitantesFormPanel();
     }
     
     private void setupLayout() {
@@ -124,10 +129,13 @@ public class VisitantesPanel extends JPanel {
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.setBackground(PadraoLayout.COR_FUNDO);
         
-        // Painel de formulário usando PadraoLayout
+        // Painel de formulário otimizado usando VisitantesFormPanel
         JPanel formPanel = new JPanel(new BorderLayout());
         formPanel.setBackground(PadraoLayout.COR_PAINEL);
         formPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
+        
+        // Usar o formulário otimizado
+        formPanel.add(visitantesFormPanel, BorderLayout.CENTER);
         
         // Painel esquerdo - Tabela
         JPanel leftPanel = new JPanel(new BorderLayout());

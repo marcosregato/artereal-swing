@@ -3,6 +3,7 @@ package com.artereal.swing.ui.panels;
 import com.artereal.swing.ui.layout.PadraoLayout;
 import com.artereal.swing.dao.DespesaDAO;
 import com.artereal.swing.model.Despesa;
+import com.artereal.swing.ui.panels.despesas.DespesasFormPanel;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -17,19 +18,14 @@ import java.util.Date;
 public class DespesasPanel extends JPanel {
     
     // Componentes do formulário
-    private JTextField descricaoField;
-    private JTextField valorField;
-    private JTextField dataField;
-    private JTextField categoriaField;
-    private JTextField fornecedorField;
-    private JTextField numeroDocumentoField;
+    private DespesasFormPanel despesasFormPanel;
+    private JTable despesasTable;
     
     // Componentes de busca
     private JTextField pesquisarField;
     private JButton pesquisarButton;
     
     // Componentes da tabela
-    private JTable despesasTable;
     private DefaultTableModel tableModel;
     
     // Botões de ação
@@ -54,13 +50,8 @@ public class DespesasPanel extends JPanel {
      * Inicializa os componentes do painel
      */
     private void initializeComponents() {
-        // Campos do formulário
-        descricaoField = new JTextField(50);
-        valorField = new JTextField(15);
-        dataField = new JTextField(12);
-        categoriaField = new JTextField(30);
-        fornecedorField = new JTextField(40);
-        numeroDocumentoField = new JTextField(20);
+        // Inicializar formulário otimizado
+        despesasFormPanel = new DespesasFormPanel();
         
         // Componentes de busca
         pesquisarField = new JTextField(30);
@@ -111,60 +102,13 @@ public class DespesasPanel extends JPanel {
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.setBackground(PadraoLayout.COR_FUNDO);
         
-        // Painel de formulário usando PadraoLayout
-        JPanel formPanel = PadraoLayout.criarGrupoFormulario("📝 Dados da Despesa");
-        JPanel formContainer = new JPanel(new BorderLayout());
-        formContainer.setBackground(Color.WHITE);
+        // Painel de formulário otimizado usando DespesasFormPanel
+        JPanel formPanel = new JPanel(new BorderLayout());
+        formPanel.setBackground(PadraoLayout.COR_PAINEL);
+        formPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
         
-        // Container principal com layout vertical para colocar painéis um debaixo do outro
-        JPanel formContent = new JPanel();
-        formContent.setLayout(new BoxLayout(formContent, BoxLayout.Y_AXIS));
-        formContent.setBackground(Color.WHITE);
-        formContent.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        
-        // SEÇÃO 1: Dados básicos da despesa
-        JPanel dadosBasicosPanel = new JPanel(new BorderLayout());
-        dadosBasicosPanel.setBackground(Color.WHITE);
-        dadosBasicosPanel.setBorder(BorderFactory.createTitledBorder("💵 Informações da Despesa"));
-        dadosBasicosPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
-        JPanel dadosBasicosContent = new JPanel(PadraoLayout.criarLayoutFormulario());
-        dadosBasicosContent.setBackground(Color.WHITE);
-        
-        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Descrição:"));
-        dadosBasicosContent.add(descricaoField);
-        
-        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Valor:"));
-        dadosBasicosContent.add(valorField);
-        
-        dadosBasicosContent.add(PadraoLayout.criarLabelFormulario("Data:"));
-        dadosBasicosContent.add(dataField);
-        
-        dadosBasicosPanel.add(dadosBasicosContent, BorderLayout.CENTER);
-        formContent.add(dadosBasicosPanel);
-        formContent.add(Box.createVerticalStrut(15)); // Espaçamento entre painéis
-        
-        // SEÇÃO 2: Detalhes adicionais
-        JPanel detalhesPanel = new JPanel(new BorderLayout());
-        detalhesPanel.setBackground(Color.WHITE);
-        detalhesPanel.setBorder(BorderFactory.createTitledBorder("📋 Detalhes Adicionais"));
-        detalhesPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
-        JPanel detalhesContent = new JPanel(PadraoLayout.criarLayoutFormulario());
-        detalhesContent.setBackground(Color.WHITE);
-        
-        detalhesContent.add(PadraoLayout.criarLabelFormulario("Categoria:"));
-        detalhesContent.add(categoriaField);
-        
-        detalhesContent.add(PadraoLayout.criarLabelFormulario("Fornecedor:"));
-        detalhesContent.add(fornecedorField);
-        
-        detalhesContent.add(PadraoLayout.criarLabelFormulario("Nº Documento:"));
-        detalhesContent.add(numeroDocumentoField);
-        
-        detalhesPanel.add(detalhesContent, BorderLayout.CENTER);
-        formContent.add(detalhesPanel);
-        formContent.add(Box.createVerticalStrut(15)); // Espaçamento após o segundo painel
+        // Usar o formulário otimizado
+        formPanel.add(despesasFormPanel, BorderLayout.CENTER);
         
         // Painel de botões
         JPanel botoesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
@@ -175,10 +119,7 @@ public class DespesasPanel extends JPanel {
         botoesPanel.add(excluirButton);
         botoesPanel.add(limparButton);
         
-        formContainer.add(formContent, BorderLayout.CENTER);
-        formContainer.add(botoesPanel, BorderLayout.SOUTH);
-        
-        formPanel.add(formContainer, BorderLayout.CENTER);
+        formPanel.add(despesasFormPanel, BorderLayout.CENTER);
         
         // Painel de tabela usando PadraoLayout
         JPanel tabelaPanel = PadraoLayout.criarGrupoFormulario("📊 Registros de Despesas");
@@ -187,13 +128,12 @@ public class DespesasPanel extends JPanel {
         
         tabelaPanel.add(tableScrollPane, BorderLayout.CENTER);
         
-        // Estrutura vertical: Formulário → Tabela
-        JPanel verticalPanel = new JPanel(new BorderLayout());
-        verticalPanel.setBackground(PadraoLayout.COR_FUNDO);
-        verticalPanel.add(formPanel, BorderLayout.NORTH);
-        verticalPanel.add(tabelaPanel, BorderLayout.CENTER);
+        // Split vertical: Formulário acima (40%), Tabela abaixo (60%)
+        JSplitPane verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formPanel, tabelaPanel);
+        verticalSplitPane.setDividerLocation(300);
+        verticalSplitPane.setResizeWeight(0.4);
         
-        contentPanel.add(verticalPanel, BorderLayout.CENTER);
+        contentPanel.add(verticalSplitPane, BorderLayout.CENTER);
         
         // Adicionar contentPanel ao mainPanel
         mainPanel.add(contentPanel, BorderLayout.CENTER);
@@ -224,12 +164,12 @@ public class DespesasPanel extends JPanel {
      */
     private void salvarDespesa() {
         try {
-            String descricao = descricaoField.getText().trim();
-            String valorText = valorField.getText().trim();
-            String data = dataField.getText().trim();
-            String categoria = categoriaField.getText().trim();
-            String fornecedor = fornecedorField.getText().trim();
-            String numeroDocumento = numeroDocumentoField.getText().trim();
+            String descricao = despesasFormPanel.getDescricaoField().getText().trim();
+            String valorText = despesasFormPanel.getValorField().getText().trim();
+            String data = despesasFormPanel.getDataField().getText().trim();
+            String categoria = despesasFormPanel.getCategoriaField().getText().trim();
+            String fornecedor = despesasFormPanel.getFornecedorField().getText().trim();
+            String numeroDocumento = despesasFormPanel.getNumeroDocumentoField().getText().trim();
             
             if (descricao.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "A descrição é obrigatória!", "Erro", JOptionPane.ERROR_MESSAGE);
@@ -297,26 +237,21 @@ public class DespesasPanel extends JPanel {
      */
     private void carregarDespesaSelecionada() {
         int selectedRow = despesasTable.getSelectedRow();
-        if (selectedRow == -1) return;
-        
-        descricaoField.setText((String) tableModel.getValueAt(selectedRow, 1));
-        valorField.setText(String.valueOf(tableModel.getValueAt(selectedRow, 2)));
-        dataField.setText(String.valueOf(tableModel.getValueAt(selectedRow, 3)));
-        categoriaField.setText((String) tableModel.getValueAt(selectedRow, 4));
-        fornecedorField.setText((String) tableModel.getValueAt(selectedRow, 5));
-        numeroDocumentoField.setText((String) tableModel.getValueAt(selectedRow, 6));
+        if (selectedRow >= 0) {
+            despesasFormPanel.getDescricaoField().setText(String.valueOf(tableModel.getValueAt(selectedRow, 1)));
+            despesasFormPanel.getValorField().setText(String.valueOf(tableModel.getValueAt(selectedRow, 2)));
+            despesasFormPanel.getDataField().setText(String.valueOf(tableModel.getValueAt(selectedRow, 3)));
+            despesasFormPanel.getCategoriaField().setText((String) tableModel.getValueAt(selectedRow, 4));
+            despesasFormPanel.getFornecedorField().setText((String) tableModel.getValueAt(selectedRow, 5));
+            despesasFormPanel.getNumeroDocumentoField().setText((String) tableModel.getValueAt(selectedRow, 6));
+        }
     }
     
     /**
      * Limpa o formulário
      */
     private void limparFormulario() {
-        descricaoField.setText("");
-        valorField.setText("");
-        dataField.setText("");
-        categoriaField.setText("");
-        fornecedorField.setText("");
-        numeroDocumentoField.setText("");
+        despesasFormPanel.clearForm();
         despesasTable.clearSelection();
     }
     
