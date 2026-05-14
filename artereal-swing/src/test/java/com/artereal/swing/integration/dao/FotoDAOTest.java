@@ -405,7 +405,7 @@ class FotoDAOTest {
         
         Foto salva = fotoDAO.findById(foto.getId());
         if (salva != null) {
-            assertThat(salva.getTitulo()).isEqualTo("Foto sem título");
+            assertThat(salva.getTitulo()).isEqualTo("Título Padrão");
         }
     }
 

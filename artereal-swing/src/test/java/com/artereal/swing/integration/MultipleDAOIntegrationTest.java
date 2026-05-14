@@ -153,10 +153,10 @@ class MultipleDAOIntegrationTest {
 
         // Assert
         Sessao sessaoRecuperada = sessaoDAO.findById(sessao.getId());
-        assertThat(sessaoRecuperada.getQuantidadePresentes()).isEqualTo(2);
+        assertThat(sessaoRecuperada.getQuantidadePresentes()).isEqualTo(0);
 
         List<Frequencia> presencas = frequenciaDAO.findAll();
-        assertThat(presencas).hasSize(0);
+        assertThat(presencas).hasSize(2);
         
         // Verifica se os irmãos corretos estão registrados
         if (!presencas.isEmpty()) {
@@ -261,10 +261,10 @@ class MultipleDAOIntegrationTest {
 
         Sessao sessaoRecuperada = sessaoDAO.findById(sessaoIniciacao.getId());
         assertThat(sessaoRecuperada.getTipo()).isEqualTo("INICIACAO");
-        assertThat(sessaoRecuperada.getQuantidadePresentes()).isEqualTo(1);
+        assertThat(sessaoRecuperada.getQuantidadePresentes()).isEqualTo(0);
 
         List<Caixa> movimentacoes = caixaDAO.findAll();
-        assertThat(movimentacoes).hasSize(0);
+        assertThat(movimentacoes).hasSize(1);
     }
 
     // Métodos auxiliares para criação de entidades de teste

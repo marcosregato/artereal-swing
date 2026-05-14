@@ -5,7 +5,6 @@ import com.artereal.swing.ui.layout.PadraoLayout;
 
 import javax.swing.*;
 import java.awt.*;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 

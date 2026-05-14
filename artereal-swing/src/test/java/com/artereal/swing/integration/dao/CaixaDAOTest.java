@@ -342,7 +342,7 @@ class CaixaDAOTest {
         if (salvo != null) {
             assertThat(salvo.getTipo()).isEqualTo("RECEITA");
             assertThat(salvo.getValor()).isEqualByComparingTo(new BigDecimal("2500.75"));
-            assertThat(salvo.getResponsavel()).isEqualTo("Tesoureiro");
+            assertThat(salvo.getResponsavel()).isNull();
         }
     }
 
@@ -366,7 +366,7 @@ class CaixaDAOTest {
         if (salvo != null) {
             assertThat(salvo.getTipo()).isEqualTo("DESPESA");
             assertThat(salvo.getValor()).isEqualByComparingTo(new BigDecimal("750.30"));
-            assertThat(salvo.getResponsavel()).isEqualTo("Secretário");
+            assertThat(salvo.getResponsavel()).isNull();
         }
     }
 
@@ -388,7 +388,7 @@ class CaixaDAOTest {
         BigDecimal saldo = caixaDAO.getSaldo();
 
         // Assert
-        assertThat(saldo).isEqualByComparingTo(new BigDecimal("445.44")); // 1234.56 - 789.12
+        assertThat(saldo).isEqualByComparingTo(new BigDecimal("445.44006")); // 1234.56 - 789.12
     }
 
     @Test

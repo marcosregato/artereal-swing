@@ -47,6 +47,7 @@ public class CSRFProtectionManager {
      * Token CSRF com metadados
      */
     private static class CSRFToken {
+        @SuppressWarnings("unused")
         final String token;
         final LocalDateTime createdAt;
         final LocalDateTime expiresAt;
@@ -67,10 +68,6 @@ public class CSRFProtectionManager {
         
         boolean isValid() {
             return LocalDateTime.now().isBefore(expiresAt) && usageCount < 2; // Token pode ser usado 2 vezes
-        }
-        
-        boolean canReuse() {
-            return usageCount == 0; // Primeiro uso
         }
     }
     
@@ -208,7 +205,6 @@ public class CSRFProtectionManager {
      */
     public void cleanupExpiredTokens() {
         final int[] removedCount = {0};
-        LocalDateTime now = LocalDateTime.now();
         
         tokenStore.entrySet().removeIf(entry -> {
             boolean shouldRemove = !entry.getValue().isValid();

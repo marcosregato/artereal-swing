@@ -54,6 +54,7 @@ public class RateLimitManager {
         final int requestsPerHour;
         final int requestsPerDay;
         final int burstCapacity;
+        @SuppressWarnings("unused")
         final boolean critical;
         
         EndpointConfig(int rpm, int rph, int rpd, int burst, boolean critical) {

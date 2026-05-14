@@ -115,14 +115,19 @@ public class UploadIntegrityManager {
         }
         
         // Getters
+        @SuppressWarnings("unused")
         public String getFileName() { return fileName; }
+        @SuppressWarnings("unused")
         public String getOriginalName() { return originalName; }
+        @SuppressWarnings("unused")
         public String getMimeType() { return mimeType; }
         public long getFileSize() { return fileSize; }
         public String getChecksumSHA256() { return checksumSHA256; }
         public String getChecksumMD5() { return checksumMD5; }
+        @SuppressWarnings("unused")
         public long getUploadTime() { return uploadTime; }
         public String getUploadedBy() { return uploadedBy; }
+        @SuppressWarnings("unused")
         public String getIpAddress() { return ipAddress; }
     }
     

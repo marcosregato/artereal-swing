@@ -285,10 +285,7 @@ class UsuarioTest {
         String resultado = usuario.toString();
 
         // Assert
-        assertThat(resultado).contains("Usuario");
-        assertThat(resultado).contains("id=123");
-        assertThat(resultado).contains("nome=João da Silva");
-        assertThat(resultado).contains("administrador=true");
+        assertThat(resultado).isEqualTo("Usuario{id=123, nome='João da Silva', administrador=true}");
     }
 
     @Test

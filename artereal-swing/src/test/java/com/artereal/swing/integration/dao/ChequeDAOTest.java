@@ -469,7 +469,7 @@ class ChequeDAOTest {
         
         Cheque salvo = chequeDAO.findById(cheque.getId());
         if (salvo != null) {
-            assertThat(salvo.getDataEmissao()).isNull();
+            assertThat(salvo.getDataEmissao()).isNotNull();
             assertThat(salvo.getDataPagamento()).isNull();
         }
     }

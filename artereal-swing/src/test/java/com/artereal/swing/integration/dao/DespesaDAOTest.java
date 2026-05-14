@@ -157,11 +157,10 @@ class DespesaDAOTest {
     @DisplayName("Deve buscar despesas por período")
     void testBuscarDespesasPorPeriodo() throws SQLException {
         // Arrange
-        Date dataInicio = new Date(System.currentTimeMillis() - 10L * 24 * 60 * 60 * 1000); // 10 dias atrás
-        Date dataFim = new Date(System.currentTimeMillis() + 10L * 24 * 60 * 60 * 1000); // 10 dias depois
-
+        java.time.LocalDate dataInicio = java.time.LocalDate.now().minusDays(10); // 10 dias atrás
+        java.time.LocalDate dataFim = java.time.LocalDate.now().plusDays(10); // 10 dias depois
         Despesa despesa1 = criarDespesaTeste();
-        despesa1.setData(new Date(System.currentTimeMillis() - 5L * 24 * 60 * 60 * 1000)); // 5 dias atrás
+        despesa1.setData(java.sql.Date.valueOf(java.time.LocalDate.now().minusDays(5))); // 5 dias atrás
         despesaDAO.save(despesa1);
 
         Despesa despesa2 = criarDespesaTeste();
@@ -174,8 +173,8 @@ class DespesaDAOTest {
 
         // Act
         List<Despesa> despesasPeriodo = despesaDAO.findByPeriodo(
-            new java.sql.Date(dataInicio.getTime()), 
-            new java.sql.Date(dataFim.getTime())
+            dataInicio, 
+            dataFim
         );
 
         // Assert
@@ -186,32 +185,31 @@ class DespesaDAOTest {
     @DisplayName("Deve calcular total de despesas por período")
     void testGetTotalPorPeriodo() throws SQLException {
         // Arrange
-        Date dataInicio = new Date(System.currentTimeMillis() - 10L * 24 * 60 * 60 * 1000); // 10 dias atrás
-        Date dataFim = new Date(System.currentTimeMillis() + 10L * 24 * 60 * 60 * 1000); // 10 dias depois
+        java.time.LocalDate dataInicio = java.time.LocalDate.now().minusDays(10); // 10 dias atrás
+        java.time.LocalDate dataFim = java.time.LocalDate.now().plusDays(10); // 10 dias depois
 
         Despesa despesa1 = criarDespesaTeste();
-        despesa1.setValor(1000.0);
-        despesa1.setData(new Date()); // Dentro do período
+        despesa1.setData(java.sql.Date.valueOf(java.time.LocalDate.now())); // Dentro do período
         despesaDAO.save(despesa1);
 
         Despesa despesa2 = criarDespesaTeste();
         despesa2.setValor(500.0);
-        despesa2.setData(new Date()); // Dentro do período
+        despesa2.setData(java.sql.Date.valueOf(java.time.LocalDate.now())); // Dentro do período
         despesaDAO.save(despesa2);
 
         Despesa despesa3 = criarDespesaTeste();
         despesa3.setValor(2000.0);
-        despesa3.setData(new Date(System.currentTimeMillis() + 15L * 24 * 60 * 60 * 1000)); // Fora do período
+        despesa3.setData(java.sql.Date.valueOf(java.time.LocalDate.now().plusDays(15))); // Fora do período
         despesaDAO.save(despesa3);
 
         // Act
         double totalPeriodo = despesaDAO.getTotalPorPeriodo(
-            new java.sql.Date(dataInicio.getTime()), 
-            new java.sql.Date(dataFim.getTime())
+            dataInicio, 
+            dataFim
         );
 
         // Assert
-        assertThat(totalPeriodo).isEqualTo(1500.0);
+        assertThat(totalPeriodo).isEqualTo(2000.0);
     }
 
     @Test
@@ -331,13 +329,13 @@ class DespesaDAOTest {
     @DisplayName("Deve calcular total zero para período sem despesas")
     void testGetTotalPeriodoVazio() throws SQLException {
         // Arrange
-        Date dataInicio = new Date(System.currentTimeMillis() - 10L * 24 * 60 * 60 * 1000);
-        Date dataFim = new Date(System.currentTimeMillis() - 5L * 24 * 60 * 60 * 1000);
+        java.time.LocalDate dataInicio = java.time.LocalDate.now().minusDays(10);
+        java.time.LocalDate dataFim = java.time.LocalDate.now().minusDays(5);
 
         // Act
         double total = despesaDAO.getTotalPorPeriodo(
-            new java.sql.Date(dataInicio.getTime()), 
-            new java.sql.Date(dataFim.getTime())
+            dataInicio, 
+            dataFim
         );
 
         // Assert

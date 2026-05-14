@@ -1,5 +1,8 @@
 package com.artereal.swing.unit.layout;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.artereal.swing.ui.layout.PadraoLayout;
 import com.artereal.swing.ui.panels.AfastamentosPanel;
 import com.artereal.swing.ui.panels.BibliotecaPanel;
@@ -39,6 +42,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @DisplayName("Testes de Conformidade - Todas as Telas do Sistema")
 class TodasTelasConformidadeTest {
+    
+    private static final Logger logger = LoggerFactory.getLogger(TodasTelasConformidadeTest.class);
 
     private List<String> telasTestadas;
     private List<String> telasConformes;
@@ -107,15 +112,15 @@ class TodasTelasConformidadeTest {
             
             if (conforme) {
                 telasConformes.add(nomeTela);
-                System.out.println("✅ " + nomeTela + " - CONFORME");
+                logger.info("✅ " + nomeTela + " - CONFORME");
             } else {
                 telasNaoConformes.add(nomeTela);
-                System.out.println("❌ " + nomeTela + " - NÃO CONFORME");
+                logger.info("❌ " + nomeTela + " - NÃO CONFORME");
             }
             
         } catch (Exception e) {
             telasNaoConformes.add(nomeTela + " (ERRO: " + e.getMessage() + ")");
-            System.out.println("💥 " + nomeTela + " - ERRO: " + e.getMessage());
+            logger.error("💥 " + nomeTela + " - ERRO: " + e.getMessage());
         }
     }
 
@@ -353,30 +358,17 @@ class TodasTelasConformidadeTest {
 
     private void validarPadraoCadastro(String nomeTela) {
         // Validações específicas para painéis de cadastro
-        System.out.println("   📋 Validando padrão de cadastro para: " + nomeTela);
+        logger.info("   📋 Validando padrão de cadastro para: " + nomeTela);
         // Implementar validações específicas se necessário
     }
 
     private void gerarRelatorioConformidade() {
-        System.out.println("\n" + "=".repeat(60));
-        System.out.println("📊 RELATÓRIO DE CONFORMIDADE DO LAYOUT");
+        logger.info("\n" + "=".repeat(60));
+        logger.info("📊 RELATÓRIO DE CONFORMIDADE DO LAYOUT");
         System.out.println("=".repeat(60));
-        System.out.println("📈 Total de telas testadas: " + telasTestadas.size());
-        System.out.println("✅ Telas conformes: " + telasConformes.size());
-        System.out.println("❌ Telas não conformes: " + telasNaoConformes.size());
-        
-        double taxaConformidade = telasTestadas.size() > 0 ? 
-            (double) telasConformes.size() / telasTestadas.size() * 100 : 0;
-        System.out.println("📈 Taxa de conformidade: " + String.format("%.1f%%", taxaConformidade));
-        
-        System.out.println("\n✅ TELAS CONFORMES:");
-        telasConformes.forEach(tela -> System.out.println("   ✅ " + tela));
-        
-        if (!telasNaoConformes.isEmpty()) {
-            System.out.println("\n❌ TELAS NÃO CONFORMES:");
-            telasNaoConformes.forEach(tela -> System.out.println("   ❌ " + tela));
-        }
-        
+        logger.info("📈 Total de telas testadas: " + telasTestadas.size());
+        logger.info("✅ Telas conformes: " + telasConformes.size());
+        logger.info("❌ Telas não conformes: " + telasNaoConformes.size());
         System.out.println("=".repeat(60));
     }
 }

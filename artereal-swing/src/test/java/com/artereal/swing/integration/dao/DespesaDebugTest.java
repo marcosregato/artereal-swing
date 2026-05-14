@@ -6,12 +6,14 @@ import com.artereal.swing.model.Despesa;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Date;
+import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("Debug Test - DespesaDAO")
 class DespesaDebugTest {
 
+    private static final Logger logger = LoggerFactory.getLogger(DespesaDebugTest.class);
     private DatabaseManager databaseManager;
     private DespesaDAO despesaDAO;
 
@@ -42,30 +45,30 @@ class DespesaDebugTest {
         Despesa despesa = new Despesa();
         despesa.setDescricao("Despesa de Teste Debug");
         despesa.setValor(1500.0);
-        despesa.setData(new Date());
+        despesa.setData(java.sql.Date.valueOf(LocalDate.now()));
         despesa.setCategoria("MANUTENCAO");
         despesa.setFornecedor("Tesoureiro Teste");
         despesa.setNumeroDocumento("DOC-001");
 
-        System.out.println("=== DEBUG: Iniciando teste de fluxo completo ===");
-        System.out.println("Despesa inicial: " + despesa);
-        System.out.println("Despesa ID inicial: " + despesa.getId());
+        logger.info("=== DEBUG: Iniciando teste de fluxo completo ===");
+        logger.info("Despesa inicial: " + despesa);
+        logger.info("Despesa ID inicial: " + despesa.getId());
 
         // Act - Insert
-        System.out.println("=== DEBUG: Executando INSERT ===");
+        logger.info("=== DEBUG: Executando INSERT ===");
         despesaDAO.save(despesa);
-        System.out.println("Despesa após INSERT: " + despesa);
-        System.out.println("Despesa ID após INSERT: " + despesa.getId());
+        logger.info("Despesa após INSERT: " + despesa);
+        logger.info("Despesa ID após INSERT: " + despesa.getId());
         
         assertThat(despesa.getId()).isNotNull();
         
         Long id = despesa.getId();
-        System.out.println("ID salvo: " + id);
+        logger.info("ID salvo: " + id);
         
         // Verificar se está no banco
-        System.out.println("=== DEBUG: Verificando se está no banco ===");
-        System.out.println("Procurando ID: " + id);
-        System.out.println("SQL esperado: SELECT * FROM despesas WHERE id = ?");
+        logger.info("=== DEBUG: Verificando se está no banco ===");
+        logger.info("Procurando ID: " + id);
+        logger.info("SQL esperado: SELECT * FROM despesas WHERE id = ?");
         
         // Verificar se existe no banco com SQL direto
         try (Connection conn = databaseManager.getConnection();
@@ -73,35 +76,37 @@ class DespesaDebugTest {
             stmt.setLong(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    System.out.println("Registros encontrados no banco: " + rs.getInt(1));
+                    logger.info("Registros encontrados no banco: " + rs.getInt(1));
                 }
             }
         } catch (Exception e) {
-            System.out.println("Erro na consulta direta: " + e.getMessage());
+            logger.error("Erro na consulta direta: " + e.getMessage());
         }
         
         Despesa salva = despesaDAO.findById(id);
-        System.out.println("Despesa recuperada do banco: " + salva);
+        logger.info("Despesa recuperada do banco: " + salva);
         assertThat(salva).isNotNull();
         
         // Act - Update
-        System.out.println("=== DEBUG: Executando UPDATE ===");
-        System.out.println("Valor antes: " + despesa.getValor());
+        logger.info("=== DEBUG: Executando UPDATE ===");
+        logger.info("Valor antes: " + despesa.getValor());
         despesa.setValor(2500.0);
-        System.out.println("Valor depois: " + despesa.getValor());
-        System.out.println("Despesa antes do UPDATE: " + despesa);
-        System.out.println("Despesa ID antes do UPDATE: " + despesa.getId());
+        logger.info("Valor depois: " + despesa.getValor());
+        despesaDAO.update(despesa);
+        
+        logger.info("=== DEBUG: Verificando UPDATE ===");
+        logger.info("Valor no banco após UPDATE: " + despesaDAO.findById(id).getValor());
         
         despesaDAO.save(despesa);
-        System.out.println("Despesa após UPDATE: " + despesa);
+        logger.info("Despesa após UPDATE: " + despesa);
         
         // Verificar se foi atualizado
-        System.out.println("=== DEBUG: Verificando se foi atualizado ===");
+        logger.info("=== DEBUG: Verificando se foi atualizado ===");
         Despesa atualizada = despesaDAO.findById(id);
-        System.out.println("Despesa atualizada do banco: " + atualizada);
+        logger.info("Despesa atualizada do banco: " + atualizada);
         assertThat(atualizada).isNotNull();
         assertThat(atualizada.getValor()).isEqualTo(2500.0);
         
-        System.out.println("=== DEBUG: Teste concluído com sucesso ===");
+        logger.info("=== DEBUG: Teste concluído com sucesso ===");
     }
 }

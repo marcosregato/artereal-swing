@@ -212,6 +212,7 @@ public class DocumentosPanel extends JPanel {
     }
     
         
+    @SuppressWarnings("unused")
     private JPanel createFormGroup(String title) {
         JPanel groupPanel = new JPanel(new BorderLayout());
         groupPanel.setBackground(Color.WHITE);
@@ -661,14 +662,13 @@ public class DocumentosPanel extends JPanel {
                      PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) FROM documento WHERE ativo = 1");
                      ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
-                        int count = rs.getInt(1);
+                        rs.getInt(1);
                     }
                 }
             }
             
             tableModel.setRowCount(0);
             
-            int linha = 0;
             for (Documento documento : documentos) {
                 
                 String status = "";
@@ -689,7 +689,6 @@ public class DocumentosPanel extends JPanel {
                 };
                 
                 tableModel.addRow(row);
-                linha++;
             }
             
             

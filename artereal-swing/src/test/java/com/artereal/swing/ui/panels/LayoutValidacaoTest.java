@@ -209,7 +209,6 @@ class LayoutValidacaoTest {
         CadastroIrmaosPanel panel = new CadastroIrmaosPanel();
         
         // Act - Simula mudança de tamanho
-        Dimension tamanhoOriginal = panel.getSize();
         panel.setSize(new Dimension(800, 600));
         
         // Assert - Verifica se painel se ajusta ao novo tamanho
@@ -291,7 +290,7 @@ class LayoutValidacaoTest {
                 JComponent jcomp = (JComponent) comp;
                 // Tooltip não é obrigatório, mas é bom para acessibilidade
                 // Esta verificação é apenas para garantir que não causa erro
-                String tooltip = jcomp.getToolTipText();
+                jcomp.getToolTipText();
                 // Não falha se não tiver tooltip, apenas verifica se não causa exceção
             }
         }

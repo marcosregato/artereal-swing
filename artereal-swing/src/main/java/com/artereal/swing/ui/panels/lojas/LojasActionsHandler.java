@@ -1,7 +1,7 @@
 package com.artereal.swing.ui.panels.lojas;
 
-import com.artereal.swing.dao.LojaDAO;
-import com.artereal.swing.model.Loja;
+import com.artereal.swing.application.loja.LojaServiceFacade;
+import com.artereal.swing.domain.loja.Loja;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,20 +9,20 @@ import javax.swing.*;
 import java.util.List;
 
 /**
- * Handler para ações CRUD e eventos da tela de Lojas
+ * Handler para ações CRUD e eventos da tela de Lojas - Migrado para Arquitetura Hexagonal
  * Responsável por centralizar toda a lógica de negócio e interação com o usuário
  */
 public class LojasActionsHandler {
     
     private static final Logger logger = LoggerFactory.getLogger(LojasActionsHandler.class);
     
-    private LojaDAO lojaDAO;
+    private LojaServiceFacade lojaServiceFacade;
     private LojasFormPanel formPanel;
     private LojasTablePanel tablePanel;
     private Loja lojaAtual;
     
-    public LojasActionsHandler(LojaDAO lojaDAO, LojasFormPanel formPanel, LojasTablePanel tablePanel) {
-        this.lojaDAO = lojaDAO;
+    public LojasActionsHandler(LojaServiceFacade lojaServiceFacade, LojasFormPanel formPanel, LojasTablePanel tablePanel) {
+        this.lojaServiceFacade = lojaServiceFacade;
         this.formPanel = formPanel;
         this.tablePanel = tablePanel;
         

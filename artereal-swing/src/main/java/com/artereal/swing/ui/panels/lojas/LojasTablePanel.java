@@ -1,7 +1,8 @@
 package com.artereal.swing.ui.panels.lojas;
 
-import com.artereal.swing.dao.LojaDAO;
-import com.artereal.swing.model.Loja;
+import com.artereal.swing.application.loja.LojaServiceFacade;
+import com.artereal.swing.application.loja.LojaResponse;
+import com.artereal.swing.domain.loja.Loja;
 import com.artereal.swing.ui.layout.PadraoLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,20 +17,20 @@ import java.awt.event.MouseEvent;
 import java.util.List;
 
 /**
- * Painel de tabela para gestão de Lojas
+ * Painel de tabela para gestão de Lojas - Migrado para Arquitetura Hexagonal
  * Responsável por gerenciar a exibição e interação com a tabela de dados
  */
 public class LojasTablePanel extends JPanel {
     
     private static final Logger logger = LoggerFactory.getLogger(LojasTablePanel.class);
     
-    private LojaDAO lojaDAO;
+    private LojaServiceFacade lojaServiceFacade;
     private DefaultTableModel tableModel;
     private JTable lojasTable;
     private LojaSelectionListener selectionListener;
     
-    public LojasTablePanel(LojaDAO lojaDAO) {
-        this.lojaDAO = lojaDAO;
+    public LojasTablePanel(LojaServiceFacade lojaServiceFacade) {
+        this.lojaServiceFacade = lojaServiceFacade;
         initializeComponents();
         setupLayout();
         setupEvents();
@@ -41,7 +42,7 @@ public class LojasTablePanel extends JPanel {
     private void initializeComponents() {
         // Criar modelo da tabela
         tableModel = new DefaultTableModel(new Object[]{
-            "Código", "Nome", "Número", "Telefone", "Cidade", "Estado"
+            "Código", "Nome", "CNPJ", "Cidade", "Estado"
         }, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -110,10 +111,9 @@ public class LojasTablePanel extends JPanel {
             Object[] row = {
                 loja.getId(),
                 loja.getNome(),
-                loja.getNumero(),
-                loja.getTelefone(),
-                loja.getCidade(),
-                loja.getEstado()
+                loja.getCnpj().valor(),
+                loja.getEndereco().cidade(),
+                loja.getEndereco().estado()
             };
             tableModel.addRow(row);
         }
@@ -126,7 +126,12 @@ public class LojasTablePanel extends JPanel {
      */
     public void refreshData() {
         try {
-            List<Loja> lojas = lojaDAO.findAll();
+            List<LojaResponse> lojaResponses = lojaServiceFacade.listarTodas();
+            // Converter responses para entidades de domínio para compatibilidade
+            List<Loja> lojas = lojaResponses.stream()
+                .map(response -> lojaServiceFacade.buscarPorId(response.id()).orElse(null))
+                .filter(java.util.Objects::nonNull)
+                .toList();
             updateTable(lojas);
         } catch (Exception e) {
             logger.error("Erro ao atualizar dados da tabela", e);
@@ -138,14 +143,19 @@ public class LojasTablePanel extends JPanel {
      */
     public void searchLojas(String searchTerm) {
         try {
-            List<Loja> lojas;
+            List<LojaResponse> lojaResponses;
             
             if (searchTerm == null || searchTerm.trim().isEmpty()) {
-                lojas = lojaDAO.findAll();
+                lojaResponses = lojaServiceFacade.listarTodas();
             } else {
-                lojas = lojaDAO.findByNome(searchTerm.trim());
+                lojaResponses = lojaServiceFacade.buscarPorNome(searchTerm.trim());
             }
             
+            // Converter responses para entidades de domínio
+            List<Loja> lojas = lojaResponses.stream()
+                .map(response -> lojaServiceFacade.buscarPorId(response.id()).orElse(null))
+                .filter(java.util.Objects::nonNull)
+                .toList();
             updateTable(lojas);
             
         } catch (Exception e) {
@@ -161,7 +171,7 @@ public class LojasTablePanel extends JPanel {
         if (selectedRow >= 0) {
             try {
                 Long id = (Long) tableModel.getValueAt(selectedRow, 0);
-                return lojaDAO.findById(id);
+                return lojaServiceFacade.buscarPorId(id).orElse(null);
             } catch (Exception e) {
                 logger.error("Erro ao carregar loja selecionada", e);
             }

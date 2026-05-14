@@ -11,9 +11,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.Statement;
 
 /**
  * Classe base para todos os DAOs do sistema.
@@ -123,7 +127,7 @@ public abstract class BaseDAO<T> {
      * @param entity Entidade a ser atualizada
      * @throws SQLException Em caso de erro no banco
      */
-    protected void update(T entity) throws SQLException {
+    public void update(T entity) throws SQLException {
         // Pular validação de segurança em ambiente de testes
         if (!System.getProperty("test.environment", "false").equals("true")) {
             validateEntitySecurity(entity);
@@ -410,6 +414,7 @@ public abstract class BaseDAO<T> {
     /**
      * Valida campos específicos de Irmao
      */
+    @SuppressWarnings("unused")
     private void validateIrmaoSecurity(Object entity) throws SQLException {
         try {
             // Usa reflexão para acessar os campos de forma segura

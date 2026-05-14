@@ -1,6 +1,8 @@
 package com.artereal.swing.ui.panels;
 
-import com.artereal.swing.dao.LojaDAO;
+import com.artereal.swing.application.loja.LojaServiceFacade;
+import com.artereal.swing.infrastructure.persistence.LojaJpaRepository;
+import com.artereal.swing.infrastructure.config.ConfiguracaoBanco;
 import com.artereal.swing.ui.layout.PadraoLayout;
 import com.artereal.swing.ui.panels.lojas.LojasFormPanel;
 import com.artereal.swing.ui.panels.lojas.LojasTablePanel;
@@ -12,10 +14,12 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- * Painel principal de gestão de Lojas - Refatorado para melhor manutenção
+ * Painel principal de gestão de Lojas - Migrado para Arquitetura Hexagonal
  * Layout padrão Header → Busca → Formulário → Tabela
  * 
- * Arquitetura refatorada:
+ * Arquitetura Hexagonal:
+ * - LojaServiceFacade: Coordena use cases da camada application
+ * - LojaJpaRepository: Adapter de persistência
  * - LojasFormPanel: Gerencia o formulário e seções
  * - LojasTablePanel: Gerencia a tabela de dados
  * - LojasActionsHandler: Gerencia eventos e lógica CRUD
@@ -25,7 +29,7 @@ public class LojasPanel extends JPanel {
     private static final Logger logger = LoggerFactory.getLogger(LojasPanel.class);
     
     // Componentes principais
-    private LojaDAO lojaDAO;
+    private LojaServiceFacade lojaServiceFacade;
     private JTextField pesquisarField;
     private JButton pesquisarButton;
     
@@ -42,7 +46,10 @@ public class LojasPanel extends JPanel {
     private JButton limparButton;
     
     public LojasPanel() {
-        lojaDAO = new LojaDAO();
+        // Inicializar repository e service facade
+        LojaJpaRepository lojaRepository = new LojaJpaRepository(ConfiguracaoBanco.criarDataSource());
+        lojaServiceFacade = new LojaServiceFacade(lojaRepository);
+        
         initializeComponents();
         setupLayout();
         setupEvents();
@@ -64,8 +71,8 @@ public class LojasPanel extends JPanel {
         
         // Componentes refatorados
         formPanel = new LojasFormPanel();
-        tablePanel = new LojasTablePanel(lojaDAO);
-        actionsHandler = new LojasActionsHandler(lojaDAO, formPanel, tablePanel);
+        tablePanel = new LojasTablePanel(lojaServiceFacade);
+        actionsHandler = new LojasActionsHandler(lojaServiceFacade, formPanel, tablePanel);
         
         // Botões de ação
         initializeActionButtons();
@@ -262,6 +269,7 @@ public class LojasPanel extends JPanel {
     /**
      * Aplica máscara de CEP (mantida para compatibilidade)
      */
+    @SuppressWarnings("unused")
     private void aplicarMascaraCEP(JTextField cepField) {
         // A máscara de CEP agora é tratada no PadraoLayout
         PadraoLayout.estilizarCampoCEP(cepField);

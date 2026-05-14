@@ -131,8 +131,6 @@ public class RelatoriosPanel extends JPanel {
         
         // Adicionar ActionListener para o botão Gerar Relatório
         // Como o botão é criado com PadraoLayout.criarBotao(), precisamos encontrar o botão no painel
-        int botoesEncontrados = 0;
-        
         for (Component comp : this.getComponents()) {
             if (comp instanceof JPanel) {
                 JPanel mainPanel = (JPanel) comp;
@@ -166,19 +164,16 @@ public class RelatoriosPanel extends JPanel {
                                                                 button.addActionListener(e -> {
                                                                     gerarRelatorio();
                                                                 });
-                                                                botoesEncontrados++;
                                                                 
                                                             } else if (buttonText.contains("Enviar por E-mail")) {
                                                                 button.addActionListener(e -> {
                                                                     enviarEmailRelatorio();
                                                                 });
-                                                                botoesEncontrados++;
                                                                 
                                                             } else if (buttonText.contains("WhatsApp")) {
                                                                 button.addActionListener(e -> {
                                                                     enviarRelatorioPorWhatsApp();
                                                                 });
-                                                                botoesEncontrados++;
                                                                 
                                                             } else if (buttonText.contains("Agendar")) {
                                                                 

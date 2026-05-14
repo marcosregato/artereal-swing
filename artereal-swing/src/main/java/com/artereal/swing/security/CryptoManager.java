@@ -20,7 +20,6 @@ public class CryptoManager {
     private static final String AES_ALGORITHM = "AES";
     private static final String AES_TRANSFORMATION = "AES/GCM/NoPadding";
     private static final String PBKDF2_ALGORITHM = "PBKDF2WithHmacSHA256";
-    private static final int AES_KEY_LENGTH = 256;
     private static final int GCM_TAG_LENGTH = 128;
     private static final int PBKDF2_ITERATIONS = 100000;
     private static final int SALT_LENGTH = 32;
@@ -126,7 +125,9 @@ public class CryptoManager {
             }
             
             String entityJson = convertToJson(entity);
-            return (T) encrypt(entityJson);
+            @SuppressWarnings("unchecked")
+            T result = (T) encrypt(entityJson);
+            return result;
             
         } catch (Exception e) {
             logger.error("Erro na criptografia de entidade", e);

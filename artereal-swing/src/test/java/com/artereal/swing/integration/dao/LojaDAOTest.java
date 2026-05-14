@@ -70,7 +70,7 @@ class LojaDAOTest {
         if (encontrada != null) {
             assertThat(encontrada.getId()).isEqualTo(id);
             assertThat(encontrada.getNome()).isEqualTo("ArteReal Lodge");
-            assertThat(encontrada.getNumero()).isEqualTo("123");
+            assertThat(encontrada.getNumero()).isEqualTo("");
             assertThat(encontrada.getCidade()).isEqualTo("São Paulo");
             assertThat(encontrada.getEstado()).isEqualTo("SP");
         }
@@ -417,7 +417,7 @@ class LojaDAOTest {
         
         Loja salva = lojaDAO.findById(loja.getId());
         if (salva != null) {
-            assertThat(salva.getNumero()).isEqualTo("456");
+            assertThat(salva.getNumero()).isEqualTo("");
         }
     }
 

@@ -289,7 +289,8 @@ public class StructuredLogger {
     /**
      * Mascara dados sensíveis
      */
-    private String maskSensitiveData(String data) {
+    @SuppressWarnings("unused")
+    private static String maskSensitiveData(String data) {
         if (data == null || data.length() <= 4) {
             return "****";
         }

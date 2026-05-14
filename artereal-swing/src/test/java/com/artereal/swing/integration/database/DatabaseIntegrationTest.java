@@ -7,6 +7,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.AfterEach;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -21,6 +23,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @DisplayName("Testes de Integração do Banco de Dados")
 class DatabaseIntegrationTest {
+    
+    private static final Logger logger = LoggerFactory.getLogger(DatabaseIntegrationTest.class);
 
     private DatabaseManager databaseManager;
     private IrmaoDAO irmaoDAO;
@@ -47,7 +51,7 @@ class DatabaseIntegrationTest {
                     conn.createStatement().execute("DELETE FROM " + table);
                 } catch (SQLException e) {
                     // Ignorar erros de tabelas que não existem
-                    System.err.println("Tabela " + table + " não existe: " + e.getMessage());
+                    logger.error("Tabela " + table + " não existe: " + e.getMessage());
                 }
             }
         }

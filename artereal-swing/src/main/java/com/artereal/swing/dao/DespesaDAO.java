@@ -3,7 +3,11 @@ package com.artereal.swing.dao;
 import com.artereal.swing.model.Despesa;
 import com.artereal.swing.database.DatabaseManager;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.time.LocalDate;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -129,15 +133,15 @@ public class DespesaDAO extends BaseDAO<Despesa> {
     /**
      * Busca despesas por período
      */
-    public List<Despesa> findByPeriodo(Date dataInicio, Date dataFim) throws SQLException {
+    public List<Despesa> findByPeriodo(LocalDate dataInicio, LocalDate dataFim) throws SQLException {
         String sql = "SELECT * FROM despesas WHERE data BETWEEN ? AND ? ORDER BY data DESC, id DESC";
         List<Despesa> despesas = new ArrayList<>();
         
         try (Connection conn = DatabaseManager.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
-            stmt.setDate(1, new java.sql.Date(dataInicio.getTime()));
-            stmt.setDate(2, new java.sql.Date(dataFim.getTime()));
+            stmt.setDate(1, java.sql.Date.valueOf(dataInicio));
+            stmt.setDate(2, java.sql.Date.valueOf(dataFim));
             
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -152,14 +156,14 @@ public class DespesaDAO extends BaseDAO<Despesa> {
     /**
      * Calcula o total de despesas por período
      */
-    public double getTotalPorPeriodo(Date dataInicio, Date dataFim) throws SQLException {
+    public double getTotalPorPeriodo(LocalDate dataInicio, LocalDate dataFim) throws SQLException {
         String sql = "SELECT COALESCE(SUM(valor), 0) as total FROM despesas WHERE data BETWEEN ? AND ?";
         
         try (Connection conn = DatabaseManager.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
-            stmt.setDate(1, new java.sql.Date(dataInicio.getTime()));
-            stmt.setDate(2, new java.sql.Date(dataFim.getTime()));
+            stmt.setDate(1, java.sql.Date.valueOf(dataInicio));
+            stmt.setDate(2, java.sql.Date.valueOf(dataFim));
             
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {

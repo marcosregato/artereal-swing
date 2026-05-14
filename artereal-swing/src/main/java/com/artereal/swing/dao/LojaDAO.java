@@ -3,7 +3,10 @@ package com.artereal.swing.dao;
 import com.artereal.swing.model.Loja;
 import com.artereal.swing.database.DatabaseManager;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,7 +41,7 @@ public class LojaDAO {
         }
         
         try (Connection conn = dbManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement stmt = conn.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
             
             stmt.setString(1, loja.getNome());
             stmt.setString(2, loja.getEndereco());
