@@ -7,15 +7,15 @@
 
     <groupId>com.artereal</groupId>
     <artifactId>artereal-swing</artifactId>
-    <version>2.2.0</version>
+    <version>2.3.0</version>
     <packaging>jar</packaging>
 
     <name>ArteReal Masonic Lodge Management System - Swing Version</name>
     <description>Sistema desktop para gestão de lojas maçônicas usando Java Swing e SQLite</description>
 
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         
         <!-- Versions -->
@@ -130,7 +130,8 @@
                 <version>3.2.2</version>
             </plugin>
 
-            <!-- JaCoCo Maven Plugin para cobertura de testes -->
+            <!-- JaCoCo Maven Plugin para cobertura de testes (desabilitado temporariamente) -->
+            <!--
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -150,6 +151,7 @@
                     </execution>
                 </executions>
             </plugin>
+            -->
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

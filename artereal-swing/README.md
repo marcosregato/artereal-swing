@@ -6,13 +6,44 @@ Sistema desktop para gestão administrativa de lojas maçônicas, desenvolvido c
 
 Esta é a versão desktop do sistema ArteReal, criada a partir da engenharia reversa do sistema FoxPro original. Oferece interface nativa e banco de dados local para instalação em computadores individuais.
 
+**Versão Atual**: 2.2.0
+
 ## 🏗️ Arquitetura
 
+O sistema foi migrado para **Arquitetura Hexagonal (Ports and Adapters)** combinada com **Domain-Driven Design (DDD)** para maior escalabilidade, testabilidade e manutenibilidade.
+
+### Tecnologias
 - **Java 17**: Plataforma de desenvolvimento
 - **Swing**: Interface gráfica nativa
 - **PostgreSQL**: Banco de dados relacional
 - **Maven**: Gerenciamento de dependências
-- **DAO Pattern**: Acesso a dados
+- **SLF4J + Logback**: Logging
+- **JUnit 5 + AssertJ**: Testes
+
+### Camadas da Arquitetura
+
+#### Domain Layer (Núcleo do Negócio)
+- Entidades e Agregados: Loja, Irmao, Sessao, Caixa
+- Value Objects: Endereco, Cnpj, Dinheiro
+- Domain Services: LojaDomainService, SessaoDomainService
+- Repositories (Interfaces): LojaRepository, IrmaoRepository
+- Domain Events: IrmaoAssociadoEvent, CaixaAbertoEvent
+
+#### Application Layer (Casos de Uso)
+- Use Cases: CriarLojaUseCase, TransferirIrmaoUseCase, AbrirCaixaUseCase
+- DTOs: CriarLojaRequest, LojaResponse, EnderecoRequest
+- Mappers: LojaMapper, IrmaoMapper
+- Validators: CriarLojaValidator
+- Service Facades: LojaServiceFacade (coordena use cases)
+
+#### Infrastructure Layer (Adaptadores)
+- Database Adapters: LojaJpaRepository, IrmaoJpaRepository, CaixaJpaRepository
+- Configuration: ConfiguracaoBanco, DomainConfig
+- DataSource: SimpleDataSource (implementação customizada)
+
+#### Presentation Layer (UI)
+- Painéis Swing migrados para nova arquitetura
+- LojasPanel, IrmaosPanel, CaixaPanel
 
 ## 📁 Estrutura do Projeto
 
@@ -20,22 +51,52 @@ Esta é a versão desktop do sistema ArteReal, criada a partir da engenharia rev
 artereal-swing/
 ├── src/main/java/com/artereal/swing/
 │   ├── ArteRealSwingApplication.java  # Classe principal
-│   ├── database/
-│   │   └── DatabaseManager.java      # Gerenciador do PostgreSQL
-│   ├── model/
-│   │   └── Irmao.java                # Modelo de dados
-│   ├── dao/
-│   │   └── IrmaoDAO.java             # Acesso a dados
-│   └── ui/
-│       ├── MainFrame.java            # Janela principal
-│       └── panels/                  # Painéis de interface
+│   ├── domain/                       # Domain Layer (DDD)
+│   │   ├── loja/                     # Bounded Context Loja
+│   │   │   ├── Loja.java             # Entidade Aggregate Root
+│   │   │   ├── LojaRepository.java   # Interface Repository
+│   │   │   ├── valueobjects/         # Value Objects
+│   │   │   │   ├── Cnpj.java
+│   │   │   │   └── Endereco.java
+│   │   │   └── events/               # Domain Events
+│   │   ├── irmao/                    # Bounded Context Irmao
+│   │   └── caixa/                    # Bounded Context Caixa
+│   ├── application/                  # Application Layer
+│   │   ├── loja/
+│   │   │   ├── CriarLojaUseCase.java
+│   │   │   ├── AtualizarLojaUseCase.java
+│   │   │   ├── DeletarLojaUseCase.java
+│   │   │   ├── ListarLojasUseCase.java
+│   │   │   ├── LojaServiceFacade.java
+│   │   │   ├── CriarLojaRequest.java
+│   │   │   └── LojaResponse.java
+│   │   ├── irmao/
+│   │   └── caixa/
+│   ├── infrastructure/               # Infrastructure Layer
+│   │   ├── persistence/
+│   │   │   ├── LojaJpaRepository.java
+│   │   │   ├── IrmaoJpaRepository.java
+│   │   │   └── CaixaJpaRepository.java
+│   │   └── config/
+│   │       └── ConfiguracaoBanco.java
+│   ├── presentation/                 # Presentation Layer
+│   │   └── LojaController.java
+│   ├── dao/                          # DAO antigo (legado)
+│   ├── model/                        # Modelos antigos (legado)
+│   └── ui/                           # Interface Swing
+│       ├── MainFrame.java
+│       └── panels/
 │           ├── DashboardPanel.java
-│           ├── IrmaosPanel.java
 │           ├── LojasPanel.java
-│           ├── SessoesPanel.java
-│           ├── CaixaPanel.java
-│           ├── BibliotecaPanel.java
-│           └── RelatoriosPanel.java
+│           ├── IrmaosPanel.java
+│           └── ...
+├── src/test/java/                    # Testes
+│   ├── domain/
+│   ├── application/
+│   ├── integration/
+│   └── ui/
+├── docs/                             # Documentação
+│   └── arquitetura-hexagonal-ddd.md
 ├── pom.xml                           # Configuração Maven
 └── README.md                         # Documentação
 ```
@@ -45,6 +106,7 @@ artereal-swing/
 ### Pré-requisitos
 - Java 17 ou superior
 - Maven 3.6+
+- PostgreSQL 12+ (ou H2 para testes)
 
 ### Build e Execução
 ```bash
@@ -54,11 +116,14 @@ cd artereal-swing
 # Compilação
 mvn clean compile
 
+# Executar testes
+mvn test
+
 # Empacotamento
 mvn package -DskipTests
 
 # Execução
-java -jar target/artereal-swing-1.0.0-jar-with-dependencies.jar
+java -jar target/artereal-swing-2.2.0-jar-with-dependencies.jar
 ```
 
 ### Script Automático
@@ -66,7 +131,7 @@ java -jar target/artereal-swing-1.0.0-jar-with-dependencies.jar
 # Criar script de execução
 echo '#!/bin/bash
 mvn clean package -DskipTests
-java -jar target/artereal-swing-1.0.0-jar-with-dependencies.jar
+java -jar target/artereal-swing-2.3.0-jar-with-dependencies.jar
 ' > run.sh
 chmod +x run.sh
 ./run.sh
@@ -78,14 +143,24 @@ O sistema utiliza PostgreSQL com as seguintes características:
 
 - **Servidor**: PostgreSQL (localhost:5432)
 - **Database**: artereal_db
+- **Usuário**: system
+- **Senha**: system
 - **Inicialização**: Automática na primeira execução
-- **Migração**: Scripts SQL para criação de tabelas
-- **Backup**: Exportar dump do banco artereal_db
-- **Migração**: Scripts SQL integrados
+- **Testes**: H2 em memória (jdbc:h2:mem:testdb)
+
+### Configuração
+A configuração do banco de dados é gerenciada através de `ConfiguracaoBanco`:
+```java
+// Produção
+ConfiguracaoBanco.criarDataSource()
+
+// Testes
+ConfiguracaoBanco.criarDataSourceTeste()
+```
 
 ### Tabelas Principais
-- `irmao` - Cadastro de irmãos
 - `loja` - Lojas maçônicas
+- `irmao` - Cadastro de irmãos
 - `sessao` - Sessões e reuniões
 - `caixa` - Transações financeiras
 - `biblioteca` - Acervo de livros
@@ -114,14 +189,14 @@ O sistema utiliza PostgreSQL com as seguintes características:
 
 ## 🔧 Configuração
 
-### Propriedades do Sistema
-O banco de dados é criado automaticamente no diretório home do usuário:
-```bash
-# Linux/Mac
-~/.artereal/artereal.db
+### Configuração do Banco de Dados
+A configuração do banco de dados é centralizada em `ConfiguracaoBanco`:
+```java
+// Produção (PostgreSQL)
+DataSource dataSource = ConfiguracaoBanco.criarDataSource();
 
-# Windows
-%USERPROFILE%\.artereal\artereal.db
+// Testes (H2 em memória)
+DataSource testDataSource = ConfiguracaoBanco.criarDataSourceTeste();
 ```
 
 ### Personalização
@@ -184,34 +259,51 @@ rm ~/.artereal/artereal.db
 
 ## 🔮 Roadmap
 
-### Versão 1.1
+### Versão 2.3 (Em Progresso)
+- [ ] Completar migração de UI Panels para nova arquitetura
+- [ ] Estender domain.Loja com campos necessários para UI
+- [ ] Criar DTOs de UI para conversão entre domain e UI
+- [ ] Migrar IrmaosPanel para nova arquitetura
+- [ ] Migrar CaixaPanel para nova arquitetura
+- [ ] Remover classes DAO/Model legadas após migração completa
+
+### Versão 2.4
 - [ ] Formulários de cadastro completos
 - [ ] Validação de campos
-- [ ] Filtros de busca
+- [ ] Filtros de busca avançados
 
-### Versão 1.2
+### Versão 2.5
 - [ ] Relatórios em PDF
 - [ ] Backup automático
-- [ ] Importação de dados
+- [ ] Importação/Exportação de dados
 
-### Versão 2.0
+### Versão 3.0
 - [ ] Multiusuário
 - [ ] Sincronização na nuvem
 - [ ] Interface melhorada
+- [ ] API REST para integração
 
 ## 📝 Notas de Desenvolvimento
 
 ### Padrões Utilizados
-- **DAO Pattern**: Para acesso a dados
-- **MVC**: Separação de responsabilidades
-- **Singleton**: DatabaseManager
-- **Observer**: Eventos da interface
+- **Hexagonal Architecture (Ports and Adapters)**: Separação entre domínio e infraestrutura
+- **Domain-Driven Design (DDD)**: Bounded Contexts, Aggregates, Value Objects
+- **Repository Pattern**: Abstração de persistência
+- **Use Case Pattern**: Orquestração de lógica de negócio
+- **Service Facade**: Coordenação de use cases para UI
+- **Factory Method**: Criação de entidades de domínio
+- **Observer**: Eventos de domínio
+- **Builder Pattern**: Construção de DTOs complexos
 
 ### Boas Práticas
-- Logging com SLF4J
-- Tratamento de exceções
-- Validação de entrada
-- Recursos liberados corretamente
+- Logging com SLF4J + Logback
+- Tratamento de exceções com exceções de domínio
+- Validação de entrada em DTOs e entidades
+- Recursos liberados corretamente (try-with-resources)
+- Testes unitários e de integração
+- Injeção de dependências via construtor
+- Imutabilidade de Value Objects
+- Reflection para invocar construtores privados de entidades
 
 ## 📞 Suporte
 
@@ -228,4 +320,6 @@ Este projeto é desenvolvido para uso em lojas maçônicas e segue os princípio
 
 **ArteReal Masonic Lodge Management System - Versão Swing**
 
-*Versão desktop moderna para gestão maçônica tradicional*
+*Versão 2.2.0 - Arquitetura Hexagonal com DDD*
+
+*Sistema desktop moderno para gestão maçônica tradicional com arquitetura escalável e testável*
