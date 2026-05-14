@@ -1,201 +1,254 @@
-# 🏛️ Sistema ArteReal - Gestão Maçônica
+# ArteReal - Versão Swing + PostgreSQL
 
-Sistema moderno de gestão para lojas maçônicas, desenvolvido em Java com interface Swing intuitiva e banco de dados SQLite integrado.
+Sistema desktop para gestão administrativa de lojas maçônicas, desenvolvido com Java Swing e banco de dados PostgreSQL.
 
-## 🎯 Sobre o Projeto
+## 🎯 Visão Geral
 
-O Sistema ArteReal é uma solução completa para administração de lojas maçônicas, resultante de engenharia reversa do sistema FoxPro original com modernização tecnológica significativa.
+Esta é a versão desktop do sistema ArteReal, criada a partir da engenharia reversa do sistema FoxPro original. Oferece interface nativa e banco de dados local para instalação em computadores individuais.
 
-### ✨ Funcionalidades Principais
+**Versão Atual**: 2.3.0
 
-#### 👥 Gestão de Membros
-- **Cadastro completo de Irmãos** com dados pessoais e profissionais
-- **Administração de Lojas** com múltiplas filiais
-- **Controle de Candidatos** e processo de iniciação
-- **Gestão de Visitantes** com sistema de autorizações
+## 🏗️ Arquitetura
 
-#### 💰 Gestão Financeira
-- **Controle de Caixa** completo
-- **Gestão de Cheques** integrada
-- **Relatórios financeiros** detalhados
-- **Fluxo de caixa** automatizado
+O sistema foi migrado para **Arquitetura Hexagonal (Ports and Adapters)** combinada com **Domain-Driven Design (DDD)** para maior escalabilidade, testabilidade e manutenibilidade.
 
-#### 📚 Biblioteca e Documentos
-- **Biblioteca maçônica** com controle de empréstimos
-- **Gestão documental** digital
-- **Correspondência oficial** automatizada
-- **Arquivos digitais** organizados
+### Tecnologias
+- **Java 17**: Plataforma de desenvolvimento
+- **Swing**: Interface gráfica nativa
+- **PostgreSQL**: Banco de dados relacional
+- **Maven**: Gerenciamento de dependências
+- **SLF4J + Logback**: Logging
+- **JUnit 5 + AssertJ**: Testes
 
-#### 📅 Eventos e Calendário
-- **Calendário maçônico** com eventos importantes
-- **Controle de sessões** (Magnas, Brancas, Eleições)
-- **Gestão de afastamentos** e licenças
-- **Controle de frequência** dos membros
+### Camadas da Arquitetura
 
-#### 🖼️ Recursos Adicionais
-- **Galeria de fotos** para eventos
-- **Sistema de etiquetas** personalizado
-- **Configurações globais** centralizadas
-- **Relatórios personalizados**
+#### Domain Layer (Núcleo do Negócio)
+- Entidades e Agregados: Loja, Irmao, Sessao, Caixa
+- Value Objects: Endereco, Cnpj, Dinheiro
+- Domain Services: LojaDomainService, SessaoDomainService
+- Repositories (Interfaces): LojaRepository, IrmaoRepository
+- Domain Events: IrmaoAssociadoEvent, CaixaAbertoEvent
 
-## 🏗️ Arquitetura Técnica
+#### Application Layer (Casos de Uso)
+- Use Cases: CriarLojaUseCase, TransferirIrmaoUseCase, AbrirCaixaUseCase
+- DTOs: CriarLojaRequest, LojaResponse, EnderecoRequest
+- Mappers: LojaMapper, IrmaoMapper
+- Validators: CriarLojaValidator
+- Service Facades: LojaServiceFacade (coordena use cases)
 
-### Stack Tecnológico
-- **Java 17** - Linguagem principal
-- **Swing** - Interface gráfica desktop
-- **SQLite** - Banco de dados embarcado
-- **Maven** - Gerenciamento de dependências
-- **SLF4J** - Logging estruturado
+#### Infrastructure Layer (Adaptadores)
+- Database Adapters: LojaJpaRepository, IrmaoJpaRepository, CaixaJpaRepository
+- Configuration: ConfiguracaoBanco, DomainConfig
+- DataSource: SimpleDataSource (implementação customizada)
 
-### Padrões de Projeto
-- **DAO Pattern** - Camada de acesso a dados
-- **Singleton** - Gerenciamento de banco de dados
-- **MVC** - Separação de responsabilidades
-- **Observer** - Eventos e notificações
+#### Presentation Layer (UI)
+- Painéis Swing migrados para nova arquitetura
+- LojasPanel, IrmaosPanel, CaixaPanel
 
-## 🎨 Interface do Usuário
-
-### Design Moderno
-- **Logo maçônico personalizado** com esquadro e compassos
-- **Cores pastéis consistentes** em toda interface
-- **Headers estilizados** com identidade visual
-- **Layout responsivo** com SplitPane
-- **Botões intuitivos** com feedback visual
-
-### Experiência do Usuário
-- **Formulários organizados** com seções visuais
-- **Tabelas modernas** com seleção destacada
-- **Pesquisa integrada** em todos os módulos
-- **Navegação intuitiva** entre funcionalidades
-
-## 📊 Estrutura do Projeto
+## 📁 Estrutura do Projeto
 
 ```
-ARTEREAL/
-├── artereal-swing/
-│   ├── src/main/java/com/artereal/swing/
-│   │   ├── dao/           # Camada de acesso a dados
-│   │   ├── model/         # Modelos de dados
-│   │   ├── ui/
-│   │   │   ├── panels/    # Painéis Swing
-│   │   │   ├── components/ # Componentes reutilizáveis
-│   │   │   └── dialogs/   # Diálogos modais
-│   │   ├── database/      # Gerenciamento do banco
-│   │   └── utils/         # Utilitários
-│   ├── pom.xml           # Configuração Maven
-│   └── executar.sh       # Script de execução
-└── README.md            # Este arquivo
+artereal-swing/
+├── src/main/java/com/artereal/swing/
+│   ├── ArteRealSwingApplication.java  # Classe principal
+│   ├── domain/                       # Domain Layer (DDD)
+│   │   ├── loja/                     # Bounded Context Loja
+│   │   │   ├── Loja.java             # Entidade Aggregate Root
+│   │   │   ├── LojaRepository.java   # Interface Repository
+│   │   │   ├── valueobjects/         # Value Objects
+│   │   │   │   ├── Cnpj.java
+│   │   │   │   └── Endereco.java
+│   │   │   └── events/               # Domain Events
+│   │   ├── irmao/                    # Bounded Context Irmao
+│   │   └── caixa/                    # Bounded Context Caixa
+│   ├── application/                  # Application Layer
+│   │   ├── loja/
+│   │   │   ├── CriarLojaUseCase.java
+│   │   │   ├── AtualizarLojaUseCase.java
+│   │   │   ├── DeletarLojaUseCase.java
+│   │   │   ├── ListarLojasUseCase.java
+│   │   │   ├── LojaServiceFacade.java
+│   │   │   ├── CriarLojaRequest.java
+│   │   │   └── LojaResponse.java
+│   │   ├── irmao/
+│   │   └── caixa/
+│   ├── infrastructure/               # Infrastructure Layer
+│   │   ├── persistence/
+│   │   │   ├── LojaJpaRepository.java
+│   │   │   ├── IrmaoJpaRepository.java
+│   │   │   └── CaixaJpaRepository.java
+│   │   └── config/
+│   │       └── ConfiguracaoBanco.java
+│   ├── presentation/                 # Presentation Layer
+│   │   └── LojaController.java
+│   ├── dao/                          # DAO antigo (legado)
+│   ├── model/                        # Modelos antigos (legado)
+│   └── ui/                           # Interface Swing
+│       ├── MainFrame.java
+│       └── panels/
+│           ├── DashboardPanel.java
+│           ├── LojasPanel.java
+│           ├── IrmaosPanel.java
+│           └── ...
+├── src/test/java/                    # Testes
+│   ├── domain/
+│   ├── application/
+│   ├── integration/
+│   └── ui/
+├── docs/                             # Documentação
+│   └── arquitetura-hexagonal-ddd.md
+├── pom.xml                           # Configuração Maven
+└── README.md                         # Documentação
 ```
 
-## 🚀 Instalação e Execução
+## 🚀 Execução
 
 ### Pré-requisitos
-- **Java 17+** instalado
-- **Maven 3.6+** (opcional, para desenvolvimento)
+- Java 17 ou superior
+- Maven 3.6+
+- PostgreSQL 12+ (ou H2 para testes)
 
-### Execução Rápida
+### Build e Execução
 ```bash
-# Clonar o repositório
-git clone <repository-url>
-cd ARTEREAL/artereal-swing
+# Clone ou baixe o projeto
+cd artereal-swing
 
-# Executar o sistema
-./executar.sh
-```
-
-### Compilação Manual
-```bash
-# Compilar o projeto
+# Compilação
 mvn clean compile
 
-# Executar a aplicação
-mvn exec:java -Dexec.mainClass="com.artereal.swing.ArteRealSwingApplication"
+# Executar testes
+mvn test
+
+# Empacotamento
+mvn package -DskipTests
+
+# Execução
+java -jar target/artereal-swing-2.3.0-jar-with-dependencies.jar
 ```
 
-## 🔐 Acesso Padrão
+### Script Automático
+```bash
+# Criar script de execução
+echo '#!/bin/bash
+mvn clean package -DskipTests
+java -jar target/artereal-swing-2.3.0-jar-with-dependencies.jar
+' > run.sh
+chmod +x run.sh
+./run.sh
+```
 
-Após a inicialização, use as credenciais padrão:
+## 🗄️ Banco de Dados
 
-- **Usuário:** `admin`
-- **Senha:** `admin123`
+O sistema utiliza PostgreSQL com as seguintes características:
 
-## 📋 Módulos Principais
+- **Servidor**: PostgreSQL (localhost:5432)
+- **Database**: artereal_db
+- **Usuário**: system
+- **Senha**: system
+- **Inicialização**: Automática na primeira execução
+- **Testes**: H2 em memória (jdbc:h2:mem:testdb)
 
-### 1. Gestão de Irmãos
-Cadastro completo com dados pessoais, profissionais e maçônicos.
+### Configuração
+A configuração do banco de dados é gerenciada através de `ConfiguracaoBanco`:
+```java
+// Produção
+ConfiguracaoBanco.criarDataSource()
 
-### 2. Controle de Visitantes
-Sistema de autorização para visitantes e irmãos de outras lojas.
+// Testes
+ConfiguracaoBanco.criarDataSourceTeste()
+```
 
-### 3. Gestão Financeira
-Controle completo de caixa, cheques e relatórios financeiros.
+### Tabelas Principais
+- `loja` - Lojas maçônicas
+- `irmao` - Cadastro de irmãos
+- `sessao` - Sessões e reuniões
+- `caixa` - Transações financeiras
+- `biblioteca` - Acervo de livros
+- `emprestimo` - Empréstimos da biblioteca
+- `pagar` - Contas a pagar
 
-### 4. Biblioteca Maçônica
-Catálogo de livros com controle de empréstimos e devoluções.
+## 🖥️ Interface
 
-### 5. Calendário Maçônico
-Eventos importantes e sessões programadas.
+### Menu Principal
+- **Cadastros**: Irmãos, Lojas
+- **Administrativo**: Sessões, Caixa, Biblioteca
+- **Relatórios**: Geração de relatórios
+- **Ajuda**: Sobre o sistema
 
-### 6. Documentos Digitais
-Gestão de documentos oficiais e correspondências.
+### Dashboard
+- Estatísticas em tempo real
+- Cards informativos
+- Navegação rápida
 
-## 🎯 Características Técnicas
+### Funcionalidades
+- **Gestão de Irmãos**: CRUD completo
+- **Controle Financeiro**: Entradas e saídas
+- **Biblioteca**: Empréstimos e devoluções
+- **Sessões**: Agendamento e controle
+- **Relatórios**: Diversos formatos
 
-### Banco de Dados
-- **19 tabelas** otimizadas
-- **Relacionamentos** consistentes
-- **Integridade** de dados garantida
-- **Backup** automático
+## 🔧 Configuração
 
-### Performance
-- **Inicialização rápida** (< 3 segundos)
-- **Interface responsiva** em tempo real
-- **Cache inteligente** de consultas
-- **Memória otimizada**
+### Configuração do Banco de Dados
+A configuração do banco de dados é centralizada em `ConfiguracaoBanco`:
+```java
+// Produção (PostgreSQL)
+DataSource dataSource = ConfiguracaoBanco.criarDataSource();
 
-### Segurança
-- **Controle de acesso** por usuário
-- **Sessões seguras** com timeout
-- **Validação** de dados de entrada
-- **Logging** completo de auditoria
+// Testes (H2 em memória)
+DataSource testDataSource = ConfiguracaoBanco.criarDataSourceTeste();
+```
 
-## 🔄 Histórico
+### Personalização
+- **Look and Feel**: Detectado automaticamente
+- **Tema**: Nativo do sistema operacional
+- **Fonte**: Arial (padrão)
 
-### Versão Atual: 1.0.0
-- ✅ Engenharia reversa completa do sistema FoxPro
-- ✅ Modernização para Java 17 + Swing
-- ✅ Interface moderna com logo maçônico
-- ✅ Todas as funcionalidades originais preservadas
-- ✅ Expansões significativas de recursos
+## 📊 Funcionalidades Implementadas
 
-## 📝 Desenvolvimento
+### ✅ Módulos Ativos
+- [x] Dashboard com estatísticas
+- [x] Gestão de Irmãos
+- [x] Gestão de Lojas
+- [x] Gestão de Sessões
+- [x] Controle Financeiro
+- [x] Biblioteca
+- [x] Relatórios básicos
 
-### Como Contribuir
-1. **Fork** o repositório
-2. **Criar branch** para sua funcionalidade
-3. **Commit** suas mudanças
-4. **Push** para o branch
-5. **Abrir Pull Request**
+### 🔄 Em Desenvolvimento
+- [ ] Formulários detalhados
+- [ ] Validação de dados
+- [ ] Relatórios avançados
+- [ ] Backup/Restore
+- [ ] Importação/Exportação
 
-### Estrutura de Código
-- **Convenções Java** seguidas rigorosamente
-- **Comments** em português brasileiro
-- **Logging** estruturado com SLF4J
-- **Testes** unitários para componentes críticos
+## 🐛 Troubleshooting
 
-## 📞 Suporte
+### Problemas Comuns
 
-Para suporte técnico ou dúvidas:
-- **Documentação:** Verificar os painéis de ajuda no sistema
-- **Logs:** Analisar logs de execução para diagnóstico
-- **Configurações:** Ajustar parâmetros no painel de configurações
+#### Java não encontrado
+```bash
+# Verificar versão
+java -version
 
-## 📜 Licença
+# Instalar Java 17
+# Ubuntu/Debian
+sudo apt update
+sudo apt install openjdk-17-jdk
 
-Este projeto é propriedade da ArteReal e desenvolvido para uso exclusivo em lojas maçônicas.
+# Windows
+# Baixar do site oficial da Oracle
+```
+
+
+## 📄 Licença
+
+Este projeto é desenvolvido para uso em lojas maçônicas e segue os princípios da maçonaria.
 
 ---
 
-**🏛️ ArteReal - Gestão Maçônica Moderna**
+**ArteReal Masonic Lodge Management System - Versão Swing**
 
-*Desenvolvido com ❤️ para a comunidade maçônica brasileira*
+*Versão 2.3.0 - Arquitetura Hexagonal com DDD*
+
+*Sistema desktop moderno para gestão maçônica tradicional com arquitetura escalável e testável*
