@@ -2,12 +2,11 @@ package com.artereal.swing.ui.panels;
 
 import com.artereal.swing.dao.ChequeDAO;
 import com.artereal.swing.model.Cheque;
+import com.artereal.swing.ui.layout.PadraoLayout;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
@@ -36,6 +35,8 @@ public class ChequesPanel extends JPanel {
     private JButton cancelarButton;
     private JButton devolverButton;
     private JButton relatorioButton;
+    private JTextField pesquisarField;
+    private JButton pesquisarButton;
     private Cheque chequeAtual;
     
     public ChequesPanel() {
@@ -57,24 +58,31 @@ public class ChequesPanel extends JPanel {
         chequesTable = new JTable(tableModel);
         
         // Formulário
-        faturaField = new JTextField(15);
-        sacadoField = new JTextField(30);
-        valorField = new JTextField(15);
-        dataEmissaoField = new JTextField(12);
-        dataVencimentoField = new JTextField(12);
-        bancoField = new JTextField(20);
-        grupoField = new JTextField(20);
-        historicoField = new JTextField(40);
+        faturaField = new JTextField();
+        sacadoField = new JTextField();
+        valorField = new JTextField();
+        dataEmissaoField = new JTextField();
+        dataVencimentoField = new JTextField();
+        bancoField = new JTextField();
+        grupoField = new JTextField();
+        historicoField = new JTextField();
         situacaoComboBox = new JComboBox<>(new String[]{"ABERTO", "PAGO", "CANCELADO", "DEVOLVIDO"});
         
-        // Botões
-        salvarButton = new JButton("Salvar");
-        novoButton = new JButton("Novo");
-        excluirButton = new JButton("Excluir");
-        compensarButton = new JButton("Compensar");
-        cancelarButton = new JButton("Cancelar");
-        devolverButton = new JButton("Devolver");
-        relatorioButton = new JButton("Relatório");
+        // Botões usando PadraoLayout com cores pastéis
+        salvarButton = PadraoLayout.criarBotaoSalvar();
+        novoButton = PadraoLayout.criarBotaoNovo();
+        excluirButton = PadraoLayout.criarBotaoExcluir();
+        compensarButton = PadraoLayout.criarBotao("Compensar", new Color(152, 251, 152)); // Verde menta
+        cancelarButton = PadraoLayout.criarBotao("Cancelar", new Color(255, 182, 193)); // Rosa pastel
+        devolverButton = PadraoLayout.criarBotao("Devolver", new Color(255, 218, 185)); // Laranja pastel
+        relatorioButton = PadraoLayout.criarBotao("Relatório", new Color(200, 200, 255)); // Azul claro
+        
+        // Pesquisa
+        pesquisarField = new JTextField(20);
+        PadraoLayout.estilizarCampoTexto(pesquisarField);
+        pesquisarField.setEditable(true);
+        pesquisarField.setEnabled(true);
+        pesquisarButton = PadraoLayout.criarBotaoPesquisar();
         
         // Data atual como padrão
         dataEmissaoField.setText(LocalDate.now().toString());
@@ -83,12 +91,29 @@ public class ChequesPanel extends JPanel {
     }
     
     private void setupLayout() {
-        setLayout(new BorderLayout());
+        // Aplicar layout padrão usando PadraoLayout
+        // Aplicar estilização padrão ao painel principal
+        PadraoLayout.estilizarPainelPrincipal(this);
         
-        // Título
-        JLabel titleLabel = new JLabel("Gestão de Cheques", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+        // Header estilizado usando PadraoLayout
+        JPanel headerPanel = PadraoLayout.criarHeader("💰 Gestão de Cheques", "Controle de cheques e compensação bancária");
+        add(headerPanel, BorderLayout.NORTH);
+        
+        // Painel principal usando PadraoLayout
+        JPanel mainPanel = PadraoLayout.criarPainelPrincipal();
+        
+        // Painel de busca no topo
+        JPanel buscaPanel = PadraoLayout.criarPainelPesquisa(pesquisarField, pesquisarButton);
+        mainPanel.add(buscaPanel, BorderLayout.NORTH);
+        
+        // Painel do conteúdo com split vertical (Formulário acima, Tabela abaixo)
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBackground(PadraoLayout.COR_FUNDO);
+        
+        // Painel de formulário usando PadraoLayout
+        JPanel formPanel = new JPanel(new BorderLayout());
+        formPanel.setBackground(PadraoLayout.COR_PAINEL);
+        formPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
         
         // Painel de estatísticas
         JPanel statsPanel = new JPanel(new GridLayout(2, 4, 10, 10));
@@ -157,100 +182,145 @@ public class ChequesPanel extends JPanel {
             alertasPanel.add(new JLabel("Erro ao carregar alertas"));
         }
         
-        // Painel de formulário
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBorder(BorderFactory.createTitledBorder("Dados do Cheque"));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.anchor = GridBagConstraints.WEST;
+        // Painel de formulário completo usando PadraoLayout
+        JPanel formCompletoPanel = new JPanel(new BorderLayout());
+        formCompletoPanel.setBackground(Color.WHITE);
         
-        // Fatura
-        gbc.gridx = 0; gbc.gridy = 0;
-        formPanel.add(new JLabel("Fatura:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(faturaField, gbc);
+        JPanel formContent = new JPanel(PadraoLayout.criarLayoutFormularioAlinhado());
+        formContent.setBackground(Color.WHITE);
         
-        // Sacado
-        gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Sacado:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(sacadoField, gbc);
+        // Fatura (ocupa duas colunas)
+        GridBagConstraints faturaLabelConstraints = PadraoLayout.criarConstraintsFormulario(0, 0);
+        faturaLabelConstraints.gridwidth = 2;
+        faturaLabelConstraints.fill = GridBagConstraints.HORIZONTAL;
+        formContent.add(PadraoLayout.criarLabelFormulario("Fatura:"), faturaLabelConstraints);
         
-        // Valor e Datas
-        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Valor:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        JPanel valorDatasPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        valorDatasPanel.add(valorField);
-        valorDatasPanel.add(new JLabel("Emissão:"));
-        valorDatasPanel.add(dataEmissaoField);
-        valorDatasPanel.add(new JLabel("Vencimento:"));
-        valorDatasPanel.add(dataVencimentoField);
-        formPanel.add(valorDatasPanel, gbc);
+        GridBagConstraints faturaFieldConstraints = PadraoLayout.criarConstraintsFormulario(1, 0);
+        faturaFieldConstraints.gridwidth = 2;
+        faturaFieldConstraints.fill = GridBagConstraints.HORIZONTAL;
+        PadraoLayout.estilizarCampoTexto(faturaField);
+        formContent.add(faturaField, faturaFieldConstraints);
         
-        // Banco e Grupo
-        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Banco:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        JPanel bancoGrupoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        bancoGrupoPanel.add(bancoField);
-        bancoGrupoPanel.add(new JLabel("Grupo:"));
-        bancoGrupoPanel.add(grupoField);
-        formPanel.add(bancoGrupoPanel, gbc);
+        // Sacado (ocupa duas colunas)
+        GridBagConstraints sacadoLabelConstraints = PadraoLayout.criarConstraintsFormulario(2, 0);
+        sacadoLabelConstraints.gridwidth = 2;
+        sacadoLabelConstraints.fill = GridBagConstraints.HORIZONTAL;
+        formContent.add(PadraoLayout.criarLabelFormulario("Sacado:"), sacadoLabelConstraints);
         
-        // Histórico e Situação
-        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Histórico:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        JPanel historicoSituacaoPanel = new JPanel(new BorderLayout());
-        historicoSituacaoPanel.add(historicoField, BorderLayout.CENTER);
-        historicoSituacaoPanel.add(situacaoComboBox, BorderLayout.EAST);
-        formPanel.add(historicoSituacaoPanel, gbc);
+        GridBagConstraints sacadoFieldConstraints = PadraoLayout.criarConstraintsFormulario(3, 0);
+        sacadoFieldConstraints.gridwidth = 2;
+        sacadoFieldConstraints.fill = GridBagConstraints.HORIZONTAL;
+        PadraoLayout.estilizarCampoTexto(sacadoField);
+        formContent.add(sacadoField, sacadoFieldConstraints);
         
-        // Botões do formulário
-        JPanel botoesFormPanel = new JPanel(new FlowLayout());
-        botoesFormPanel.add(salvarButton);
-        botoesFormPanel.add(novoButton);
-        botoesFormPanel.add(excluirButton);
+        // Valor
+        formContent.add(PadraoLayout.criarLabelFormulario("Valor:"), PadraoLayout.criarConstraintsFormulario(4, 0));
+        PadraoLayout.estilizarCampoTexto(valorField);
+        formContent.add(valorField, PadraoLayout.criarConstraintsFormulario(4, 1));
         
-        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        formPanel.add(botoesFormPanel, gbc);
+        // Emissão
+        formContent.add(PadraoLayout.criarLabelFormulario("Emissão:"), PadraoLayout.criarConstraintsFormulario(5, 0));
+        PadraoLayout.estilizarCampoTexto(dataEmissaoField);
+        formContent.add(dataEmissaoField, PadraoLayout.criarConstraintsFormulario(5, 1));
         
-        // Botões de ações
-        JPanel acoesPanel = new JPanel(new FlowLayout());
-        acoesPanel.setBorder(BorderFactory.createTitledBorder("Ações do Cheque"));
-        acoesPanel.add(compensarButton);
-        acoesPanel.add(cancelarButton);
-        acoesPanel.add(devolverButton);
-        acoesPanel.add(relatorioButton);
+        // Vencimento
+        formContent.add(PadraoLayout.criarLabelFormulario("Vencimento:"), PadraoLayout.criarConstraintsFormulario(6, 0));
+        PadraoLayout.estilizarCampoTexto(dataVencimentoField);
+        formContent.add(dataVencimentoField, PadraoLayout.criarConstraintsFormulario(6, 1));
         
-        gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        formPanel.add(acoesPanel, gbc);
+        // Situação
+        formContent.add(PadraoLayout.criarLabelFormulario("Situação:"), PadraoLayout.criarConstraintsFormulario(7, 0));
+        PadraoLayout.estilizarComboBox(situacaoComboBox);
+        formContent.add(situacaoComboBox, PadraoLayout.criarConstraintsFormulario(7, 1));
         
-        // Painel da tabela
+        // Banco (ocupa duas colunas)
+        GridBagConstraints bancoLabelConstraints = PadraoLayout.criarConstraintsFormulario(8, 0);
+        bancoLabelConstraints.gridwidth = 2;
+        bancoLabelConstraints.fill = GridBagConstraints.HORIZONTAL;
+        formContent.add(PadraoLayout.criarLabelFormulario("Banco:"), bancoLabelConstraints);
+        
+        GridBagConstraints bancoFieldConstraints = PadraoLayout.criarConstraintsFormulario(9, 0);
+        bancoFieldConstraints.gridwidth = 2;
+        bancoFieldConstraints.fill = GridBagConstraints.HORIZONTAL;
+        PadraoLayout.estilizarCampoTexto(bancoField);
+        formContent.add(bancoField, bancoFieldConstraints);
+        
+        // Grupo (ocupa duas colunas)
+        GridBagConstraints grupoLabelConstraints = PadraoLayout.criarConstraintsFormulario(10, 0);
+        grupoLabelConstraints.gridwidth = 2;
+        grupoLabelConstraints.fill = GridBagConstraints.HORIZONTAL;
+        formContent.add(PadraoLayout.criarLabelFormulario("Grupo:"), grupoLabelConstraints);
+        
+        GridBagConstraints grupoFieldConstraints = PadraoLayout.criarConstraintsFormulario(11, 0);
+        grupoFieldConstraints.gridwidth = 2;
+        grupoFieldConstraints.fill = GridBagConstraints.HORIZONTAL;
+        PadraoLayout.estilizarCampoTexto(grupoField);
+        formContent.add(grupoField, grupoFieldConstraints);
+        
+        // Histórico (ocupa duas colunas)
+        GridBagConstraints historicoLabelConstraints = PadraoLayout.criarConstraintsFormulario(12, 0);
+        historicoLabelConstraints.gridwidth = 2;
+        historicoLabelConstraints.fill = GridBagConstraints.HORIZONTAL;
+        formContent.add(PadraoLayout.criarLabelFormulario("Histórico:"), historicoLabelConstraints);
+        
+        GridBagConstraints historicoFieldConstraints = PadraoLayout.criarConstraintsFormulario(13, 0);
+        historicoFieldConstraints.gridwidth = 2;
+        historicoFieldConstraints.fill = GridBagConstraints.HORIZONTAL;
+        PadraoLayout.estilizarCampoTexto(historicoField);
+        formContent.add(historicoField, historicoFieldConstraints);
+        
+        formCompletoPanel.add(formContent, BorderLayout.CENTER);
+        
+        // Botões usando PadraoLayout
+        JPanel botoesPanel = PadraoLayout.criarPainelBotoes(
+            PadraoLayout.criarBotao("Salvar", PadraoLayout.COR_BOTAO_SALVAR),
+            PadraoLayout.criarBotao("Novo", PadraoLayout.COR_BOTAO_NOVO),
+            PadraoLayout.criarBotao("Excluir", PadraoLayout.COR_BOTAO_EXCLUIR),
+            PadraoLayout.criarBotao("Compensar", PadraoLayout.COR_BOTAO_EDITAR)
+        );
+        formCompletoPanel.add(botoesPanel, BorderLayout.SOUTH);
+        
+        formPanel.add(formCompletoPanel, BorderLayout.CENTER);
+        
+        // Painel de tabela usando PadraoLayout
         JPanel tabelaPanel = new JPanel(new BorderLayout());
-        tabelaPanel.setBorder(BorderFactory.createTitledBorder("Cheques Cadastrados"));
-        tabelaPanel.add(new JScrollPane(chequesTable), BorderLayout.CENTER);
+        tabelaPanel.setBackground(PadraoLayout.COR_PAINEL);
+        tabelaPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
         
-        // Layout principal
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formPanel, tabelaPanel);
-        splitPane.setDividerLocation(350);
+        // Painel de estatísticas e alertas
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBackground(Color.WHITE);
+        topPanel.add(statsPanel, BorderLayout.CENTER);
+        topPanel.add(alertasPanel, BorderLayout.SOUTH);
         
-        JPanel centerPanel = new JPanel(new BorderLayout());
-        centerPanel.add(splitPane, BorderLayout.CENTER);
-        centerPanel.add(alertasPanel, BorderLayout.SOUTH);
+        // Tabela estilizada usando PadraoLayout
+        PadraoLayout.configurarTabela(chequesTable);
+        JScrollPane tableScrollPane = new JScrollPane(chequesTable);
         
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.add(statsPanel, BorderLayout.NORTH);
-        mainPanel.add(centerPanel, BorderLayout.CENTER);
+        tabelaPanel.add(topPanel, BorderLayout.NORTH);
+        tabelaPanel.add(tableScrollPane, BorderLayout.CENTER);
         
-        add(titleLabel, BorderLayout.NORTH);
+        // Split vertical: Formulário acima, Tabela abaixo
+        JSplitPane verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formPanel, tabelaPanel);
+        verticalSplitPane.setDividerLocation(350);
+        verticalSplitPane.setResizeWeight(0.4);
+        
+        contentPanel.add(verticalSplitPane, BorderLayout.CENTER);
+        
+        // Adicionar contentPanel ao mainPanel
+        mainPanel.add(contentPanel, BorderLayout.CENTER);
+        
         add(mainPanel, BorderLayout.CENTER);
     }
-    
-    private void setupEvents() {
-        salvarButton.addActionListener(e -> salvarCheque());
-        novoButton.addActionListener(e -> limparFormulario());
+
+private void setupEvents() {
+    salvarButton.addActionListener(e -> salvarCheque());
+    novoButton.addActionListener(e -> limparFormulario());
+    excluirButton.addActionListener(e -> excluirCheque());
+    compensarButton.addActionListener(e -> compensarCheque());
+    cancelarButton.addActionListener(e -> cancelarCheque());
+    devolverButton.addActionListener(e -> devolverCheque());
+    relatorioButton.addActionListener(e -> gerarRelatorio());
         excluirButton.addActionListener(e -> excluirCheque());
         compensarButton.addActionListener(e -> compensarCheque());
         cancelarButton.addActionListener(e -> cancelarCheque());

@@ -5,7 +5,7 @@ import java.time.LocalDate;
 /**
  * Modelo de dados para Gestão de Afastamentos e Licenças
  */
-public class Afastamento {
+public class Afastamento extends SimpleModel {
     
     private Long id;
     private Long codigoIrmao;
@@ -91,7 +91,7 @@ public class Afastamento {
     // Métodos utilitários
     public int calcularDias() {
         if (dataInicial == null || dataFinal == null) return 0;
-        return (int) java.time.temporal.ChronoUnit.DAYS.between(dataInicial, dataFinal) + 1;
+        return (int) java.time.temporal.ChronoUnit.DAYS.between(dataInicial, dataFinal);
     }
     
     public boolean isAtivo() {
@@ -168,14 +168,5 @@ public class Afastamento {
     public String getPeriodoFormatado() {
         if (dataInicial == null || dataFinal == null) return "Não definido";
         return String.format("%s a %s", dataInicial, dataFinal);
-    }
-    
-    @Override
-    public String toString() {
-        return String.format("%s - %s (%s) - %s dias", 
-                           descricao != null ? descricao : "Afastamento", 
-                           getMotivoFormatado(), 
-                           getStatusFormatado(), 
-                           diasAfastamento);
     }
 }

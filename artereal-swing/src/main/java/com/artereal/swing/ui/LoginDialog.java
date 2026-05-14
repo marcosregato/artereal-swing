@@ -3,11 +3,10 @@ package com.artereal.swing.ui;
 import com.artereal.swing.dao.UsuarioDAO;
 import com.artereal.swing.model.Usuario;
 import com.artereal.swing.ui.components.LogoMaconaria;
+import com.artereal.swing.ui.layout.PadraoLayout;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.sql.SQLException;
 
@@ -32,7 +31,7 @@ public class LoginDialog extends JDialog {
         setupEvents();
         
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setSize(400, 250);
+        setSize(480, 320); // Tamanho maior para melhor acomodar os componentes
         setLocationRelativeTo(owner);
         setResizable(false);
     }
@@ -40,8 +39,8 @@ public class LoginDialog extends JDialog {
     private void initializeComponents() {
         usuarioField = new JTextField(20);
         senhaField = new JPasswordField(20);
-        entrarButton = new JButton("Entrar");
-        cancelarButton = new JButton("Cancelar");
+        entrarButton = PadraoLayout.criarBotao("Entrar", new Color(144, 238, 144)); // Verde pastel
+        cancelarButton = PadraoLayout.criarBotao("Cancelar", new Color(255, 182, 193)); // Rosa pastel
         
         // Configurar botão Enter como default
         getRootPane().setDefaultButton(entrarButton);
@@ -50,34 +49,36 @@ public class LoginDialog extends JDialog {
     private void setupLayout() {
         setLayout(new BorderLayout());
         
-        // Painel principal
+        // Painel principal com melhor espaçamento
         JPanel mainPanel = new JPanel(new GridBagLayout());
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(25, 30, 25, 30)); // Maior margem
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(8, 5, 8, 5); // Maior espaçamento vertical
         gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         
-        // Painel do título com logo
+        // Painel do título com logo e espaçamento superior
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setOpaque(false);
+        titlePanel.setBorder(BorderFactory.createEmptyBorder(25, 0, 0, 0)); // Espaçamento superior para mover para baixo
         
-        // Adicionar logo maçônico usando imagem estática
-        BufferedImage logoImage = LogoMaconaria.createLogoImage(48, null);
+        // Adicionar logo maçônico usando imagem estática com tamanho maior
+        BufferedImage logoImage = LogoMaconaria.createLogoImage(64, null);
         ImageIcon logoIcon = new ImageIcon(logoImage);
         JLabel logoLabel = new JLabel(logoIcon);
         logoLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
         
-        // Textos do título
+        // Textos do título com fonte maior e cores mais profissionais
         JPanel textPanel = new JPanel(new GridLayout(2, 1, 0, 5));
         textPanel.setOpaque(false);
         
-        JLabel titleLabel = new JLabel("Sistema ArteReal", SwingConstants.LEFT);
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        titleLabel.setForeground(new Color(70, 130, 180));
+        JLabel titleLabel = new JLabel("🏛️ Sistema ArteReal", SwingConstants.LEFT);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        titleLabel.setForeground(new Color(25, 25, 112)); // Azul marinho maçônico
         
-        JLabel subtitleLabel = new JLabel("Gestão Maçônica", SwingConstants.LEFT);
-        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        subtitleLabel.setForeground(new Color(100, 100, 120));
+        JLabel subtitleLabel = new JLabel("Gestão Maçônica Integrada", SwingConstants.LEFT);
+        subtitleLabel.setFont(new Font("Segoe UI", Font.ITALIC, 16));
+        subtitleLabel.setForeground(new Color(70, 130, 180)); // Azul principal
         
         textPanel.add(titleLabel);
         textPanel.add(subtitleLabel);
@@ -88,24 +89,25 @@ public class LoginDialog extends JDialog {
         gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
         mainPanel.add(titlePanel, gbc);
         
-        // Espaçamento
-        gbc.gridy = 2; gbc.insets = new Insets(15, 5, 15, 5);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 10)), gbc);
+        // Espaçamento maior entre título e campos
+        gbc.gridy = 1; gbc.insets = new Insets(20, 5, 20, 5);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 15)), gbc);
         
         // Usuário
-        gbc.gridy = 3; gbc.gridwidth = 1; gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.gridy = 2; gbc.gridwidth = 1; gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
         mainPanel.add(new JLabel("Usuário:"), gbc);
         gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
         mainPanel.add(usuarioField, gbc);
         
         // Senha
-        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
         mainPanel.add(new JLabel("Senha:"), gbc);
         gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
         mainPanel.add(senhaField, gbc);
         
-        // Painel de botões estilizados com cores pastéis
-        JPanel botoesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+        // Painel de botões estilizados com cores pastéis e melhor espaçamento
+        JPanel botoesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
         botoesPanel.setBackground(Color.WHITE);
         
         // Estilizar botões com cores pastéis
@@ -136,7 +138,7 @@ public class LoginDialog extends JDialog {
         mainPanel.add(botoesPanel, gbc);
         
         // Informações
-        JLabel infoLabel = new JLabel("<html><small>Usuário padrão: Administrador<br>Senha padrão: admin123</small></html>", SwingConstants.CENTER);
+        JLabel infoLabel = new JLabel("<html><small>Usuário padrão: admin<br>Senha padrão: admin123</small></html>", SwingConstants.CENTER);
         infoLabel.setForeground(Color.GRAY);
         gbc.gridy = 6; gbc.insets = new Insets(10, 5, 5, 5);
         mainPanel.add(infoLabel, gbc);
@@ -170,7 +172,6 @@ public class LoginDialog extends JDialog {
         
         try {
             // Debug: mostrar valores sendo testados
-            System.out.println("Tentando login com: usuario='" + usuario + "', senha='" + senha + "'");
             
             usuarioLogado = usuarioDAO.authenticate(usuario.trim(), senha.trim());
             
@@ -197,30 +198,6 @@ public class LoginDialog extends JDialog {
     private void cancelar() {
         autenticado = false;
         dispose();
-    }
-    
-    private ImageIcon createIcon() {
-        // Criar um ícone simples usando texto
-        return new ImageIcon(createIconImage());
-    }
-    
-    private Image createIconImage() {
-        BufferedImage image = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2d = image.createGraphics();
-        
-        // Desenhar um símbolo maçônico simples (esquadro e compasso)
-        g2d.setColor(Color.BLUE);
-        g2d.setStroke(new BasicStroke(2));
-        
-        // Esquadro
-        g2d.drawRect(8, 12, 16, 16);
-        
-        // Compasso
-        g2d.drawOval(10, 8, 12, 12);
-        g2d.drawLine(16, 14, 16, 20);
-        
-        g2d.dispose();
-        return image;
     }
     
     public boolean isAutenticado() {

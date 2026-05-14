@@ -1,0 +1,318 @@
+# Compiled class file
+*.class
+
+# Log file
+*.log
+
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+replay_pid*
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Gradle
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+# Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# VS Code
+.vscode/
+
+# Mac
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+*.mdb
+*.accdb
+
+# ArteReal specific
+# Database files in user directories
+.artereal/
+artereal.db
+artereal.db-journal
+
+# Backup files
+backup/
+backups/
+*.backup
+*.bak
+
+# Logs and reports
+logs/
+reports/
+*.log
+*.txt
+
+# Configuration files with sensitive data
+config.properties
+application.properties
+*.properties.local
+*.properties.dev
+*.properties.prod
+
+# User-specific data
+user-data/
+temp/
+cache/
+
+# Documentation build
+docs/build/
+site/
+
+# Test outputs
+test-results/
+test-output/
+*.hprof
+*.dump
+
+# IDE specific files
+*.sublime-*
+.atom/
+.brackets/
+
+# OS generated files
+.DS_Store?
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Application specific
+# ArteReal database files
+*.arte
+*.artedata
+
+# User uploads and temporary files
+uploads/
+temp-uploads/
+user-files/
+
+# Export files
+exports/
+*.export
+*.csv.export
+*.pdf.export
+
+# Session files
+sessions/
+*.session
+
+# Cache directories
+.cache/
+cache/
+
+# Lock files
+*.lock
+*.lck
+
+# Profile and preferences
+profile/
+preferences/
+user-preferences/
+
+# Development tools
+.jrebel/
+.liquibase/
+
+# Security
+*.key
+*.keystore
+*.p12
+*.pem
+*.crt
+*.cer
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Kubernetes
+*.kubeconfig
+
+# Monitoring and metrics
+metrics/
+monitoring/
+
+# Performance
+profiling/
+*.prof
+
+# Build artifacts
+build-artifacts/
+distribution/
+
+# Documentation
+docs/generated/
+api-docs/
+
+# Third-party libraries
+lib/
+libs/
+
+# Native libraries
+*.dll
+*.so
+*.dylib
+
+# Resources backup
+resources-backup/
+
+# Test databases
+test-db/
+test-databases/
+
+# Development scripts
+scripts/local/
+scripts/dev/
+
+# Local configuration overrides
+config/local/
+config/dev/
+
+# Temporary user data for testing
+test-user-data/
+mock-data/
+
+# Generated sources
+generated-sources/
+generated-test-sources/
+
+# Annotation processing
+.apt_generated/
+generated/
+
+# JRebel
+.jrebel
+
+# JBoss
+.wildfly/
+
+# WebSphere
+.was/
+
+# WebLogic
+.wl/
+
+# Tomcat
+/work/
+/temp/
+
+# Jetty
+/jetty/
+
+# Spring Boot
+spring-boot-devtools.properties
+
+# Hibernate
+hibernate.cfg.xml
+
+# JPA
+META-INF/persistence.xml
+
+# Logging
+logback.xml
+log4j.properties
+log4j2.xml
+
+# Application logs
+logs/
+*.log.*
+
+# Backup and archive files
+*.zip
+*.tar
+*.gz
+*.rar
+*.7z
+
+# IDE temp files
+.vscode/settings.json.local
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/dictionaries
+.idea/shelf
+.idea/contentModel.xml
+idea.log.*

@@ -6,7 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -29,36 +32,41 @@ public class CaixaDAO {
         String sql;
         if (caixa.getId() == null) {
             sql = """
-                INSERT INTO caixa (tipo, categoria, descricao, valor, data_movimentacao, 
-                    responsavel, forma_pagamento, numero_documento, status, observacoes, 
-                    created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                INSERT INTO caixa (data, historico, entrada, saida, saldo, grupo, 
+                    lancamento, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                 """;
         } else {
             sql = """
-                UPDATE caixa SET tipo = ?, categoria = ?, descricao = ?, valor = ?, 
-                    data_movimentacao = ?, responsavel = ?, forma_pagamento = ?, 
-                    numero_documento = ?, status = ?, observacoes = ?, updated_at = CURRENT_TIMESTAMP
+                UPDATE caixa SET data = ?, historico = ?, entrada = ?, saida = ?, 
+                    saldo = ?, grupo = ?, lancamento = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
                 """;
         }
         
         try (Connection conn = dbManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement stmt = conn.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
             
-            stmt.setString(1, caixa.getTipo());
-            stmt.setString(2, caixa.getCategoria());
-            stmt.setString(3, caixa.getDescricao());
-            stmt.setBigDecimal(4, caixa.getValor());
-            stmt.setString(5, caixa.getDataMovimentacao() != null ? caixa.getDataMovimentacao().format(formatter) : null);
-            stmt.setString(6, caixa.getResponsavel());
-            stmt.setString(7, caixa.getFormaPagamento());
-            stmt.setString(8, caixa.getNumeroDocumento());
-            stmt.setString(9, caixa.getStatus());
-            stmt.setString(10, caixa.getObservacoes());
+            // Determinar se é entrada ou saída baseado no tipo
+            BigDecimal entrada = BigDecimal.ZERO;
+            BigDecimal saida = BigDecimal.ZERO;
+            
+            if ("RECEITA".equals(caixa.getTipo())) {
+                entrada = caixa.getValor();
+            } else if ("DESPESA".equals(caixa.getTipo())) {
+                saida = caixa.getValor();
+            }
+            
+            stmt.setString(1, caixa.getDataMovimentacao() != null ? caixa.getDataMovimentacao().format(formatter) : LocalDateTime.now().format(formatter));
+            stmt.setString(2, caixa.getDescricao());
+            stmt.setBigDecimal(3, entrada);
+            stmt.setBigDecimal(4, saida);
+            stmt.setBigDecimal(5, entrada.subtract(saida)); // saldo = entrada - saida
+            stmt.setString(6, caixa.getCategoria());
+            stmt.setString(7, caixa.getResponsavel());
             
             if (caixa.getId() != null) {
-                stmt.setLong(11, caixa.getId());
+                stmt.setLong(8, caixa.getId());
             }
             
             int affectedRows = stmt.executeUpdate();

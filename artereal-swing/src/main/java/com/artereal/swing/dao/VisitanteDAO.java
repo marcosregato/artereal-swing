@@ -50,10 +50,10 @@ public class VisitanteDAO {
             stmt.setString(7, visitante.getTelefone());
             stmt.setString(8, visitante.getEmail());
             stmt.setString(9, visitante.getAutorizadoPor());
-            stmt.setBoolean(10, visitante.isAutorizado());
+            stmt.setInt(10, visitante.isAutorizado() ? 1 : 0);
             stmt.setString(11, visitante.getObservacoes());
             stmt.setString(12, visitante.getNumeroCracha());
-            stmt.setBoolean(13, visitante.isAtivo());
+            stmt.setInt(13, visitante.isAtivo() ? 1 : 0);
             
             if (visitante.getId() != null) {
                 stmt.setLong(14, visitante.getId());
@@ -69,7 +69,6 @@ public class VisitanteDAO {
                 }
             }
             
-            conn.commit();
             logger.debug("Visitante salvo: {}", visitante.getNome());
         }
     }
@@ -250,11 +249,18 @@ public class VisitanteDAO {
         try (Connection conn = DatabaseManager.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
+            // Desabilitar autoCommit para controle manual da transação
+            boolean originalAutoCommit = conn.getAutoCommit();
+            conn.setAutoCommit(false);
+            
             stmt.setString(1, autorizador);
             stmt.setLong(2, id);
             
             stmt.executeUpdate();
             conn.commit();
+            
+            // Restaurar autoCommit original
+            conn.setAutoCommit(originalAutoCommit);
             
             logger.debug("Visitante autorizado: ID {}, por: {}", id, autorizador);
         }
@@ -272,10 +278,17 @@ public class VisitanteDAO {
         try (Connection conn = DatabaseManager.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
+            // Desabilitar autoCommit para controle manual da transação
+            boolean originalAutoCommit = conn.getAutoCommit();
+            conn.setAutoCommit(false);
+            
             stmt.setLong(1, id);
             
             stmt.executeUpdate();
             conn.commit();
+            
+            // Restaurar autoCommit original
+            conn.setAutoCommit(originalAutoCommit);
             
             logger.debug("Autorização negada ao visitante: ID {}", id);
         }
@@ -384,9 +397,16 @@ public class VisitanteDAO {
         try (Connection conn = DatabaseManager.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
+            // Desabilitar autoCommit para controle manual da transação
+            boolean originalAutoCommit = conn.getAutoCommit();
+            conn.setAutoCommit(false);
+            
             stmt.setLong(1, id);
             stmt.executeUpdate();
             conn.commit();
+            
+            // Restaurar autoCommit original
+            conn.setAutoCommit(originalAutoCommit);
             
             logger.debug("Visitante desativado: ID {}", id);
         }
@@ -404,7 +424,7 @@ public class VisitanteDAO {
         String dataVisitaStr = rs.getString("data_visita");
         if (dataVisitaStr != null && !dataVisitaStr.isEmpty()) {
             try {
-                // Converter formato SQLite (YYYY-MM-DD HH:MM:SS) para LocalDate
+                // Converter formato PostgreSQL (YYYY-MM-DD HH:MM:SS) para LocalDate
                 String dataFormatada = dataVisitaStr.split(" ")[0];
                 visitante.setDataVisita(LocalDate.parse(dataFormatada));
             } catch (Exception e) {
@@ -426,7 +446,7 @@ public class VisitanteDAO {
         String dataCadastroStr = rs.getString("data_cadastro");
         if (dataCadastroStr != null && !dataCadastroStr.isEmpty()) {
             try {
-                // Converter formato SQLite (YYYY-MM-DD HH:MM:SS) para LocalDate
+                // Converter formato PostgreSQL (YYYY-MM-DD HH:MM:SS) para LocalDate
                 String dataFormatada = dataCadastroStr.split(" ")[0];
                 visitante.setDataCadastro(LocalDate.parse(dataFormatada));
             } catch (Exception e) {

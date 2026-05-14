@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 /**
  * Modelo de dados para Movimentações do Caixa
  */
-public class Caixa {
+public class Caixa extends SimpleModel {
     
     private Long id;
     private String tipo; // RECEITA, DESPESA
@@ -71,9 +71,4 @@ public class Caixa {
     
     public String getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(String updatedAt) { this.updatedAt = updatedAt; }
-    
-    @Override
-    public String toString() {
-        return tipo + " - " + descricao + " (R$ " + valor + ")";
-    }
 }

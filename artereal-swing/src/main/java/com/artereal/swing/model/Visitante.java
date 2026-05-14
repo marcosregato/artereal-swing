@@ -5,7 +5,7 @@ import java.time.LocalDate;
 /**
  * Modelo de dados para Controle de Visitantes
  */
-public class Visitante {
+public class Visitante extends SimpleModel {
     
     private Long id;
     private String nome;
@@ -124,11 +124,5 @@ public class Visitante {
         if (!isAutorizado() && necessitaAutorizacao()) return "PENDENTE";
         if (isAutorizado()) return "AUTORIZADO";
         return "REGULAR";
-    }
-    
-    @Override
-    public String toString() {
-        return String.format("%s - %s (%s) - %s", 
-                           nome, tipo, dataVisita, getStatusFormatado());
     }
 }

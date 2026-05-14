@@ -1,14 +1,18 @@
 package com.artereal.swing.ui.panels;
 
 import com.artereal.swing.dao.DocumentoDAO;
+import com.artereal.swing.database.DatabaseManager;
 import com.artereal.swing.model.Documento;
+import com.artereal.swing.ui.layout.PadraoLayout;
+import com.artereal.swing.ui.panels.documentos.DocumentosFormPanel;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,27 +25,20 @@ public class DocumentosPanel extends JPanel {
     private DocumentoDAO documentoDAO;
     private DefaultTableModel tableModel;
     private JTable documentosTable;
-    private JTextField nomeArquivoField;
-    private JTextField caminhoArquivoField;
-    private JTextField descricaoField;
-    private JTextField dataExpiracaoField;
-    private JTextField usuarioUploadField;
-    private JTextField tamanhoField;
-    private JTextField formatoField;
-    private JComboBox<String> tipoComboBox;
-    private JTextArea hashArea;
-    private JTextArea assinaturaArea;
+    private JTextField pesquisarField;
+    private JButton pesquisarButton;
     private JButton salvarButton;
     private JButton novoButton;
     private JButton excluirButton;
     private JButton selecionarArquivoButton;
     private JButton visualizarButton;
-    private JButton assinarButton;
-    private JButton uploadButton;
-    private JButton relatorioButton;
+    private JButton emailButton;
+    private JButton whatsappButton;
     private Documento documentoAtual;
+    private DocumentosFormPanel documentosFormPanel;
     
     public DocumentosPanel() {
+        // DocumentoDAO já usa DatabaseManager.getInstance() internamente
         documentoDAO = new DocumentoDAO();
         initializeComponents();
         setupLayout();
@@ -51,7 +48,7 @@ public class DocumentosPanel extends JPanel {
     
     private void initializeComponents() {
         // Tabela
-        tableModel = new DefaultTableModel(new Object[]{"ID", "Nome Arquivo", "Tipo", "Tamanho", "Upload", "Expiração", "Status", "Assinatura"}, 0) {
+        tableModel = new DefaultTableModel(new Object[]{"ID", "Nome Arquivo", "Tipo", "Tamanho", "Upload", "Expiração", "Status"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -59,48 +56,83 @@ public class DocumentosPanel extends JPanel {
         };
         documentosTable = new JTable(tableModel);
         
-        // Formulário
-        nomeArquivoField = new JTextField(40);
-        caminhoArquivoField = new JTextField(50);
-        descricaoField = new JTextField(40);
-        dataExpiracaoField = new JTextField(12);
-        usuarioUploadField = new JTextField(20);
-        tamanhoField = new JTextField(15);
-        tamanhoField.setEditable(false);
-        formatoField = new JTextField(10);
-        formatoField.setEditable(false);
-        tipoComboBox = new JComboBox<>(new String[]{"IDENTIDADE", "DIPLOMA", "CERTIFICADO", "FOTO", "OUTRO"});
-        hashArea = new JTextArea(2, 40);
-        hashArea.setEditable(false);
-        hashArea.setFont(new Font("Monospaced", Font.PLAIN, 10));
-        assinaturaArea = new JTextArea(2, 40);
-        assinaturaArea.setEditable(false);
-        assinaturaArea.setFont(new Font("Monospaced", Font.PLAIN, 10));
+        // Inicializar formulário otimizado
+        documentosFormPanel = new DocumentosFormPanel();
         
-        // Botões
-        salvarButton = new JButton("Salvar");
-        novoButton = new JButton("Novo");
-        excluirButton = new JButton("Excluir");
-        selecionarArquivoButton = new JButton("Selecionar Arquivo");
-        visualizarButton = new JButton("Visualizar");
-        assinarButton = new JButton("Assinar Digitalmente");
-        uploadButton = new JButton("Upload");
-        relatorioButton = new JButton("Relatório");
+        // Pesquisa
+        pesquisarField = new JTextField(20);
+        pesquisarButton = PadraoLayout.criarBotaoPesquisar();
+        
+        // Botões usando PadraoLayout com cores pastéis
+        salvarButton = PadraoLayout.criarBotaoSalvar();
+        novoButton = PadraoLayout.criarBotaoNovo();
+        excluirButton = PadraoLayout.criarBotaoExcluir();
+        selecionarArquivoButton = PadraoLayout.criarBotao("Selecionar Arquivo", new Color(173, 216, 230)); // Azul pastel
+        visualizarButton = PadraoLayout.criarBotao("Visualizar", new Color(255, 250, 205)); // Amarelo pastel
+        emailButton = PadraoLayout.criarBotao("Enviar por Email", new Color(255, 182, 193)); // Rosa pastel
+        whatsappButton = PadraoLayout.criarBotao("📱 WhatsApp", new Color(129, 230, 217)); // Verde WhatsApp
+        
+        // Aplicar cores pastéis nos botões usando PadraoLayout
+        PadraoLayout.aplicarCoresPastelBotoesUsuarios(salvarButton, novoButton, excluirButton); // Usa método de usuários (3 botões)
+        PadraoLayout.aplicarCoresPastelBotao(selecionarArquivoButton, "novo"); // Usa cor de novo para selecionar
+        PadraoLayout.aplicarCoresPastelBotao(visualizarButton, "limpar"); // Usa cor de limpar para visualizar
+        PadraoLayout.aplicarCoresPastelBotao(emailButton, "editar"); // Usa cor de editar para email
+        PadraoLayout.aplicarCoresPastelBotao(whatsappButton, "novo"); // Usa cor de novo para WhatsApp
         
         documentoAtual = null;
     }
     
     private void setupLayout() {
-        setLayout(new BorderLayout());
+        // Aplicar layout padrão usando PadraoLayout
+        // Aplicar estilização padrão ao painel principal
+        PadraoLayout.estilizarPainelPrincipal(this);
         
-        // Título
-        JLabel titleLabel = new JLabel("Gestão Documental", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+        // Header estilizado usando PadraoLayout
+        JPanel headerPanel = PadraoLayout.criarHeader("📄 Gestão Documental", "Armazenamento e assinatura digital de documentos");
+        add(headerPanel, BorderLayout.NORTH);
         
-        // Painel de estatísticas
+        // Painel principal usando PadraoLayout
+        JPanel mainPanel = PadraoLayout.criarPainelPrincipal();
+        
+        // Painel de busca no topo
+        JPanel buscaPanel = PadraoLayout.criarPainelPesquisa(pesquisarField, pesquisarButton);
+        mainPanel.add(buscaPanel, BorderLayout.NORTH);
+        
+        // Painel do conteúdo com split vertical (Formulário acima, Tabela abaixo)
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBackground(PadraoLayout.COR_FUNDO);
+        
+        // Painel de formulário otimizado usando DocumentosFormPanel
+        JPanel formPanel = new JPanel(new BorderLayout());
+        formPanel.setBackground(PadraoLayout.COR_PAINEL);
+        formPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
+        
+        // Usar o formulário otimizado
+        formPanel.add(documentosFormPanel, BorderLayout.CENTER);
+        
+        // Painel de botões
+        JPanel botoesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        botoesPanel.setBackground(Color.WHITE);
+        
+        botoesPanel.add(salvarButton);
+        botoesPanel.add(novoButton);
+        botoesPanel.add(excluirButton);
+        botoesPanel.add(selecionarArquivoButton);
+        botoesPanel.add(visualizarButton);
+        botoesPanel.add(emailButton);
+        botoesPanel.add(whatsappButton);
+        
+        formPanel.add(botoesPanel, BorderLayout.SOUTH);
+        
+        // Painel de tabela usando PadraoLayout
+        JPanel tabelaPanel = new JPanel(new BorderLayout());
+        tabelaPanel.setBackground(PadraoLayout.COR_PAINEL);
+        tabelaPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
+        
+        // Painel de estatísticas e alertas
         JPanel statsPanel = new JPanel(new GridLayout(1, 4, 10, 10));
-        statsPanel.setBorder(BorderFactory.createTitledBorder("Estatísticas de Documentos"));
+        statsPanel.setBackground(PadraoLayout.COR_PAINEL);
+        statsPanel.setBorder(PadraoLayout.BORDA_GRUPO);
         
         try {
             int total = documentoDAO.count();
@@ -153,110 +185,49 @@ public class DocumentosPanel extends JPanel {
             alertasPanel.add(new JLabel("Erro ao carregar alertas"));
         }
         
-        // Painel de formulário
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBorder(BorderFactory.createTitledBorder("Dados do Documento"));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.anchor = GridBagConstraints.WEST;
+        // Painel de estatísticas e alertas
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBackground(Color.WHITE);
+        topPanel.add(statsPanel, BorderLayout.CENTER);
+        topPanel.add(alertasPanel, BorderLayout.SOUTH);
         
-        // Nome do Arquivo
-        gbc.gridx = 0; gbc.gridy = 0;
-        formPanel.add(new JLabel("Nome Arquivo:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        JPanel nomeArquivoPanel = new JPanel(new BorderLayout());
-        nomeArquivoPanel.add(nomeArquivoField, BorderLayout.CENTER);
-        nomeArquivoPanel.add(selecionarArquivoButton, BorderLayout.EAST);
-        formPanel.add(nomeArquivoPanel, gbc);
+        // Tabela estilizada usando PadraoLayout
+        PadraoLayout.configurarTabela(documentosTable);
+        JScrollPane tableScrollPane = new JScrollPane(documentosTable);
         
-        // Caminho do Arquivo
-        gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Caminho:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(caminhoArquivoField, gbc);
+        tabelaPanel.add(topPanel, BorderLayout.NORTH);
+        tabelaPanel.add(tableScrollPane, BorderLayout.CENTER);
         
-        // Tipo e Descrição
-        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Tipo:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        JPanel tipoDescricaoPanel = new JPanel(new BorderLayout());
-        tipoDescricaoPanel.add(tipoComboBox, BorderLayout.WEST);
-        tipoDescricaoPanel.add(new JLabel("Descrição:"), BorderLayout.CENTER);
-        tipoDescricaoPanel.add(descricaoField, BorderLayout.EAST);
-        formPanel.add(tipoDescricaoPanel, gbc);
+        // Split vertical: Formulário acima, Tabela abaixo
+        JSplitPane verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formPanel, tabelaPanel);
+        verticalSplitPane.setDividerLocation(350);
+        verticalSplitPane.setResizeWeight(0.4);
         
-        // Data de Expiração
-        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Data Expiração:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        JPanel expiracaoUsuarioPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        expiracaoUsuarioPanel.add(dataExpiracaoField);
-        expiracaoUsuarioPanel.add(new JLabel("Upload por:"));
-        expiracaoUsuarioPanel.add(usuarioUploadField);
-        formPanel.add(expiracaoUsuarioPanel, gbc);
+        contentPanel.add(verticalSplitPane, BorderLayout.CENTER);
         
-        // Tamanho e Formato
-        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Informações:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        JPanel tamanhoFormatoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        tamanhoFormatoPanel.add(new JLabel("Tamanho:"));
-        tamanhoFormatoPanel.add(tamanhoField);
-        tamanhoFormatoPanel.add(new JLabel("Formato:"));
-        tamanhoFormatoPanel.add(formatoField);
-        formPanel.add(tamanhoFormatoPanel, gbc);
+        // Adicionar contentPanel ao mainPanel
+        mainPanel.add(contentPanel, BorderLayout.CENTER);
         
-        // Hash do Arquivo
-        gbc.gridx = 0; gbc.gridy = 5; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Hash SHA-256:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(new JScrollPane(hashArea), gbc);
-        
-        // Assinatura Digital
-        gbc.gridx = 0; gbc.gridy = 6; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Assinatura Digital:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(new JScrollPane(assinaturaArea), gbc);
-        
-        // Botões do formulário
-        JPanel botoesFormPanel = new JPanel(new FlowLayout());
-        botoesFormPanel.add(salvarButton);
-        botoesFormPanel.add(novoButton);
-        botoesFormPanel.add(excluirButton);
-        
-        gbc.gridx = 0; gbc.gridy = 7; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        formPanel.add(botoesFormPanel, gbc);
-        
-        // Botões de ações
-        JPanel acoesPanel = new JPanel(new FlowLayout());
-        acoesPanel.setBorder(BorderFactory.createTitledBorder("Ações do Documento"));
-        acoesPanel.add(uploadButton);
-        acoesPanel.add(visualizarButton);
-        acoesPanel.add(assinarButton);
-        acoesPanel.add(relatorioButton);
-        
-        gbc.gridx = 0; gbc.gridy = 8; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        formPanel.add(acoesPanel, gbc);
-        
-        // Painel da tabela
-        JPanel tabelaPanel = new JPanel(new BorderLayout());
-        tabelaPanel.setBorder(BorderFactory.createTitledBorder("Documentos Cadastrados"));
-        tabelaPanel.add(new JScrollPane(documentosTable), BorderLayout.CENTER);
-        
-        // Layout principal
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formPanel, tabelaPanel);
-        splitPane.setDividerLocation(450);
-        
-        JPanel centerPanel = new JPanel(new BorderLayout());
-        centerPanel.add(splitPane, BorderLayout.CENTER);
-        centerPanel.add(alertasPanel, BorderLayout.SOUTH);
-        
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.add(statsPanel, BorderLayout.NORTH);
-        mainPanel.add(centerPanel, BorderLayout.CENTER);
-        
-        add(titleLabel, BorderLayout.NORTH);
         add(mainPanel, BorderLayout.CENTER);
+    }
+    
+        
+    @SuppressWarnings("unused")
+    private JPanel createFormGroup(String title) {
+        JPanel groupPanel = new JPanel(new BorderLayout());
+        groupPanel.setBackground(Color.WHITE);
+        groupPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(220, 220, 230), 1),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        titleLabel.setForeground(new Color(70, 130, 180));
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 8, 0));
+        
+        groupPanel.add(titleLabel, BorderLayout.NORTH);
+        return groupPanel;
     }
     
     private JPanel createStatPanel(String titulo, String valor, Color cor) {
@@ -281,9 +252,9 @@ public class DocumentosPanel extends JPanel {
         excluirButton.addActionListener(e -> excluirDocumento());
         selecionarArquivoButton.addActionListener(e -> selecionarArquivo());
         visualizarButton.addActionListener(e -> visualizarDocumento());
-        assinarButton.addActionListener(e -> assinarDocumento());
-        uploadButton.addActionListener(e -> uploadDocumento());
-        relatorioButton.addActionListener(e -> gerarRelatorio());
+        emailButton.addActionListener(e -> enviarDocumentoPorEmail());
+        whatsappButton.addActionListener(e -> enviarDocumentoPorWhatsApp());
+        // Botões removidos: assinarButton, uploadButton, relatorioButton, agendarButton
         
         // Seleção na tabela
         documentosTable.getSelectionModel().addListSelectionListener(e -> {
@@ -300,16 +271,16 @@ public class DocumentosPanel extends JPanel {
         int resultado = fileChooser.showOpenDialog(this);
         if (resultado == JFileChooser.APPROVE_OPTION) {
             File arquivoSelecionado = fileChooser.getSelectedFile();
-            caminhoArquivoField.setText(arquivoSelecionado.getAbsolutePath());
-            nomeArquivoField.setText(arquivoSelecionado.getName());
+            documentosFormPanel.getCaminhoArquivoField().setText(arquivoSelecionado.getAbsolutePath());
+            documentosFormPanel.getNomeArquivoField().setText(arquivoSelecionado.getName());
             
             // Extrair informações do arquivo
-            tamanhoField.setText(formatarTamanho(arquivoSelecionado.length()));
-            formatoField.setText(obterFormatoArquivo(arquivoSelecionado.getName()));
+            documentosFormPanel.getTamanhoField().setText(formatarTamanho(arquivoSelecionado.length()));
+            documentosFormPanel.getFormatoField().setText(obterFormatoArquivo(arquivoSelecionado.getName()));
             
             // Gerar hash (simulação)
             String hash = gerarHashSimulado(arquivoSelecionado.getAbsolutePath());
-            hashArea.setText(hash);
+            documentosFormPanel.getHashArea().setText(hash);
         }
     }
     
@@ -338,35 +309,51 @@ public class DocumentosPanel extends JPanel {
     
     private void salvarDocumento() {
         try {
-            if (nomeArquivoField.getText().trim().isEmpty()) {
+            if (documentosFormPanel.getNomeArquivoField().getText().trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Nome do arquivo é obrigatório!", "Erro", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
-            if (caminhoArquivoField.getText().trim().isEmpty()) {
+            if (documentosFormPanel.getCaminhoArquivoField().getText().trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Caminho do arquivo é obrigatório!", "Erro", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
             Documento documento = documentoAtual != null ? documentoAtual : new Documento();
-            documento.setNomeArquivo(nomeArquivoField.getText().trim());
-            documento.setCaminhoArquivo(caminhoArquivoField.getText().trim());
-            documento.setDescricao(descricaoField.getText().trim());
-            documento.setTipo((String) tipoComboBox.getSelectedItem());
-            documento.setTamanhoArquivo(parseTamanho(tamanhoField.getText()));
-            documento.setFormatoArquivo(formatoField.getText());
-            documento.setHashArquivo(hashArea.getText().trim());
-            documento.setUsuarioUpload(usuarioUploadField.getText().trim());
+            documento.setNomeArquivo(documentosFormPanel.getNomeArquivoField().getText().trim());
             
-            if (!dataExpiracaoField.getText().trim().isEmpty()) {
-                documento.setDataExpiracao(LocalDateTime.parse(dataExpiracaoField.getText().trim() + "T00:00:00"));
+            // Garantir que documento esteja ativo ao salvar
+            documento.setAtivo(true);
+            documento.setCaminhoArquivo(documentosFormPanel.getCaminhoArquivoField().getText().trim());
+            documento.setDescricao(documentosFormPanel.getDescricaoField().getText().trim());
+            documento.setTipo((String) documentosFormPanel.getTipoComboBox().getSelectedItem());
+            documento.setTamanhoArquivo(parseTamanho(documentosFormPanel.getTamanhoField().getText()));
+            documento.setFormatoArquivo(documentosFormPanel.getFormatoField().getText());
+            documento.setHashArquivo(documentosFormPanel.getHashArea().getText().trim());
+            documento.setUsuarioUpload(documentosFormPanel.getUsuarioUploadField().getText().trim());
+            
+            if (!documentosFormPanel.getDataExpiracaoField().getText().trim().isEmpty()) {
+                String dataStr = documentosFormPanel.getDataExpiracaoField().getText().trim();
+                // Converter formato xx/xx/xxxx para LocalDateTime
+                if (dataStr.matches("\\d{2}/\\d{2}/\\d{4}")) {
+                    String[] partes = dataStr.split("/");
+                    int dia = Integer.parseInt(partes[0]);
+                    int mes = Integer.parseInt(partes[1]);
+                    int ano = Integer.parseInt(partes[2]);
+                    documento.setDataExpiracao(LocalDateTime.of(ano, mes, dia, 0, 0, 0));
+                } else {
+                    // Tentar formato existente como fallback
+                    documento.setDataExpiracao(LocalDateTime.parse(dataStr + "T00:00:00"));
+                }
             }
             
-            if (!assinaturaArea.getText().trim().isEmpty()) {
-                documento.setAssinaturaDigital(assinaturaArea.getText().trim());
-            }
             
-            documentoDAO.save(documento);
+            try {
+                documentoDAO.save(documento);
+            } catch (Exception daoEx) {
+                daoEx.printStackTrace();
+                throw daoEx;
+            }
             
             JOptionPane.showMessageDialog(this, "Documento salvo com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
             limparFormulario();
@@ -394,17 +381,9 @@ public class DocumentosPanel extends JPanel {
     
     private void limparFormulario() {
         documentoAtual = null;
-        nomeArquivoField.setText("");
-        caminhoArquivoField.setText("");
-        descricaoField.setText("");
-        dataExpiracaoField.setText("");
-        usuarioUploadField.setText("");
-        tamanhoField.setText("");
-        formatoField.setText("");
-        hashArea.setText("");
-        assinaturaArea.setText("");
-        tipoComboBox.setSelectedItem("OUTRO");
-        nomeArquivoField.requestFocus();
+        documentosFormPanel.clearForm();
+        documentosFormPanel.getTipoComboBox().setSelectedItem("OUTRO");
+        documentosFormPanel.getNomeArquivoField().requestFocus();
         atualizarBotoesAcao();
     }
     
@@ -454,88 +433,6 @@ public class DocumentosPanel extends JPanel {
         }
     }
     
-    private void assinarDocumento() {
-        if (documentoAtual == null) {
-            JOptionPane.showMessageDialog(this, "Selecione um documento para assinar!", "Aviso", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        String assinatura = JOptionPane.showInputDialog(this, "Digite a assinatura digital:");
-        if (assinatura != null && !assinatura.trim().isEmpty()) {
-            documentoAtual.setAssinaturaDigital(assinatura.trim());
-            assinaturaArea.setText(assinatura.trim());
-            
-            try {
-                documentoDAO.save(documentoAtual);
-                JOptionPane.showMessageDialog(this, "Documento assinado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-            } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(this, "Erro ao assinar documento: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-    }
-    
-    private void uploadDocumento() {
-        JOptionPane.showMessageDialog(this, "Funcionalidade de upload em desenvolvimento!\n" +
-                                     "Use 'Selecionar Arquivo' para escolher o documento.", "Aviso", JOptionPane.INFORMATION_MESSAGE);
-    }
-    
-    private void gerarRelatorio() {
-        try {
-            List<Documento> documentos = documentoDAO.findAll();
-            StringBuilder relatorio = new StringBuilder();
-            relatorio.append("RELATÓRIO DE DOCUMENTOS\n");
-            relatorio.append("=====================\n\n");
-            
-            double totalTamanho = 0;
-            int totalAtivos = 0;
-            int totalExpirados = 0;
-            int totalAssinados = 0;
-            
-            for (Documento documento : documentos) {
-                relatorio.append(String.format("Arquivo: %s\n", documento.getNomeArquivo()));
-                relatorio.append(String.format("Tipo: %s\n", documento.getTipo()));
-                relatorio.append(String.format("Tamanho: %s\n", documento.getTamanhoFormatado()));
-                relatorio.append(String.format("Upload: %s\n", documento.getDataUpload()));
-                relatorio.append(String.format("Usuário: %s\n", documento.getUsuarioUpload()));
-                relatorio.append(String.format("Status: %s\n", documento.getStatus()));
-                
-                if (documento.getDataExpiracao() != null) {
-                    relatorio.append(String.format("Expiração: %s\n", documento.getDataExpiracao()));
-                }
-                
-                if (documento.temAssinaturaDigital()) {
-                    relatorio.append("Assinatura: Sim\n");
-                    totalAssinados++;
-                } else {
-                    relatorio.append("Assinatura: Não\n");
-                }
-                
-                relatorio.append("------------------------\n");
-                
-                totalTamanho += documento.getTamanhoArquivo();
-                if (documento.isAtivo()) totalAtivos++;
-                if (documento.isExpirado()) totalExpirados++;
-            }
-            
-            relatorio.append("\nRESUMO\n");
-            relatorio.append("======\n");
-            relatorio.append(String.format("Total de Documentos: %d\n", documentos.size()));
-            relatorio.append(String.format("Total Ativos: %d\n", totalAtivos));
-            relatorio.append(String.format("Total Expirados: %d\n", totalExpirados));
-            relatorio.append(String.format("Total Assinados: %d\n", totalAssinados));
-            relatorio.append(String.format("Espaço Total: %s\n", formatarTamanho((long) totalTamanho)));
-            
-            JTextArea textArea = new JTextArea(relatorio.toString());
-            textArea.setEditable(false);
-            JScrollPane scrollPane = new JScrollPane(textArea);
-            scrollPane.setPreferredSize(new Dimension(600, 400));
-            
-            JOptionPane.showMessageDialog(this, scrollPane, "Relatório de Documentos", JOptionPane.INFORMATION_MESSAGE);
-            
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao gerar relatório: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
-        }
-    }
     
     private void carregarDocumentoSelecionado() {
         int selectedRow = documentosTable.getSelectedRow();
@@ -544,18 +441,20 @@ public class DocumentosPanel extends JPanel {
             try {
                 documentoAtual = documentoDAO.findById(id);
                 if (documentoAtual != null) {
-                    nomeArquivoField.setText(documentoAtual.getNomeArquivo());
-                    caminhoArquivoField.setText(documentoAtual.getCaminhoArquivo());
-                    descricaoField.setText(documentoAtual.getDescricao());
-                    tipoComboBox.setSelectedItem(documentoAtual.getTipo());
-                    tamanhoField.setText(documentoAtual.getTamanhoFormatado());
-                    formatoField.setText(documentoAtual.getFormatoArquivo());
-                    hashArea.setText(documentoAtual.getHashArquivo());
-                    assinaturaArea.setText(documentoAtual.getAssinaturaDigital() != null ? documentoAtual.getAssinaturaDigital() : "");
-                    usuarioUploadField.setText(documentoAtual.getUsuarioUpload());
+                    documentosFormPanel.getNomeArquivoField().setText(documentoAtual.getNomeArquivo());
+                    documentosFormPanel.getCaminhoArquivoField().setText(documentoAtual.getCaminhoArquivo());
+                    documentosFormPanel.getDescricaoField().setText(documentoAtual.getDescricao());
+                    documentosFormPanel.getTipoComboBox().setSelectedItem(documentoAtual.getTipo());
+                    documentosFormPanel.getTamanhoField().setText(documentoAtual.getTamanhoFormatado());
+                    documentosFormPanel.getFormatoField().setText(documentoAtual.getFormatoArquivo());
+                    documentosFormPanel.getHashArea().setText(documentoAtual.getHashArquivo());
+                    documentosFormPanel.getUsuarioUploadField().setText(documentoAtual.getUsuarioUpload());
                     
                     if (documentoAtual.getDataExpiracao() != null) {
-                        dataExpiracaoField.setText(documentoAtual.getDataExpiracao().toString());
+                        LocalDateTime data = documentoAtual.getDataExpiracao();
+                        String dataFormatada = String.format("%02d/%02d/%04d", 
+                            data.getDayOfMonth(), data.getMonthValue(), data.getYear());
+                        documentosFormPanel.getDataExpiracaoField().setText(dataFormatada);
                     }
                     
                     atualizarBotoesAcao();
@@ -571,15 +470,207 @@ public class DocumentosPanel extends JPanel {
         boolean temArquivo = temDocumento && documentoAtual.getCaminhoArquivo() != null;
         
         visualizarButton.setEnabled(temArquivo);
-        assinarButton.setEnabled(temDocumento);
+    }
+    
+    private void enviarDocumentoPorEmail() {
+        
+        if (documentoAtual == null) {
+            JOptionPane.showMessageDialog(this, 
+                "Nenhum documento selecionado!", 
+                "Erro", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        
+        // Criar diálogo para envio de e-mail
+        JTextField emailField = new JTextField("", 30);
+        JTextField assuntoField = new JTextField("Documento: " + documentoAtual.getNomeArquivo(), 30);
+        JTextArea mensagemField = new JTextArea(
+            "Prezado(a),\n\nSegue em anexo o documento solicitado:\n" +
+            "Nome: " + documentoAtual.getNomeArquivo() + "\n" +
+            "Tipo: " + documentoAtual.getTipo() + "\n" +
+            "Tamanho: " + documentoAtual.getTamanhoFormatado() + "\n" +
+            "Data Upload: " + documentoAtual.getDataUpload() + "\n\n" +
+            "Atenciosamente,\nSistema ArteReal", 5, 30);
+        
+        JPanel panel = new JPanel(new GridLayout(3, 2, 5, 5));
+        panel.add(new JLabel("Para:"));
+        panel.add(emailField);
+        panel.add(new JLabel("Assunto:"));
+        panel.add(assuntoField);
+        panel.add(new JLabel("Mensagem:"));
+        panel.add(new JScrollPane(mensagemField));
+        
+        int result = JOptionPane.showConfirmDialog(this, panel, 
+            "Enviar Documento por E-mail", 
+            JOptionPane.OK_CANCEL_OPTION, 
+            JOptionPane.PLAIN_MESSAGE);
+        
+        if (result == JOptionPane.OK_OPTION) {
+            String email = emailField.getText().trim();
+            String assunto = assuntoField.getText().trim();
+            String mensagem = mensagemField.getText().trim();
+            
+            if (email.isEmpty()) {
+                JOptionPane.showMessageDialog(this, 
+                    "O campo 'Para' é obrigatório!", 
+                    "Erro", 
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            
+            // Verificar configurações de e-mail
+            com.artereal.swing.service.EmailService emailService = new com.artereal.swing.service.EmailService();
+            if (!emailService.validarConfiguracoes()) {
+                JOptionPane.showMessageDialog(this, 
+                    "Configurações de e-mail inválidas!\n" +
+                    "Verifique as configurações SMTP no EmailService.", 
+                    "Erro de Configuração", 
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Construir mensagem completa
+            String mensagemCompleta = mensagem + "\n\n" +
+                "---\n" +
+                "Documento enviado pelo Sistema ArteReal\n" +
+                "ID: " + documentoAtual.getId() + "\n" +
+                "Nome: " + documentoAtual.getNomeArquivo() + "\n" +
+                "Tipo: " + documentoAtual.getTipo() + "\n" +
+                "Data: " + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) + "\n" +
+                "---";
+            
+            // Enviar e-mail
+            boolean enviado = emailService.enviarEmail(email, assunto, mensagemCompleta);
+            
+            if (enviado) {
+                JOptionPane.showMessageDialog(this, 
+                    "Documento enviado com sucesso!\n" +
+                    "Para: " + email + "\n" +
+                    "Assunto: " + assunto + "\n" +
+                    "Documento: " + documentoAtual.getNomeArquivo() + "\n" +
+                    "Status: Enviado", 
+                    "E-mail Enviado", 
+                    JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, 
+                    "Falha ao enviar o documento por e-mail!\n" +
+                    "Verifique:\n" +
+                    "1. Conexão com a internet\n" +
+                    "2. Configurações SMTP\n" +
+                    "3. Endereço de e-mail", 
+                    "Erro de Envio", 
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+    
+    private void enviarDocumentoPorWhatsApp() {
+        
+        if (documentoAtual == null) {
+            JOptionPane.showMessageDialog(this, 
+                "Nenhum documento selecionado!", 
+                "Erro", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        
+        // Criar diálogo para envio via WhatsApp
+        JTextField telefoneField = new JTextField("", 30);
+        JTextArea mensagemField = new JTextArea(
+            "📄 *Documento ArteReal*\n\n" +
+            "*Nome:* " + documentoAtual.getNomeArquivo() + "\n" +
+            "*Tipo:* " + documentoAtual.getTipo() + "\n" +
+            "*Tamanho:* " + documentoAtual.getTamanhoFormatado() + "\n" +
+            "*Data Upload:* " + documentoAtual.getDataUpload() + "\n\n" +
+            "📎 *Anexo:* O documento será anexado manualmente\n\n" +
+            "_Enviado pelo Sistema ArteReal v2.0.0_", 5, 30);
+        
+        JPanel panel = new JPanel(new GridLayout(2, 2, 5, 5));
+        panel.add(new JLabel("Telefone (com DDD):"));
+        panel.add(telefoneField);
+        panel.add(new JLabel("Mensagem:"));
+        panel.add(new JScrollPane(mensagemField));
+        
+        int result = JOptionPane.showConfirmDialog(this, panel, 
+            "Enviar Documento por WhatsApp", 
+            JOptionPane.OK_CANCEL_OPTION, 
+            JOptionPane.PLAIN_MESSAGE);
+        
+        if (result == JOptionPane.OK_OPTION) {
+            String telefone = telefoneField.getText().trim();
+            
+            if (telefone.isEmpty()) {
+                JOptionPane.showMessageDialog(this, 
+                    "O campo 'Telefone' é obrigatório!", 
+                    "Erro", 
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Validar número de telefone
+            if (!com.artereal.swing.service.WhatsAppService.validarNumeroTelefone(telefone)) {
+                JOptionPane.showMessageDialog(this, 
+                    "Número de telefone inválido!\n" +
+                    "Formato esperado: DDD + número (ex: 11999998888)", 
+                    "Erro de Validação", 
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            
+            // Enviar via WhatsApp
+            boolean enviado = com.artereal.swing.service.WhatsAppService.enviarDocumentoWhatsApp(
+                telefone, 
+                documentoAtual.getNomeArquivo(), 
+                documentoAtual.getTipo(), 
+                "Documento enviado pelo Sistema ArteReal"
+            );
+            
+            if (enviado) {
+                JOptionPane.showMessageDialog(this, 
+                    "WhatsApp Web aberto com sucesso!\n" +
+                    "Telefone: " + telefone + "\n" +
+                    "Documento: " + documentoAtual.getNomeArquivo() + "\n" +
+                    "Status: Anexe o documento manualmente", 
+                    "WhatsApp Aberto", 
+                    JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, 
+                    "Falha ao abrir WhatsApp Web!\n" +
+                    "Verifique:\n" +
+                    "1. Conexão com a internet\n" +
+                    "2. Navegador padrão configurado\n" +
+                    "3. Número de telefone válido", 
+                    "Erro de Envio", 
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        }
     }
     
     public void refreshData() {
         try {
+            
             List<Documento> documentos = documentoDAO.findAll();
+            
+            if (documentos.isEmpty()) {
+                // Verificar se há algum registro no banco
+                try (Connection conn = DatabaseManager.getInstance().getConnection();
+                     PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) FROM documento WHERE ativo = 1");
+                     ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        rs.getInt(1);
+                    }
+                }
+            }
+            
             tableModel.setRowCount(0);
             
             for (Documento documento : documentos) {
+                
                 String status = "";
                 if (documento.isExpirado()) {
                     status = "EXPIRADO";
@@ -594,13 +685,18 @@ public class DocumentosPanel extends JPanel {
                     documento.getTamanhoFormatado(),
                     documento.getDataUpload() != null ? documento.getDataUpload().toString() : "",
                     documento.getDataExpiracao() != null ? documento.getDataExpiracao().toString() : "",
-                    documento.getStatus() + (status.isEmpty() ? "" : " (" + status + ")"),
-                    documento.temAssinaturaDigital() ? "Sim" : "Não"
+                    documento.getStatus() + (status.isEmpty() ? "" : " (" + status + ")")
                 };
+                
                 tableModel.addRow(row);
             }
+            
+            
         } catch (SQLException ex) {
+            ex.printStackTrace();
             JOptionPane.showMessageDialog(this, "Erro ao carregar documentos: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
+    
+    
 }

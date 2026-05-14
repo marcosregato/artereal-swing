@@ -1,12 +1,11 @@
 package com.artereal.swing.ui.panels;
 
 import com.artereal.swing.dao.CalendarioDAO;
+import com.artereal.swing.ui.layout.PadraoLayout;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
@@ -52,24 +51,24 @@ public class CalendarioPanel extends JPanel {
         calendarioTable = new JTable(tableModel);
         
         // Formulário
-        descricaoField = new JTextField(40);
-        dataField = new JTextField(12);
-        horarioField = new JTextField(8);
-        localField = new JTextField(30);
+        descricaoField = new JTextField();
+        dataField = new JTextField();
+        horarioField = new JTextField();
+        localField = new JTextField();
         tipoComboBox = new JComboBox<>(new String[]{
             "SESSAO_MAGNA", "SESSAO_BRANCA", "SESSAO_ELEICAO", 
             "CERIMONIA_INICIACAO", "CERIMONIA_ELEVACAO", "CERIMONIA_EXALTACAO",
             "INSTALACAO", "REUNIAO_ADMINISTRATIVA", "CONFRATERNIZACAO", "EVENTO_SOCIAL"
         });
         
-        // Botões
-        salvarButton = new JButton("Salvar");
-        novoButton = new JButton("Novo");
-        excluirButton = new JButton("Excluir");
-        realizarButton = new JButton("Realizar");
-        cancelarButton = new JButton("Cancelar");
-        proximosButton = new JButton("Próximos 30 dias");
-        hojeButton = new JButton("Hoje");
+        // Botões usando PadraoLayout com cores pastéis
+        salvarButton = PadraoLayout.criarBotaoSalvar();
+        novoButton = PadraoLayout.criarBotaoNovo();
+        excluirButton = PadraoLayout.criarBotaoExcluir();
+        realizarButton = PadraoLayout.criarBotao("Realizar", new Color(152, 251, 152)); // Verde menta
+        cancelarButton = PadraoLayout.criarBotao("Cancelar", new Color(255, 182, 193)); // Rosa pastel
+        proximosButton = PadraoLayout.criarBotao("Próximos 30 dias", new Color(173, 216, 230)); // Azul pastel
+        hojeButton = PadraoLayout.criarBotao("Hoje", new Color(255, 250, 205)); // Amarelo pastel
         
         // Data atual como padrão
         dataField.setText(LocalDate.now().toString());
@@ -80,147 +79,110 @@ public class CalendarioPanel extends JPanel {
     }
     
     private void setupLayout() {
-        setLayout(new BorderLayout());
+        // Aplicar layout padrão usando PadraoLayout
+        // Aplicar estilização padrão ao painel principal
+        PadraoLayout.estilizarPainelPrincipal(this);
         
-        // Título
-        JLabel titleLabel = new JLabel("Calendário Maçônico", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+        // Header estilizado usando PadraoLayout
+        JPanel headerPanel = PadraoLayout.criarHeader(" Calendário Maçônico", "Eventos e reuniões maçônicas");
+        add(headerPanel, BorderLayout.NORTH);
         
-        // Painel de estatísticas
-        JPanel statsPanel = new JPanel(new GridLayout(1, 3, 10, 10));
-        statsPanel.setBorder(BorderFactory.createTitledBorder("Estatísticas de Eventos"));
+        // Painel principal usando PadraoLayout
+        JPanel mainPanel = PadraoLayout.criarPainelPrincipal();
         
-        try {
-            List<Object[]> estatisticas = calendarioDAO.getEstatisticas();
-            for (Object[] est : estatisticas) {
-                String tipo = (String) est[0];
-                int quantidade = (Integer) est[1];
-                int realizados = (Integer) est[2];
-                int programados = (Integer) est[3];
-                
-                JPanel statPanel = new JPanel(new BorderLayout());
-                statPanel.setBorder(BorderFactory.createEtchedBorder());
-                
-                Color color = Color.BLACK;
-                switch (tipo) {
-                    case "SESSAO_MAGNA": color = Color.BLUE; break;
-                    case "SESSAO_BRANCA": color = Color.GREEN; break;
-                    case "CERIMONIA_INICIACAO": color = Color.MAGENTA; break;
-                    default: color = Color.DARK_GRAY; break;
-                }
-                
-                JLabel tipoLabel = new JLabel(tipo.replace("_", " "), SwingConstants.CENTER);
-                tipoLabel.setForeground(color);
-                statPanel.add(tipoLabel, BorderLayout.NORTH);
-                
-                JLabel detalhesLabel = new JLabel(String.format("%d total\n%d realizados\n%d programados", quantidade, realizados, programados), SwingConstants.CENTER);
-                detalhesLabel.setFont(new Font("Arial", Font.PLAIN, 10));
-                statPanel.add(detalhesLabel, BorderLayout.CENTER);
-                
-                statsPanel.add(statPanel);
-            }
-        } catch (SQLException e) {
-            statsPanel.add(new JLabel("Erro ao carregar estatísticas"));
-        }
+        // Painel de busca no topo
+        JPanel buscaPanel = PadraoLayout.criarPainelPesquisa(new JTextField(20), new JButton(" Buscar"));
+        mainPanel.add(buscaPanel, BorderLayout.NORTH);
         
-        // Painel de eventos próximos
-        JPanel proximosPanel = new JPanel(new BorderLayout());
-        proximosPanel.setBorder(BorderFactory.createTitledBorder("Próximos Eventos"));
+        // Painel do conteúdo com split vertical (Formulário acima, Tabela abaixo)
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBackground(PadraoLayout.COR_FUNDO);
         
-        try {
-            List<Object[]> proximos = calendarioDAO.findProximos(7);
-            StringBuilder proximosText = new StringBuilder();
-            
-            if (proximos.isEmpty()) {
-                proximosText.append("Nenhum evento nos próximos 7 dias");
-            } else {
-                for (Object[] evento : proximos) {
-                    String data = (String) evento[2];
-                    String descricao = (String) evento[1];
-                    String horario = (String) evento[5];
-                    proximosText.append(String.format("• %s - %s (%s)\n", data, descricao, horario));
-                }
-            }
-            
-            JTextArea proximosArea = new JTextArea(proximosText.toString());
-            proximosArea.setEditable(false);
-            proximosArea.setBackground(proximosPanel.getBackground());
-            proximosPanel.add(proximosArea, BorderLayout.CENTER);
-        } catch (SQLException e) {
-            proximosPanel.add(new JLabel("Erro ao carregar próximos eventos"));
-        }
+        // Painel de formulário usando PadraoLayout
+        JPanel formPanel = PadraoLayout.criarGrupoFormulario(" Dados do Evento");
+        JPanel formContainer = new JPanel(new BorderLayout());
+        formContainer.setBackground(Color.WHITE);
         
-        // Painel de formulário
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBorder(BorderFactory.createTitledBorder("Dados do Evento"));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.anchor = GridBagConstraints.WEST;
+        // SEÇÃO 1: Dados do Evento
+        JPanel dadosEventoPanel = new JPanel(new BorderLayout());
+        dadosEventoPanel.setBackground(Color.WHITE);
+        dadosEventoPanel.setBorder(BorderFactory.createTitledBorder("📅 Dados do Evento"));
         
-        // Descrição
-        gbc.gridx = 0; gbc.gridy = 0;
-        formPanel.add(new JLabel("Descrição:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(descricaoField, gbc);
+        JPanel dadosEventoContent = new JPanel(PadraoLayout.criarLayoutFormulario());
+        dadosEventoContent.setBackground(Color.WHITE);
         
-        // Data e Horário
-        gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Data e Horário:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        JPanel dataHorarioPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        dataHorarioPanel.add(dataField);
-        dataHorarioPanel.add(horarioField);
-        formPanel.add(dataHorarioPanel, gbc);
+        dadosEventoContent.add(PadraoLayout.criarLabelFormulario("Descrição:"));
+        PadraoLayout.estilizarCampoDescricaoEvento(descricaoField);
+        dadosEventoContent.add(descricaoField);
         
-        // Local e Tipo
-        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Local:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        JPanel localTipoPanel = new JPanel(new BorderLayout());
-        localTipoPanel.add(localField, BorderLayout.NORTH);
-        localTipoPanel.add(new JLabel("Tipo:"), BorderLayout.CENTER);
-        localTipoPanel.add(tipoComboBox, BorderLayout.SOUTH);
-        formPanel.add(localTipoPanel, gbc);
+        dadosEventoContent.add(PadraoLayout.criarLabelFormulario("Data:"));
+        PadraoLayout.estilizarCampoDataEvento(dataField);
+        dadosEventoContent.add(dataField);
         
-        // Botões do formulário
-        JPanel botoesFormPanel = new JPanel(new FlowLayout());
-        botoesFormPanel.add(salvarButton);
-        botoesFormPanel.add(novoButton);
-        botoesFormPanel.add(excluirButton);
+        dadosEventoContent.add(PadraoLayout.criarLabelFormulario("Horário:"));
+        PadraoLayout.estilizarCampoHora(horarioField);
+        dadosEventoContent.add(horarioField);
         
-        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        formPanel.add(botoesFormPanel, gbc);
+        dadosEventoPanel.add(dadosEventoContent, BorderLayout.CENTER);
+        formContainer.add(dadosEventoPanel, BorderLayout.NORTH);
         
-        // Botões de ações
-        JPanel acoesPanel = new JPanel(new FlowLayout());
+        // SEÇÃO 2: Localização e Tipo
+        JPanel localizacaoPanel = new JPanel(new BorderLayout());
+        localizacaoPanel.setBackground(Color.WHITE);
+        localizacaoPanel.setBorder(BorderFactory.createTitledBorder("📍 Localização e Tipo"));
+        
+        JPanel localizacaoContent = new JPanel(PadraoLayout.criarLayoutFormulario());
+        localizacaoContent.setBackground(Color.WHITE);
+        
+        localizacaoContent.add(PadraoLayout.criarLabelFormulario("Local:"));
+        PadraoLayout.estilizarCampoLocalEvento(localField);
+        localizacaoContent.add(localField);
+        
+        localizacaoContent.add(PadraoLayout.criarLabelFormulario("Tipo:"));
+        PadraoLayout.estilizarComboBox(tipoComboBox);
+        localizacaoContent.add(tipoComboBox);
+        
+        localizacaoPanel.add(localizacaoContent, BorderLayout.CENTER);
+        formContainer.add(localizacaoPanel, BorderLayout.CENTER);
+        
+        // Painel de botões
+        JPanel botoesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        botoesPanel.setBackground(Color.WHITE);
+        botoesPanel.add(salvarButton);
+        botoesPanel.add(novoButton);
+        botoesPanel.add(excluirButton);
+        
+        // Painel de ações específicas do calendário
+        JPanel acoesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        acoesPanel.setBackground(Color.WHITE);
         acoesPanel.setBorder(BorderFactory.createTitledBorder("Ações do Evento"));
         acoesPanel.add(realizarButton);
         acoesPanel.add(cancelarButton);
         acoesPanel.add(proximosButton);
         acoesPanel.add(hojeButton);
         
-        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        formPanel.add(acoesPanel, gbc);
+        formContainer.add(botoesPanel, BorderLayout.SOUTH);
+        formContainer.add(acoesPanel, BorderLayout.NORTH);
         
-        // Painel da tabela
-        JPanel tabelaPanel = new JPanel(new BorderLayout());
-        tabelaPanel.setBorder(BorderFactory.createTitledBorder("Eventos Programados"));
-        tabelaPanel.add(new JScrollPane(calendarioTable), BorderLayout.CENTER);
+        formPanel.add(formContainer, BorderLayout.CENTER);
         
-        // Layout principal
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formPanel, tabelaPanel);
-        splitPane.setDividerLocation(300);
+        // Painel de tabela usando PadraoLayout
+        JPanel tabelaPanel = PadraoLayout.criarGrupoFormulario(" Eventos Programados");
+        PadraoLayout.configurarTabela(calendarioTable);
+        JScrollPane tableScrollPane = new JScrollPane(calendarioTable);
         
-        JPanel centerPanel = new JPanel(new BorderLayout());
-        centerPanel.add(splitPane, BorderLayout.CENTER);
-        centerPanel.add(proximosPanel, BorderLayout.SOUTH);
+        tabelaPanel.add(tableScrollPane, BorderLayout.CENTER);
         
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.add(statsPanel, BorderLayout.NORTH);
-        mainPanel.add(centerPanel, BorderLayout.CENTER);
+        // Split vertical: Formulário acima (60%), Tabela abaixo (40%)
+        JSplitPane verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formPanel, tabelaPanel);
+        verticalSplitPane.setDividerLocation(350);
+        verticalSplitPane.setResizeWeight(0.6);
         
-        add(titleLabel, BorderLayout.NORTH);
+        contentPanel.add(verticalSplitPane, BorderLayout.CENTER);
+        
+        // Adicionar contentPanel ao mainPanel
+        mainPanel.add(contentPanel, BorderLayout.CENTER);
+        
         add(mainPanel, BorderLayout.CENTER);
     }
     

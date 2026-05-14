@@ -5,10 +5,14 @@ import com.artereal.swing.model.Afastamento;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.Statement;
 
 /**
  * DAO para operações com Afastamentos e Licenças
@@ -50,7 +54,7 @@ public class AfastamentoDAO {
             stmt.setString(7, afastamento.getDocumentoComprobatorio());
             stmt.setString(8, afastamento.getUsuarioCadastro());
             stmt.setString(9, afastamento.getObservacoes());
-            stmt.setBoolean(10, afastamento.isAfetaFrequencia());
+            stmt.setInt(10, afastamento.isAfetaFrequencia() ? 1 : 0);
             stmt.setInt(11, afastamento.getDiasAfastamento());
             
             if (afastamento.getId() != null) {
@@ -67,7 +71,6 @@ public class AfastamentoDAO {
                 }
             }
             
-            conn.commit();
             logger.debug("Afastamento salvo: {}", afastamento.getDescricao());
         }
     }
@@ -163,8 +166,8 @@ public class AfastamentoDAO {
         List<Afastamento> afastamentos = new ArrayList<>();
         String sql = """
             SELECT * FROM afastamento 
-            WHERE status = 'ATIVO' AND CURRENT_DATE BETWEEN data_inicial AND data_final 
-            ORDER BY data_final
+            WHERE status = 'ATIVO' AND CURRENT_DATE BETWEEN CAST(data_inicial AS DATE) AND CAST(data_final AS DATE) 
+            ORDER BY CAST(data_final AS DATE)
             """;
         
         try (Connection conn = DatabaseManager.getInstance().getConnection();
@@ -186,8 +189,8 @@ public class AfastamentoDAO {
         List<Afastamento> afastamentos = new ArrayList<>();
         String sql = """
             SELECT * FROM afastamento 
-            WHERE status = 'ATIVO' AND CURRENT_DATE > data_final 
-            ORDER BY data_final
+            WHERE status = 'ATIVO' AND CURRENT_DATE > CAST(data_final AS DATE) 
+            ORDER BY CAST(data_final AS DATE)
             """;
         
         try (Connection conn = DatabaseManager.getInstance().getConnection();
@@ -209,8 +212,8 @@ public class AfastamentoDAO {
         List<Afastamento> afastamentos = new ArrayList<>();
         String sql = """
             SELECT * FROM afastamento 
-            WHERE status = 'ATIVO' AND CURRENT_DATE < data_inicial 
-            ORDER BY data_inicial
+            WHERE status = 'ATIVO' AND CURRENT_DATE < CAST(data_inicial AS DATE) 
+            ORDER BY CAST(data_inicial AS DATE)
             """;
         
         try (Connection conn = DatabaseManager.getInstance().getConnection();
@@ -265,8 +268,6 @@ public class AfastamentoDAO {
             
             stmt.setLong(1, id);
             stmt.executeUpdate();
-            conn.commit();
-            
             logger.debug("Afastamento finalizado: ID {}", id);
         }
     }
@@ -282,8 +283,6 @@ public class AfastamentoDAO {
             
             stmt.setLong(1, id);
             stmt.executeUpdate();
-            conn.commit();
-            
             logger.debug("Afastamento cancelado: ID {}", id);
         }
     }
@@ -299,8 +298,6 @@ public class AfastamentoDAO {
             
             stmt.setLong(1, id);
             stmt.executeUpdate();
-            conn.commit();
-            
             logger.debug("Afastamento reativado: ID {}", id);
         }
     }
@@ -316,8 +313,6 @@ public class AfastamentoDAO {
             
             stmt.setLong(1, id);
             stmt.executeUpdate();
-            conn.commit();
-            
             logger.debug("Afastamento excluído: ID {}", id);
         }
     }
@@ -363,10 +358,10 @@ public class AfastamentoDAO {
         String sql = "SELECT COUNT(*) FROM afastamento WHERE status = ?";
         
         try (Connection conn = DatabaseManager.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setString(1, status);
+            ResultSet rs = stmt.executeQuery();
             
             if (rs.next()) {
                 return rs.getInt(1);

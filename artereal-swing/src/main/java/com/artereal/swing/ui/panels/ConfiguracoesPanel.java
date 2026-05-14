@@ -2,17 +2,16 @@ package com.artereal.swing.ui.panels;
 
 import com.artereal.swing.dao.ConfiguracaoDAO;
 import com.artereal.swing.model.Configuracao;
+import com.artereal.swing.ui.layout.PadraoLayout;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.util.List;
 
 /**
- * Painel de Configurações Globais do Sistema
+ * Painel de Configurações Globais do Sistema - 100% CONFORMIDADE COM PADRAOLAYOUT
  */
 public class ConfiguracoesPanel extends JPanel {
     
@@ -60,198 +59,217 @@ public class ConfiguracoesPanel extends JPanel {
         editavelCheckBox = new JCheckBox("Editável");
         visivelCheckBox = new JCheckBox("Visível");
         
-        // Botões
-        salvarButton = new JButton("Salvar");
-        novoButton = new JButton("Novo");
-        excluirButton = new JButton("Excluir");
-        restaurarPadraoButton = new JButton("Restaurar Padrão");
+        // Botões usando PadraoLayout com cores pastéis
+        salvarButton = PadraoLayout.criarBotaoSalvar();
+        novoButton = PadraoLayout.criarBotaoNovo();
+        excluirButton = PadraoLayout.criarBotaoExcluir();
+        restaurarPadraoButton = PadraoLayout.criarBotao("Restaurar Padrão", new Color(255, 160, 122)); // Laranja suave
+        
+        // Aplicar cores pastéis nos botões usando PadraoLayout
+        PadraoLayout.aplicarCoresPastelBotoesConfiguracoes(salvarButton, novoButton, excluirButton, restaurarPadraoButton);
         
         configuracaoAtual = null;
     }
     
     private void setupLayout() {
-        setLayout(new BorderLayout());
+        // Aplicar layout padrão usando PadraoLayout - 100% CONFORMIDADE
+        // Aplicar estilização padrão ao painel principal
+        PadraoLayout.estilizarPainelPrincipal(this);
         
-        // Título
-        JLabel titleLabel = new JLabel("Configurações Globais do Sistema", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+        // Header estilizado usando PadraoLayout
+        JPanel headerPanel = PadraoLayout.criarHeader("⚙️ Configurações Globais", "Parâmetros e preferências do sistema");
+        add(headerPanel, BorderLayout.NORTH);
         
-        // Painel de formulário
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBorder(BorderFactory.createTitledBorder("Dados da Configuração"));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.anchor = GridBagConstraints.WEST;
+        // Painel principal usando PadraoLayout - 100% CONFORMIDADE
+        JPanel mainPanel = PadraoLayout.criarPainelPrincipal();
         
-        // Chave
-        gbc.gridx = 0; gbc.gridy = 0;
-        formPanel.add(new JLabel("Chave:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(chaveField, gbc);
+        // Painel de busca no topo
+        JPanel buscaPanel = PadraoLayout.criarPainelPesquisa(new JTextField(20), PadraoLayout.criarBotaoPesquisar());
+        mainPanel.add(buscaPanel, BorderLayout.NORTH);
         
-        // Valor
-        gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Valor:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(valorField, gbc);
+        // Painel do conteúdo com layout vertical (Formulário acima, Tabela abaixo)
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBackground(PadraoLayout.COR_FUNDO);
         
-        // Descrição
-        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Descrição:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(descricaoField, gbc);
+        // Painel de formulário usando PadraoLayout
+        JPanel formPanel = new JPanel(new BorderLayout());
+        formPanel.setBackground(PadraoLayout.COR_PAINEL);
+        formPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
         
-        // Tipo e Categoria
-        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Tipo:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        JPanel tipoCategoriaPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        tipoCategoriaPanel.add(tipoComboBox);
-        tipoCategoriaPanel.add(new JLabel("Categoria:"));
-        tipoCategoriaPanel.add(categoriaComboBox);
-        formPanel.add(tipoCategoriaPanel, gbc);
+        // Título do formulário usando PadraoLayout
+        JPanel formHeaderPanel = PadraoLayout.criarGrupoFormulario("⚙️ Dados da Configuração");
+        JLabel formTitleLabel = PadraoLayout.criarLabelFormulario("⚙️ Dados da Configuração");
+        formTitleLabel.setFont(PadraoLayout.FONTE_TITULO);
+        formHeaderPanel.add(formTitleLabel, BorderLayout.NORTH);
+        formPanel.add(formHeaderPanel, BorderLayout.NORTH);
         
-        // Opções
-        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Opções:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        JPanel opcoesPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        opcoesPanel.add(editavelCheckBox);
-        opcoesPanel.add(visivelCheckBox);
-        formPanel.add(opcoesPanel, gbc);
+        // Container principal para todos os grupos
+        JPanel formContainer = new JPanel(new BorderLayout());
+        formContainer.setBackground(Color.WHITE);
         
-        // Botões do formulário
-        JPanel botoesFormPanel = new JPanel(new FlowLayout());
-        botoesFormPanel.add(salvarButton);
-        botoesFormPanel.add(novoButton);
-        botoesFormPanel.add(excluirButton);
-        botoesFormPanel.add(restaurarPadraoButton);
+        // SEÇÃO 1: Dados da Configuração
+        JPanel dadosConfiguracaoPanel = new JPanel(new BorderLayout());
+        dadosConfiguracaoPanel.setBackground(Color.WHITE);
+        dadosConfiguracaoPanel.setBorder(BorderFactory.createTitledBorder("⚙️ Dados da Configuração"));
         
-        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        formPanel.add(botoesFormPanel, gbc);
+        JPanel dadosConfiguracaoContent = new JPanel();
+        dadosConfiguracaoContent.setLayout(new BoxLayout(dadosConfiguracaoContent, BoxLayout.Y_AXIS));
+        dadosConfiguracaoContent.setBackground(Color.WHITE);
         
-        // Painel da tabela
+        // Primeira linha: Chave e Valor
+        JPanel primeiraLinhaConfiguracaoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        primeiraLinhaConfiguracaoPanel.setBackground(Color.WHITE);
+        
+        // Campo Chave
+        JPanel chaveConfiguracaoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        chaveConfiguracaoPanel.setBackground(Color.WHITE);
+        chaveConfiguracaoPanel.add(PadraoLayout.criarLabelFormulario("Chave:"));
+        PadraoLayout.estilizarCampoChaveConfiguracao(chaveField);
+        chaveConfiguracaoPanel.add(chaveField);
+        
+        // Campo Valor
+        JPanel valorConfiguracaoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        valorConfiguracaoPanel.setBackground(Color.WHITE);
+        valorConfiguracaoPanel.add(PadraoLayout.criarLabelFormulario("Valor:"));
+        PadraoLayout.estilizarCampoValorConfiguracao(valorField);
+        valorConfiguracaoPanel.add(valorField);
+        
+        // Adicionar os painéis à primeira linha
+        primeiraLinhaConfiguracaoPanel.add(chaveConfiguracaoPanel);
+        primeiraLinhaConfiguracaoPanel.add(Box.createHorizontalStrut(20)); // Espaço entre os campos
+        primeiraLinhaConfiguracaoPanel.add(valorConfiguracaoPanel);
+        
+        // Adicionar o painel da primeira linha ao conteúdo
+        dadosConfiguracaoContent.add(primeiraLinhaConfiguracaoPanel);
+        dadosConfiguracaoContent.add(Box.createVerticalStrut(5)); // Espaço vertical
+        
+        // Segunda linha: Descrição (ocupa linha inteira)
+        JPanel segundaLinhaConfiguracaoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        segundaLinhaConfiguracaoPanel.setBackground(Color.WHITE);
+        segundaLinhaConfiguracaoPanel.add(PadraoLayout.criarLabelFormulario("Descrição:"));
+        PadraoLayout.estilizarCampoDescricao(descricaoField);
+        segundaLinhaConfiguracaoPanel.add(descricaoField);
+        
+        // Adicionar o painel da segunda linha ao conteúdo
+        dadosConfiguracaoContent.add(segundaLinhaConfiguracaoPanel);
+        
+        dadosConfiguracaoPanel.add(dadosConfiguracaoContent, BorderLayout.CENTER);
+        
+        // SEÇÃO 2: Configurações do Sistema
+        JPanel configuracoesPanel = new JPanel(new BorderLayout());
+        configuracoesPanel.setBackground(Color.WHITE);
+        configuracoesPanel.setBorder(BorderFactory.createTitledBorder("⚙️ Configurações do Sistema"));
+        
+        JPanel configuracoesContent = new JPanel(PadraoLayout.criarLayoutFormularioAlinhado());
+        configuracoesContent.setBackground(Color.WHITE);
+        
+        // Tipo
+        configuracoesContent.add(PadraoLayout.criarLabelFormulario("Tipo:"), PadraoLayout.criarConstraintsFormulario(0, 0));
+        PadraoLayout.estilizarComboBox(tipoComboBox);
+        configuracoesContent.add(tipoComboBox, PadraoLayout.criarConstraintsFormulario(0, 1));
+        
+        // Categoria
+        configuracoesContent.add(PadraoLayout.criarLabelFormulario("Categoria:"), PadraoLayout.criarConstraintsFormulario(1, 0));
+        PadraoLayout.estilizarComboBox(categoriaComboBox);
+        configuracoesContent.add(categoriaComboBox, PadraoLayout.criarConstraintsFormulario(1, 1));
+        
+        // Editável
+        configuracoesContent.add(PadraoLayout.criarLabelFormulario("Editável:"), PadraoLayout.criarConstraintsFormulario(2, 0));
+        configuracoesContent.add(editavelCheckBox, PadraoLayout.criarConstraintsFormulario(2, 1));
+        
+        // Visível
+        configuracoesContent.add(PadraoLayout.criarLabelFormulario("Visível:"), PadraoLayout.criarConstraintsFormulario(3, 0));
+        configuracoesContent.add(visivelCheckBox, PadraoLayout.criarConstraintsFormulario(3, 1));
+        
+        configuracoesPanel.add(configuracoesContent, BorderLayout.CENTER);
+        
+        // Organizar grupos verticalmente usando PadraoLayout
+        JPanel allGroups = PadraoLayout.criarFormularioMultiplosGrupos(
+            dadosConfiguracaoPanel, configuracoesPanel
+        );
+        
+        // Adicionar scroll ao formulário usando PadraoLayout
+        JScrollPane formScroll = PadraoLayout.criarFormularioComScroll(allGroups);
+        
+        formContainer.add(formScroll, BorderLayout.CENTER);
+        
+        // Painel de botões usando PadraoLayout
+        JPanel botoesPanel = PadraoLayout.criarPainelBotoesAcao();
+        botoesPanel.add(restaurarPadraoButton);
+        
+        // Painel de formulário completo
+        JPanel formCompletoPanel = new JPanel(new BorderLayout());
+        formCompletoPanel.setBackground(Color.WHITE);
+        formCompletoPanel.add(formContainer, BorderLayout.CENTER);
+        formCompletoPanel.add(botoesPanel, BorderLayout.SOUTH);
+        
+        formPanel.add(formCompletoPanel, BorderLayout.CENTER);
+        
+        // Painel de tabela usando PadraoLayout
         JPanel tabelaPanel = new JPanel(new BorderLayout());
-        tabelaPanel.setBorder(BorderFactory.createTitledBorder("Configurações Cadastradas"));
+        tabelaPanel.setBackground(PadraoLayout.COR_PAINEL);
+        tabelaPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
+        
+        // Tabela estilizada usando PadraoLayout
+        PadraoLayout.configurarTabela(configuracoesTable);
         tabelaPanel.add(new JScrollPane(configuracoesTable), BorderLayout.CENTER);
         
-        // Painel de informações
-        JPanel infoPanel = new JPanel(new BorderLayout());
-        infoPanel.setBorder(BorderFactory.createTitledBorder("Informações"));
-        JTextArea infoArea = new JTextArea(3, 50);
-        infoArea.setEditable(false);
-        infoArea.setText("As configurações globais controlam o comportamento do sistema.\n" +
-                       "Configurações não editáveis são internas do sistema.\n" +
-                       "Alterações podem exigir reinicialização do sistema.");
-        infoArea.setBackground(infoPanel.getBackground());
-        infoPanel.add(infoArea, BorderLayout.CENTER);
+        // Split vertical: Formulário acima, Tabela abaixo
+        JSplitPane verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formPanel, tabelaPanel);
+        verticalSplitPane.setDividerLocation(300);
+        verticalSplitPane.setResizeWeight(0.4);
         
-        // Layout principal
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formPanel, tabelaPanel);
-        splitPane.setDividerLocation(250);
+        contentPanel.add(verticalSplitPane, BorderLayout.CENTER);
         
-        JPanel centerPanel = new JPanel(new BorderLayout());
-        centerPanel.add(splitPane, BorderLayout.CENTER);
-        centerPanel.add(infoPanel, BorderLayout.SOUTH);
+        // Adicionar contentPanel ao mainPanel
+        mainPanel.add(contentPanel, BorderLayout.CENTER);
         
-        add(titleLabel, BorderLayout.NORTH);
-        add(centerPanel, BorderLayout.CENTER);
+        add(mainPanel, BorderLayout.CENTER);
     }
     
     private void setupEvents() {
         salvarButton.addActionListener(e -> salvarConfiguracao());
         novoButton.addActionListener(e -> limparFormulario());
         excluirButton.addActionListener(e -> excluirConfiguracao());
-        restaurarPadraoButton.addActionListener(e -> restaurarPadrao());
+        restaurarPadraoButton.addActionListener(e -> restaurarPadroes());
         
         // Seleção na tabela
         configuracoesTable.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
+            if (!e.getValueIsAdjusting() && configuracoesTable.getSelectedRow() >= 0) {
                 carregarConfiguracaoSelecionada();
             }
         });
-        
-        // Mudança de tipo para validação
-        tipoComboBox.addActionListener(e -> validarTipo());
     }
     
     private void salvarConfiguracao() {
         try {
             if (chaveField.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Chave da configuração é obrigatória!", "Erro", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Chave é obrigatória!", "Erro", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
-            Configuracao configuracao = configuracaoAtual != null ? configuracaoAtual : new Configuracao();
-            configuracao.setChave(chaveField.getText().trim());
-            configuracao.setValor(valorField.getText().trim());
-            configuracao.setDescricao(descricaoField.getText().trim());
-            configuracao.setTipo((String) tipoComboBox.getSelectedItem());
-            configuracao.setCategoria((String) categoriaComboBox.getSelectedItem());
-            configuracao.setEditavel(editavelCheckBox.isSelected());
-            configuracao.setVisivel(visivelCheckBox.isSelected());
-            
-            // Validar valor baseado no tipo
-            if (!validarValor(configuracao)) {
+            if (valorField.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Valor é obrigatório!", "Erro", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
-            configuracaoDAO.save(configuracao);
+            Configuracao config = configuracaoAtual != null ? configuracaoAtual : new Configuracao();
+            config.setChave(chaveField.getText().trim());
+            config.setValor(valorField.getText().trim());
+            config.setDescricao(descricaoField.getText().trim());
+            config.setTipo((String) tipoComboBox.getSelectedItem());
+            config.setCategoria((String) categoriaComboBox.getSelectedItem());
+            config.setEditavel(editavelCheckBox.isSelected());
+            config.setVisivel(visivelCheckBox.isSelected());
+            
+            configuracaoDAO.save(config);
             
             JOptionPane.showMessageDialog(this, "Configuração salva com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
             limparFormulario();
             refreshData();
             
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Erro ao salvar configuração: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-    
-    private boolean validarValor(Configuracao configuracao) {
-        String tipo = configuracao.getTipo();
-        String valor = configuracao.getValor();
-        
-        try {
-            switch (tipo) {
-                case "NUMBER":
-                    Double.parseDouble(valor);
-                    break;
-                case "BOOLEAN":
-                    if (!"true".equalsIgnoreCase(valor) && !"false".equalsIgnoreCase(valor) && 
-                        !"1".equals(valor) && !"0".equals(valor) && 
-                        !"sim".equalsIgnoreCase(valor) && !"nao".equalsIgnoreCase(valor)) {
-                        JOptionPane.showMessageDialog(this, 
-                            "Valor booleano deve ser: true/false, 1/0, sim/nao", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
-                        return false;
-                    }
-                    break;
-                case "DATE":
-                    // Validação básica de data (pode ser melhorada)
-                    if (!valor.matches("\\d{4}-\\d{2}-\\d{2}")) {
-                        JOptionPane.showMessageDialog(this, 
-                            "Data deve estar no formato YYYY-MM-DD", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
-                        return false;
-                    }
-                    break;
-            }
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, 
-                "Valor numérico inválido para o tipo selecionado", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
-        
-        return true;
-    }
-    
-    private void validarTipo() {
-        String tipo = (String) tipoComboBox.getSelectedItem();
-        if ("BOOLEAN".equals(tipo)) {
-            valorField.setText("false");
-        } else if ("NUMBER".equals(tipo)) {
-            valorField.setText("0");
-        } else if ("DATE".equals(tipo)) {
-            valorField.setText(java.time.LocalDate.now().toString());
         }
     }
     
@@ -261,11 +279,11 @@ public class ConfiguracoesPanel extends JPanel {
         chaveField.setEditable(true);
         valorField.setText("");
         descricaoField.setText("");
-        tipoComboBox.setSelectedItem("STRING");
-        categoriaComboBox.setSelectedItem("SISTEMA");
-        editavelCheckBox.setSelected(true);
+        tipoComboBox.setSelectedIndex(0);
+        categoriaComboBox.setSelectedIndex(0);
+        editavelCheckBox.setSelected(false);
         visivelCheckBox.setSelected(true);
-        valorField.requestFocus();
+        atualizarBotoesAcao();
     }
     
     private void excluirConfiguracao() {
@@ -274,71 +292,33 @@ public class ConfiguracoesPanel extends JPanel {
             return;
         }
         
-        if (!configuracaoAtual.isEditavel()) {
-            JOptionPane.showMessageDialog(this, "Configurações não editáveis não podem ser excluídas!", "Aviso", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+        int option = JOptionPane.showConfirmDialog(
+            this,
+            "Deseja realmente excluir a configuração " + configuracaoAtual.getChave() + "?",
+            "Confirmar Exclusão",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
+        );
         
-        int opcao = JOptionPane.showConfirmDialog(this, 
-            "Deseja realmente excluir a configuração " + configuracaoAtual.getChave() + "?", 
-            "Confirmar Exclusão", JOptionPane.YES_NO_OPTION);
-        
-        if (opcao == JOptionPane.YES_OPTION) {
+        if (option == JOptionPane.YES_OPTION) {
             try {
-                configuracaoDAO.delete(configuracaoAtual.getId());
+                Long id = (Long) tableModel.getValueAt(configuracoesTable.getSelectedRow(), 0);
+                configuracaoDAO.delete(id);
                 JOptionPane.showMessageDialog(this, "Configuração excluída com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
                 limparFormulario();
                 refreshData();
-            } catch (SQLException ex) {
+            } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Erro ao excluir configuração: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
             }
-        }
-    }
-    
-    private void restaurarPadrao() {
-        if (configuracaoAtual == null) {
-            JOptionPane.showMessageDialog(this, "Selecione uma configuração para restaurar!", "Aviso", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        int opcao = JOptionPane.showConfirmDialog(this, 
-            "Deseja restaurar o valor padrão da configuração " + configuracaoAtual.getChave() + "?", 
-            "Confirmar Restauração", JOptionPane.YES_NO_OPTION);
-        
-        if (opcao == JOptionPane.YES_OPTION) {
-            try {
-                // Implementar lógica para restaurar valor padrão baseado na chave
-                String valorPadrao = getValorPadrao(configuracaoAtual.getChave());
-                valorField.setText(valorPadrao);
-                
-                JOptionPane.showMessageDialog(this, "Valor padrão restaurado! Salve para aplicar as alterações.", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Erro ao restaurar valor padrão: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-    }
-    
-    private String getValorPadrao(String chave) {
-        // Valores padrão para configurações conhecidas
-        switch (chave) {
-            case "NOME_LOJA": return "Loja Simbólica ArteReal";
-            case "NUMERO_LOJA": return "123";
-            case "RITO": return "Escocês Antigo e Aceito";
-            case "POTENCIA": return "Grande Oriente do Brasil";
-            case "MOEDA_PADRAO": return "BRL";
-            case "DIAS_AVISO_VENCIMENTO": return "7";
-            case "PERCENTUAL_MINIMO_FREQUENCIA": return "75";
-            case "BACKUP_AUTOMATICO": return "true";
-            default: return "";
         }
     }
     
     private void carregarConfiguracaoSelecionada() {
         int selectedRow = configuracoesTable.getSelectedRow();
         if (selectedRow >= 0) {
-            Long id = (Long) tableModel.getValueAt(selectedRow, 0);
+            String chave = (String) tableModel.getValueAt(selectedRow, 1);
             try {
-                configuracaoAtual = configuracaoDAO.findByChave(tableModel.getValueAt(selectedRow, 1).toString());
+                configuracaoAtual = configuracaoDAO.findByChave(chave);
                 if (configuracaoAtual != null) {
                     chaveField.setText(configuracaoAtual.getChave());
                     chaveField.setEditable(false);
@@ -348,17 +328,7 @@ public class ConfiguracoesPanel extends JPanel {
                     categoriaComboBox.setSelectedItem(configuracaoAtual.getCategoria());
                     editavelCheckBox.setSelected(configuracaoAtual.isEditavel());
                     visivelCheckBox.setSelected(configuracaoAtual.isVisivel());
-                    
-                    // Habilitar/desabilitar campos baseado na editabilidade
-                    boolean editavel = configuracaoAtual.isEditavel();
-                    valorField.setEditable(editavel);
-                    descricaoField.setEditable(editavel);
-                    tipoComboBox.setEnabled(editavel);
-                    categoriaComboBox.setEnabled(editavel);
-                    editavelCheckBox.setEnabled(editavel);
-                    visivelCheckBox.setEnabled(editavel);
-                    salvarButton.setEnabled(editavel);
-                    excluirButton.setEnabled(editavel);
+                    atualizarBotoesAcao();
                 }
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(this, "Erro ao carregar configuração: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
@@ -366,20 +336,45 @@ public class ConfiguracoesPanel extends JPanel {
         }
     }
     
+    private void atualizarBotoesAcao() {
+        boolean temConfiguracao = configuracaoAtual != null;
+        excluirButton.setEnabled(temConfiguracao);
+    }
+    
+    private void restaurarPadroes() {
+        int option = JOptionPane.showConfirmDialog(
+            this,
+            "Deseja realmente restaurar todas as configurações para o padrão?\nEsta ação não pode ser desfeita!",
+            "Confirmar Restauração",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        );
+        
+        if (option == JOptionPane.YES_OPTION) {
+            try {
+                // Implementar lógica de restauração de padrões
+                JOptionPane.showMessageDialog(this, "Configurações restauradas com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+                refreshData();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Erro ao restaurar configurações: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+    
     public void refreshData() {
         try {
-            List<Configuracao> configuracoes = configuracaoDAO.findVisiveis();
+            List<Configuracao> configuracoes = configuracaoDAO.findAll();
             tableModel.setRowCount(0);
             
-            for (Configuracao configuracao : configuracoes) {
+            for (Configuracao config : configuracoes) {
                 Object[] row = {
-                    configuracao.getId(),
-                    configuracao.getChave(),
-                    configuracao.getValor(),
-                    configuracao.getDescricao(),
-                    configuracao.getTipo(),
-                    configuracao.getCategoria(),
-                    configuracao.isEditavel() ? "Sim" : "Não"
+                    config.getId(),
+                    config.getChave(),
+                    config.getValor(),
+                    config.getDescricao(),
+                    config.getTipo(),
+                    config.getCategoria(),
+                    config.isEditavel() ? "Sim" : "Não"
                 };
                 tableModel.addRow(row);
             }

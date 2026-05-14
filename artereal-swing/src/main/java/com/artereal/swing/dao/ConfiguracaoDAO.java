@@ -5,7 +5,10 @@ import com.artereal.swing.model.Configuracao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,15 +41,15 @@ public class ConfiguracaoDAO {
         }
         
         try (Connection conn = DatabaseManager.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement stmt = conn.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
             
             stmt.setString(1, configuracao.getChave());
             stmt.setString(2, configuracao.getValor());
             stmt.setString(3, configuracao.getDescricao());
             stmt.setString(4, configuracao.getTipo());
             stmt.setString(5, configuracao.getCategoria());
-            stmt.setBoolean(6, configuracao.isEditavel());
-            stmt.setBoolean(7, configuracao.isVisivel());
+            stmt.setInt(6, configuracao.isEditavel() ? 1 : 0);
+            stmt.setInt(7, configuracao.isVisivel() ? 1 : 0);
             stmt.setString(8, configuracao.getUsuarioAtualizacao());
             
             if (configuracao.getId() != null) {
@@ -63,7 +66,6 @@ public class ConfiguracaoDAO {
                 }
             }
             
-            conn.commit();
             logger.debug("Configuração salva: {}", configuracao.getChave());
         }
     }
@@ -275,8 +277,6 @@ public class ConfiguracaoDAO {
             
             stmt.setLong(1, id);
             stmt.executeUpdate();
-            conn.commit();
-            
             logger.debug("Configuração excluída: ID {}", id);
         }
     }
@@ -317,9 +317,40 @@ public class ConfiguracaoDAO {
         
         String dataAtualizacaoStr = rs.getString("data_atualizacao");
         if (dataAtualizacaoStr != null && !dataAtualizacaoStr.isEmpty()) {
-            // Converter formato "YYYY-MM-DD HH:mm:ss" para "YYYY-MM-DDTHH:mm:ss"
-            String dataFormatada = dataAtualizacaoStr.replace(" ", "T");
-            configuracao.setDataAtualizacao(LocalDateTime.parse(dataFormatada));
+            try {
+                // Tentar parsing direto primeiro
+                configuracao.setDataAtualizacao(LocalDateTime.parse(dataAtualizacaoStr));
+            } catch (Exception e) {
+                try {
+                    // Parsing manual para formatos complexos com timezone
+                    if (dataAtualizacaoStr.contains(" ")) {
+                        // Remover timezone e microssegundos se presentes
+                        String dataLimpa = dataAtualizacaoStr;
+                        
+                        // Remover timezone se presente (ex: -03, -03:00)
+                        if (dataLimpa.matches(".*-\\d{2}:?\\d{0,2}$")) {
+                            dataLimpa = dataLimpa.replaceAll("-\\d{2}:?\\d{0,2}$", "");
+                        }
+                        
+                        // Remover microssegundos se presentes
+                        if (dataLimpa.contains(".")) {
+                            dataLimpa = dataLimpa.replaceAll("\\.\\d+$", "");
+                        }
+                        
+                        // Converter para formato ISO
+                        dataLimpa = dataLimpa.replace(" ", "T");
+                        configuracao.setDataAtualizacao(LocalDateTime.parse(dataLimpa));
+                    } else {
+                        // Usar parsing com formato específico como fallback
+                        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                        configuracao.setDataAtualizacao(LocalDateTime.parse(dataAtualizacaoStr, formatter));
+                    }
+                } catch (Exception e2) {
+                    // Usar parsing com formato específico como fallback final
+                    java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                    configuracao.setDataAtualizacao(LocalDateTime.parse(dataAtualizacaoStr, formatter));
+                }
+            }
         }
         
         configuracao.setUsuarioAtualizacao(rs.getString("usuario_atualizacao"));

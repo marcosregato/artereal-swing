@@ -5,13 +5,17 @@ import com.artereal.swing.model.Frequencia;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.Statement;
 
 /**
- * DAO para operações com Frequência no banco SQLite
+ * DAO para operações com Frequência no banco PostgreSQL
  */
 public class FrequenciaDAO {
     
@@ -50,13 +54,13 @@ public class FrequenciaDAO {
             stmt.setString(6, frequencia.getDataFinalLicenca() != null ? frequencia.getDataFinalLicenca().toString() : null);
             stmt.setString(7, frequencia.getGrau());
             stmt.setString(8, frequencia.getDataInstalado() != null ? frequencia.getDataInstalado().toString() : null);
-            stmt.setBoolean(9, frequencia.isIrregular());
+            stmt.setInt(9, frequencia.isIrregular() ? 1 : 0);
             stmt.setInt(10, frequencia.getNumeroPresencas());
             stmt.setInt(11, frequencia.getNumeroFaltas());
             stmt.setInt(12, frequencia.getNumeroSecoes());
             stmt.setString(13, frequencia.getNomeHistorico());
-            stmt.setBoolean(14, frequencia.isPresencaDiretoria());
-            stmt.setBoolean(15, frequencia.isSecretariaDiretoria());
+            stmt.setInt(14, frequencia.isPresencaDiretoria() ? 1 : 0);
+            stmt.setInt(15, frequencia.isSecretariaDiretoria() ? 1 : 0);
             
             if (frequencia.getId() != null) {
                 stmt.setLong(16, frequencia.getId());
@@ -72,7 +76,6 @@ public class FrequenciaDAO {
                 }
             }
             
-            conn.commit();
             logger.debug("Frequência salva: {}", frequencia.getNomeIrmao());
         }
     }
@@ -193,7 +196,6 @@ public class FrequenciaDAO {
             
             stmt.setLong(1, codigoIrmao);
             stmt.executeUpdate();
-            conn.commit();
             
             logger.debug("Presença incrementada: Irmão {}", codigoIrmao);
         }
@@ -210,7 +212,6 @@ public class FrequenciaDAO {
             
             stmt.setLong(1, codigoIrmao);
             stmt.executeUpdate();
-            conn.commit();
             
             logger.debug("Falta incrementada: Irmão {}", codigoIrmao);
         }
@@ -257,7 +258,6 @@ public class FrequenciaDAO {
             
             stmt.setLong(1, id);
             stmt.executeUpdate();
-            conn.commit();
             
             logger.debug("Registro de frequência excluído: ID {}", id);
         }

@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 /**
  * Modelo de dados para Usuário do sistema
  */
-public class Usuario {
+public class Usuario extends SimpleModel {
     
     private Long id;
     private String nome;
@@ -83,6 +83,6 @@ public class Usuario {
     
     @Override
     public String toString() {
-        return nome + " (" + (administrador ? "Admin" : "Usuário") + ")";
+        return "Usuario{id=" + id + ", nome='" + nome + "', administrador=" + administrador + "}";
     }
 }

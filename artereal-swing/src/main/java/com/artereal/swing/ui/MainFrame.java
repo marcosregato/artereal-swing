@@ -1,42 +1,44 @@
 package com.artereal.swing.ui;
 
+import com.artereal.swing.database.DatabaseManager;
 import com.artereal.swing.ui.panels.*;
 import com.artereal.swing.model.Usuario;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.sql.SQLException;
 
 /**
  * Janela principal do sistema ArteReal
  */
 public class MainFrame extends JFrame {
     
+    private static final Logger logger = LoggerFactory.getLogger(MainFrame.class);
     private static final String TITLE = "ArteReal - Sistema de Gestão Maçônica";
     
-    // Painéis de conteúdo
+    // Painéis de conteúdo (lazy initialization)
     private DashboardPanel dashboardPanel;
+    private CadastroIrmaosPanel cadastroIrmaosPanel;
+    private CandidatosPanel candidatosPanel; // Painel mais utilizado
+    private UsuariosPanel usuariosPanel;
+    private ConfiguracoesPanel configuracoesPanel;
+    
+    // Painéis menos utilizados - criados sob demanda
     private IrmaosPanel irmaosPanel;
     private LojasPanel lojasPanel;
     private SessoesPanel sessoesPanel;
     private CaixaPanel caixaPanel;
     private BibliotecaPanel bibliotecaPanel;
     private RelatoriosPanel relatoriosPanel;
-    // Novos painéis
-    private UsuariosPanel usuariosPanel;
     private FrequenciaPanel frequenciaPanel;
-    private CandidatosPanel candidatosPanel;
-    private ConfiguracoesPanel configuracoesPanel;
-    private ChequesPanel chequesPanel;
+    private DespesasPanel despesasPanel;
     private VisitantesPanel visitantesPanel;
     private DocumentosPanel documentosPanel;
     private CalendarioPanel calendarioPanel;
     private AfastamentosPanel afastamentosPanel;
     private GaleriaFotosPanel galeriaFotosPanel;
-    
-    // Novo painel de cadastro
-    private CadastroIrmaosPanel cadastroIrmaosPanel;
     
     // Componentes da interface
     private JPanel contentPanel;
@@ -61,23 +63,28 @@ public class MainFrame extends JFrame {
     }
     
     /**
-     * Inicializa os componentes da interface
+     * Inicializa os componentes da interface (otimizado para performance)
      */
     private void initializeComponents() {
+        // Inicializar banco de dados uma vez só
+        try {
+            DatabaseManager.getInstance().initializeDatabase();
+        } catch (SQLException e) {
+            logger.error("Erro ao inicializar banco de dados: " + e.getMessage(), e);
+        }
+        
         // Painel principal de conteúdo
         contentPanel = new JPanel(new CardLayout());
         
-        // Inicializa apenas o painel principal (Dashboard)
+        // Inicializa apenas o painel principal (Dashboard) - lazy initialization para outros
         dashboardPanel = new DashboardPanel();
-        
-        // Outros painéis serão criados sob demanda (lazy initialization)
-        
-        // Adiciona apenas o painel dashboard inicialmente
         contentPanel.add(dashboardPanel, "DASHBOARD");
         
         // Barra de status
         statusLabel = new JLabel("Pronto");
         userLabel = new JLabel("Usuário: Administrador");
+        
+        logger.info("Componentes principais inicializados com sucesso");
     }
     
     /**
@@ -105,7 +112,7 @@ public class MainFrame extends JFrame {
         statusBar.setBorder(BorderFactory.createEtchedBorder());
         statusBar.setPreferredSize(new Dimension(0, 25));
         
-        JLabel versionLabel = new JLabel("ArteReal v1.0.0 - Swing + SQLite");
+        JLabel versionLabel = new JLabel("ArteReal v1.0.0 - Swing + PostgreSQL");
         versionLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
         
         statusBar.add(statusLabel, BorderLayout.CENTER);
@@ -200,11 +207,11 @@ public class MainFrame extends JFrame {
         JMenu financeiroMenu = new JMenu("Financeiro");
         financeiroMenu.setMnemonic('F');
         
-        JMenuItem chequesMenuItem = new JMenuItem("Cheques");
-        chequesMenuItem.setMnemonic('C');
-        chequesMenuItem.addActionListener(e -> showCheques());
+        JMenuItem despesasMenuItem = new JMenuItem("Despesas");
+        despesasMenuItem.setMnemonic('D');
+        despesasMenuItem.addActionListener(e -> showDespesas());
         
-        financeiroMenu.add(chequesMenuItem);
+        financeiroMenu.add(despesasMenuItem);
         
         // Menu Documental
         JMenu documentalMenu = new JMenu("Documental");
@@ -240,7 +247,7 @@ public class MainFrame extends JFrame {
         
         JMenuItem sairMenuItem = new JMenuItem("Sair");
         sairMenuItem.setMnemonic('S');
-        sairMenuItem.addActionListener(e -> sair());
+        sairMenuItem.addActionListener(e -> System.exit(0));
         
         sistemaMenu.add(usuariosMenuItem);
         sistemaMenu.addSeparator();
@@ -286,19 +293,50 @@ public class MainFrame extends JFrame {
         cl.show(contentPanel, "DASHBOARD");
         setTitle(TITLE + " - Dashboard");
         statusLabel.setText("Dashboard");
-        dashboardPanel.refreshData();
+        // Dashboard não precisa de refreshData() pois mostra dados estáticos
+        // Se precisar de dados dinâmicos, implementar refreshDataAsync()
     }
     
     public void showIrmaos() {
         if (irmaosPanel == null) {
-            irmaosPanel = new IrmaosPanel();
-            contentPanel.add(irmaosPanel, "IRMAOS");
+            logger.info("Criando IrmaosPanel (lazy initialization)");
+            statusLabel.setText("Carregando Gestão de Irmãos...");
+            
+            // Criar painel em background para não bloquear a UI
+            SwingUtilities.invokeLater(() -> {
+                try {
+                    irmaosPanel = new IrmaosPanel();
+                    contentPanel.add(irmaosPanel, "IRMAOS");
+                    
+                    // Mudar para o painel após criado
+                    CardLayout cl = (CardLayout) contentPanel.getLayout();
+                    cl.show(contentPanel, "IRMAOS");
+                    setTitle(TITLE + " - Gestão de Irmãos");
+                    statusLabel.setText("Gestão de Irmãos");
+                    
+                    // Carregar dados de forma assíncrona
+                    SwingUtilities.invokeLater(() -> {
+                        irmaosPanel.refreshDataAsync();
+                        logger.info("IrmaosPanel carregado com sucesso");
+                    });
+                    
+                } catch (Exception e) {
+                    logger.error("Erro ao criar IrmaosPanel: " + e.getMessage(), e);
+                    statusLabel.setText("Erro ao carregar Gestão de Irmãos");
+                }
+            });
+        } else {
+            // Painel já existe, apenas mostrar e atualizar
+            CardLayout cl = (CardLayout) contentPanel.getLayout();
+            cl.show(contentPanel, "IRMAOS");
+            setTitle(TITLE + " - Gestão de Irmãos");
+            statusLabel.setText("Gestão de Irmãos");
+            
+            // Atualizar dados de forma assíncrona
+            SwingUtilities.invokeLater(() -> {
+                irmaosPanel.refreshDataAsync();
+            });
         }
-        CardLayout cl = (CardLayout) contentPanel.getLayout();
-        cl.show(contentPanel, "IRMAOS");
-        setTitle(TITLE + " - Gestão de Irmãos");
-        statusLabel.setText("Gestão de Irmãos");
-        irmaosPanel.refreshData();
     }
     
     public void showLojas() {
@@ -350,6 +388,10 @@ public class MainFrame extends JFrame {
     }
     
     public void showRelatorios() {
+        if (relatoriosPanel == null) {
+            relatoriosPanel = new RelatoriosPanel();
+            contentPanel.add(relatoriosPanel, "RELATORIOS");
+        }
         CardLayout cl = (CardLayout) contentPanel.getLayout();
         cl.show(contentPanel, "RELATORIOS");
         setTitle(TITLE + " - Relatórios");
@@ -358,6 +400,10 @@ public class MainFrame extends JFrame {
     }
     
     public void showUsuarios() {
+        if (usuariosPanel == null) {
+            usuariosPanel = new UsuariosPanel();
+            contentPanel.add(usuariosPanel, "USUARIOS");
+        }
         CardLayout cl = (CardLayout) contentPanel.getLayout();
         cl.show(contentPanel, "USUARIOS");
         setTitle(TITLE + " - Usuários");
@@ -390,6 +436,10 @@ public class MainFrame extends JFrame {
     }
     
     public void showConfiguracoes() {
+        if (configuracoesPanel == null) {
+            configuracoesPanel = new ConfiguracoesPanel();
+            contentPanel.add(configuracoesPanel, "CONFIGURACOES");
+        }
         CardLayout cl = (CardLayout) contentPanel.getLayout();
         cl.show(contentPanel, "CONFIGURACOES");
         setTitle(TITLE + " - Configurações");
@@ -397,12 +447,22 @@ public class MainFrame extends JFrame {
         configuracoesPanel.refreshData();
     }
     
-    public void showCheques() {
+    public void showDespesas() {
+        if (despesasPanel == null) {
+            logger.info("Criando DespesasPanel (lazy initialization)");
+            statusLabel.setText("Carregando Gestão de Despesas...");
+            despesasPanel = new DespesasPanel();
+            contentPanel.add(despesasPanel, "DESPESAS");
+        }
+        
         CardLayout cl = (CardLayout) contentPanel.getLayout();
-        cl.show(contentPanel, "CHEQUES");
-        setTitle(TITLE + " - Cheques");
-        statusLabel.setText("Gestão de Cheques");
-        chequesPanel.refreshData();
+        cl.show(contentPanel, "DESPESAS");
+        setTitle(TITLE + " - Despesas");
+        statusLabel.setText("Gestão de Despesas");
+        
+        if (despesasPanel != null) {
+            despesasPanel.refreshData();
+        }
     }
     
     public void showVisitantes() {
@@ -418,6 +478,10 @@ public class MainFrame extends JFrame {
     }
     
     public void showDocumentos() {
+        if (documentosPanel == null) {
+            documentosPanel = new DocumentosPanel();
+            contentPanel.add(documentosPanel, "DOCUMENTOS");
+        }
         CardLayout cl = (CardLayout) contentPanel.getLayout();
         cl.show(contentPanel, "DOCUMENTOS");
         setTitle(TITLE + " - Documentos");
@@ -426,6 +490,10 @@ public class MainFrame extends JFrame {
     }
     
     public void showCalendario() {
+        if (calendarioPanel == null) {
+            calendarioPanel = new CalendarioPanel();
+            contentPanel.add(calendarioPanel, "CALENDARIO");
+        }
         CardLayout cl = (CardLayout) contentPanel.getLayout();
         cl.show(contentPanel, "CALENDARIO");
         setTitle(TITLE + " - Calendário");
@@ -458,15 +526,46 @@ public class MainFrame extends JFrame {
     }
     
     public void showCadastroIrmaos() {
+        // Lazy initialization - cria o painel apenas quando necessário
         if (cadastroIrmaosPanel == null) {
-            cadastroIrmaosPanel = new CadastroIrmaosPanel();
-            contentPanel.add(cadastroIrmaosPanel, "CADASTRO_IRMAOS");
+            logger.info("Criando CadastroIrmaosPanel (lazy initialization)");
+            statusLabel.setText("Carregando Cadastro de Irmãos...");
+            
+            // Criar painel em background para não bloquear a UI
+            SwingUtilities.invokeLater(() -> {
+                try {
+                    cadastroIrmaosPanel = new CadastroIrmaosPanel();
+                    contentPanel.add(cadastroIrmaosPanel, "CADASTRO_IRMAOS");
+                    
+                    // Mudar para o painel após criado
+                    CardLayout cl = (CardLayout) contentPanel.getLayout();
+                    cl.show(contentPanel, "CADASTRO_IRMAOS");
+                    setTitle(TITLE + " - Cadastro de Irmãos");
+                    statusLabel.setText("Cadastro de Irmãos Maçons");
+                    
+                    // Carregar dados de forma assíncrona
+                    SwingUtilities.invokeLater(() -> {
+                        cadastroIrmaosPanel.refreshData();
+                        logger.info("CadastroIrmaosPanel carregado com sucesso");
+                    });
+                    
+                } catch (Exception e) {
+                    logger.error("Erro ao criar CadastroIrmaosPanel: " + e.getMessage(), e);
+                    statusLabel.setText("Erro ao carregar Cadastro de Irmãos");
+                }
+            });
+        } else {
+            // Painel já existe, apenas mostrar e atualizar
+            CardLayout cl = (CardLayout) contentPanel.getLayout();
+            cl.show(contentPanel, "CADASTRO_IRMAOS");
+            setTitle(TITLE + " - Cadastro de Irmãos");
+            statusLabel.setText("Cadastro de Irmãos Maçons");
+            
+            // Atualizar dados de forma assíncrona
+            SwingUtilities.invokeLater(() -> {
+                cadastroIrmaosPanel.refreshData();
+            });
         }
-        CardLayout cl = (CardLayout) contentPanel.getLayout();
-        cl.show(contentPanel, "CADASTRO_IRMAOS");
-        setTitle(TITLE + " - Cadastro de Irmãos");
-        statusLabel.setText("Cadastro de Irmãos Maçons");
-        cadastroIrmaosPanel.refreshData();
     }
     
     /**
@@ -476,19 +575,34 @@ public class MainFrame extends JFrame {
         String aboutText = """
             <html>
             <center>
-                <h2>ArteReal - Sistema de Gestão Maçônica</h2>
-                <p>Versão 1.0.0</p>
-                <p>Sistema desktop para gestão administrativa de lojas maçônicas</p>
-                <p>Desenvolvido com Java Swing e SQLite</p>
+                <h2><font color='#2c3e50'>🏛️ ArteReal - Sistema de Gestão Maçônica</font></h2>
+                <p><b><font color='#34495e' size='4'>Versão 2.0.0</font></b></p>
+                <p><font color='#7f8c8d'>Sistema desktop completo para gestão administrativa de lojas maçônicas</font></p>
+                <p><font color='#95a5a6' size='2'>Desenvolvido com Java 21, Swing e PostgreSQL</font></p>
                 <br>
-                <p><b>Tecnologias:</b></p>
-                <p>Java 17 • Swing • SQLite</p>
+                <p><b><font color='#2c3e50'>🔧 Tecnologias:</font></b></p>
+                <p><font color='#34495e' size='2'>• Java 21 • Swing • PostgreSQL • Maven</font></p>
+                <p><font color='#34495e' size='2'>• Material Design • Layout Responsivo</font></p>
                 <br>
-                <p><b>Funcionalidades:</b></p>
-                <p>Gestão de Irmãos • Lojas • Sessões • Caixa • Biblioteca</p>
-                <p>Usuários • Frequência • Candidatos</p>
+                <p><b><font color='#2c3e50'>📋 Funcionalidades Principais:</font></b></p>
+                <p><font color='#34495e' size='2'>• Gestão de Irmãos e Lojas Maçônicas</font></p>
+                <p><font color='#34495e' size='2'>• Controle de Visitantes e Acesso</font></p>
+                <p><font color='#34495e' size='2'>• Gestão Financeira e Cheques</font></p>
+                <p><font color='#34495e' size='2'>• Documentos Digitais e Assinaturas</font></p>
+                <p><font color='#34495e' size='2'>• Calendário Maçônico e Sessões</font></p>
+                <p><font color='#34495e' size='2'>• Gestão de Afastamentos e Frequência</font></p>
+                <p><font color='#34495e' size='2'>• Biblioteca e Empréstimos</font></p>
+                <p><font color='#34495e' size='2'>• Candidatos e Profanos</font></p>
+                <p><font color='#34495e' size='2'>• Configurações Globais</font></p>
                 <br>
-                <p><small>© 2024 - ArteReal Masonic Lodge Management System</small></p>
+                <p><b><font color='#2c3e50'>🎯 Recursos Avançados:</font></b></p>
+                <p><font color='#34495e' size='2'>• Interface Moderna com Material Design</font></p>
+                <p><font color='#34495e' size='2'>• Relatórios Detalhados</font></p>
+                <p><font color='#34495e' size='2'>• Backup Automático</font></p>
+                <p><font color='#34495e' size='2'>• Segurança e Controle de Acesso</font></p>
+                <br>
+                <p><font color='#95a5a6' size='2'><b>© 2024 - ArteReal Masonic Lodge Management System</b></font></p>
+                <p><font color='#bdc3c7' size='1'>Desenvolvido com ❤️ para a comunidade maçônica</font></p>
             </center>
             </html>
             """;
@@ -497,27 +611,6 @@ public class MainFrame extends JFrame {
             aboutText, 
             "Sobre o ArteReal", 
             JOptionPane.INFORMATION_MESSAGE);
-    }
-    
-    /**
-     * Método para sair do sistema
-     */
-    private void sair() {
-        int opcao = JOptionPane.showConfirmDialog(this, 
-            "Deseja realmente sair do sistema?", 
-            "Sair", 
-            JOptionPane.YES_NO_OPTION);
-        
-        if (opcao == JOptionPane.YES_OPTION) {
-            System.exit(0);
-        }
-    }
-    
-    /**
-     * Atualiza a barra de status
-     */
-    public void setStatus(String message) {
-        statusLabel.setText(message);
     }
     
     /**

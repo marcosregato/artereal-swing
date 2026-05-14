@@ -1,11 +1,10 @@
 package com.artereal.swing.model;
 
-import java.time.LocalDate;
 
 /**
  * Modelo de dados para Loja Maçônica
  */
-public class Loja {
+public class Loja extends SimpleModel {
     
     private Long id;
     private String nome;
@@ -96,9 +95,4 @@ public class Loja {
     
     public String getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(String updatedAt) { this.updatedAt = updatedAt; }
-    
-    @Override
-    public String toString() {
-        return nome + " - Loja " + numero + " (" + status + ")";
-    }
 }

@@ -2,36 +2,36 @@ package com.artereal.swing.ui.panels;
 
 import com.artereal.swing.dao.FrequenciaDAO;
 import com.artereal.swing.model.Frequencia;
+import com.artereal.swing.ui.layout.PadraoLayout;
+import com.artereal.swing.ui.panels.frequencia.FrequenciaFormPanel;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.util.List;
 
 /**
- * Painel de Controle de Frequência e Presença
+ * Painel de Controle de Frequência - Layout padrão Header → Busca → Formulário → Tabela
  */
 public class FrequenciaPanel extends JPanel {
     
     private FrequenciaDAO frequenciaDAO;
     private DefaultTableModel tableModel;
     private JTable frequenciaTable;
-    private JTextField nomeField;
-    private JTextField grauField;
-    private JTextField presencasField;
-    private JTextField faltasField;
-    private JTextField totalField;
+    private Frequencia frequenciaAtual;
+    private JTextField pesquisarField;
+    private FrequenciaFormPanel frequenciaFormPanel;
+    
+    // Botões
+    private JButton salvarButton;
+    private JButton novoButton;
+    private JButton editarButton;
+    private JButton excluirButton;
+    private JButton limparButton;
+    private JButton pesquisarButton;
     private JButton registrarPresencaButton;
     private JButton registrarFaltaButton;
-    private JButton novoButton;
-    private JButton salvarButton;
-    private JButton excluirButton;
-    private JButton atualizarButton;
-    private JLabel percentualLabel;
-    private Frequencia frequenciaAtual;
     
     public FrequenciaPanel() {
         frequenciaDAO = new FrequenciaDAO();
@@ -43,7 +43,9 @@ public class FrequenciaPanel extends JPanel {
     
     private void initializeComponents() {
         // Tabela
-        tableModel = new DefaultTableModel(new Object[]{"ID", "Irmão", "Grau", "Presenças", "Faltas", "Total", "% Presença"}, 0) {
+        tableModel = new DefaultTableModel(new Object[]{
+            "ID", "Irmão", "Grau", "Presenças", "Faltas", "Total", "Percentual"
+        }, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -51,163 +53,78 @@ public class FrequenciaPanel extends JPanel {
         };
         frequenciaTable = new JTable(tableModel);
         
-        // Formulário
-        nomeField = new JTextField(25);
-        grauField = new JTextField(15);
-        presencasField = new JTextField(10);
-        presencasField.setEditable(false);
-        faltasField = new JTextField(10);
-        faltasField.setEditable(false);
-        totalField = new JTextField(10);
-        totalField.setEditable(false);
-        percentualLabel = new JLabel("0.00%");
-        percentualLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        percentualLabel.setForeground(Color.BLUE);
+        // Inicializar formulário otimizado
+        frequenciaFormPanel = new FrequenciaFormPanel();
         
         // Botões
-        registrarPresencaButton = new JButton("Registrar Presença");
-        registrarFaltaButton = new JButton("Registrar Falta");
-        novoButton = new JButton("Novo");
-        salvarButton = new JButton("Salvar");
-        excluirButton = new JButton("Excluir");
-        atualizarButton = new JButton("Atualizar");
-        
-        frequenciaAtual = null;
+        salvarButton = PadraoLayout.criarBotaoSalvar();
+        novoButton = PadraoLayout.criarBotaoNovo();
+        editarButton = PadraoLayout.criarBotaoEditar();
+        excluirButton = PadraoLayout.criarBotaoExcluir();
+        limparButton = PadraoLayout.criarBotaoLimpar();
+        pesquisarButton = PadraoLayout.criarBotaoPesquisar();
+        registrarPresencaButton = PadraoLayout.criarBotao("✅ Registrar Presença", new Color(144, 238, 144));
+        registrarFaltaButton = PadraoLayout.criarBotao("❌ Registrar Falta", new Color(255, 182, 193));
+        pesquisarField = new JTextField(20);
     }
     
     private void setupLayout() {
-        setLayout(new BorderLayout());
+        // Aplicar layout padrão usando PadraoLayout
+        PadraoLayout.aplicarLayoutPadrao(this);
         
-        // Título
-        JLabel titleLabel = new JLabel("Controle de Frequência", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+        // Header estilizado usando PadraoLayout
+        JPanel headerPanel = PadraoLayout.criarHeader("📊 Controle de Frequência", "Gestão de presenças e estatísticas");
+        add(headerPanel, BorderLayout.NORTH);
         
-        // Painel de estatísticas
-        JPanel statsPanel = new JPanel(new GridLayout(2, 3, 10, 10));
-        statsPanel.setBorder(BorderFactory.createTitledBorder("Estatísticas Gerais"));
+        // Painel principal usando PadraoLayout
+        JPanel mainPanel = PadraoLayout.criarPainelPrincipal();
         
-        try {
-            List<Object[]> estatisticas = frequenciaDAO.getEstatisticasPorGrau();
-            for (Object[] est : estatisticas) {
-                String grau = (String) est[0];
-                int total = (Integer) est[1];
-                double media = (Double) est[2];
-                
-                JPanel grauPanel = new JPanel(new BorderLayout());
-                grauPanel.setBorder(BorderFactory.createEtchedBorder());
-                grauPanel.add(new JLabel(grau + " (" + total + ")", SwingConstants.CENTER), BorderLayout.NORTH);
-                grauPanel.add(new JLabel(String.format("%.1f%%", media), SwingConstants.CENTER), BorderLayout.CENTER);
-                statsPanel.add(grauPanel);
-            }
-        } catch (SQLException e) {
-            statsPanel.add(new JLabel("Erro ao carregar estatísticas"));
-        }
+        // Painel de busca no topo
+        JPanel buscaPanel = PadraoLayout.criarPainelPesquisa(pesquisarField, pesquisarButton);
+        mainPanel.add(buscaPanel, BorderLayout.NORTH);
         
-        // Painel de formulário
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBorder(BorderFactory.createTitledBorder("Dados da Frequência"));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.anchor = GridBagConstraints.WEST;
+        // Painel do conteúdo com split vertical (Formulário acima, Tabela abaixo)
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBackground(PadraoLayout.COR_FUNDO);
         
-        // Nome
-        gbc.gridx = 0; gbc.gridy = 0;
-        formPanel.add(new JLabel("Irmão:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(nomeField, gbc);
+        // Painel de formulário otimizado usando FrequenciaFormPanel
+        JPanel formPanel = new JPanel(new BorderLayout());
+        formPanel.setBackground(PadraoLayout.COR_PAINEL);
+        formPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
         
-        // Grau
-        gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Grau:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(grauField, gbc);
+        // Usar o formulário otimizado
+        formPanel.add(frequenciaFormPanel, BorderLayout.CENTER);
         
-        // Contadores
-        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Presenças:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(presencasField, gbc);
+        // Painel de tabela usando PadraoLayout
+        JPanel tabelaPanel = PadraoLayout.criarGrupoFormulario("📊 Registros de Frequência");
+        PadraoLayout.configurarTabela(frequenciaTable);
+        JScrollPane tableScrollPane = new JScrollPane(frequenciaTable);
         
-        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Faltas:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(faltasField, gbc);
+        tabelaPanel.add(tableScrollPane, BorderLayout.CENTER);
         
-        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Total Sessões:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        formPanel.add(totalField, gbc);
+        // Split vertical: Formulário acima (40%), Tabela abaixo (60%)
+        JSplitPane verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formPanel, tabelaPanel);
+        verticalSplitPane.setDividerLocation(300);
+        verticalSplitPane.setResizeWeight(0.4);
         
-        // Percentual
-        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.CENTER;
-        formPanel.add(new JLabel("Percentual de Presença:"), gbc);
-        gbc.gridy = 6;
-        formPanel.add(percentualLabel, gbc);
+        contentPanel.add(verticalSplitPane, BorderLayout.CENTER);
         
-        // Botões do formulário
-        JPanel botoesFormPanel = new JPanel(new FlowLayout());
-        botoesFormPanel.add(registrarPresencaButton);
-        botoesFormPanel.add(registrarFaltaButton);
-        botoesFormPanel.add(novoButton);
-        botoesFormPanel.add(salvarButton);
-        botoesFormPanel.add(excluirButton);
-        botoesFormPanel.add(atualizarButton);
+        // Adicionar contentPanel ao mainPanel
+        mainPanel.add(contentPanel, BorderLayout.CENTER);
         
-        gbc.gridx = 0; gbc.gridy = 7; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        formPanel.add(botoesFormPanel, gbc);
-        
-        // Painel da tabela
-        JPanel tabelaPanel = new JPanel(new BorderLayout());
-        tabelaPanel.setBorder(BorderFactory.createTitledBorder("Registros de Frequência"));
-        tabelaPanel.add(new JScrollPane(frequenciaTable), BorderLayout.CENTER);
-        
-        // Painel de baixa frequência
-        JPanel baixaFrequenciaPanel = new JPanel(new BorderLayout());
-        baixaFrequenciaPanel.setBorder(BorderFactory.createTitledBorder("Alerta - Baixa Frequência (< 75%)"));
-        
-        try {
-            List<Frequencia> baixaFreq = frequenciaDAO.findBaixaAssiduidade(75.0);
-            DefaultTableModel baixaModel = new DefaultTableModel(new Object[]{"Irmão", "Grau", "% Presença"}, 0);
-            
-            for (Frequencia freq : baixaFreq) {
-                Object[] row = {
-                    freq.getNomeIrmao(),
-                    freq.getGrau(),
-                    String.format("%.1f%%", freq.getPercentualPresenca())
-                };
-                baixaModel.addRow(row);
-            }
-            
-            JTable baixaTable = new JTable(baixaModel);
-            baixaFrequenciaPanel.add(new JScrollPane(baixaTable), BorderLayout.CENTER);
-        } catch (SQLException e) {
-            baixaFrequenciaPanel.add(new JLabel("Erro ao carregar alertas"), BorderLayout.CENTER);
-        }
-        
-        // Layout principal
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formPanel, tabelaPanel);
-        splitPane.setDividerLocation(300);
-        
-        JPanel centerPanel = new JPanel(new BorderLayout());
-        centerPanel.add(splitPane, BorderLayout.CENTER);
-        centerPanel.add(baixaFrequenciaPanel, BorderLayout.SOUTH);
-        
-        add(titleLabel, BorderLayout.NORTH);
-        add(statsPanel, BorderLayout.WEST);
-        add(centerPanel, BorderLayout.CENTER);
+        add(mainPanel, BorderLayout.CENTER);
     }
     
     private void setupEvents() {
+        salvarButton.addActionListener(e -> salvarFrequencia());
+        novoButton.addActionListener(e -> limparFormulario());
+        editarButton.addActionListener(e -> carregarFrequenciaSelecionada());
+        excluirButton.addActionListener(e -> excluirFrequencia());
+        limparButton.addActionListener(e -> limparFormulario());
+        pesquisarButton.addActionListener(e -> pesquisarFrequencias());
         registrarPresencaButton.addActionListener(e -> registrarPresenca());
         registrarFaltaButton.addActionListener(e -> registrarFalta());
-        novoButton.addActionListener(e -> limparFormulario());
-        salvarButton.addActionListener(e -> salvarFrequencia());
-        excluirButton.addActionListener(e -> excluirFrequencia());
-        atualizarButton.addActionListener(e -> refreshData());
         
-        // Seleção na tabela
         frequenciaTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 carregarFrequenciaSelecionada();
@@ -215,169 +132,151 @@ public class FrequenciaPanel extends JPanel {
         });
     }
     
-    private void registrarPresenca() {
-        if (frequenciaAtual == null) {
-            JOptionPane.showMessageDialog(this, "Selecione um irmão para registrar presença!", "Aviso", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
+    private void salvarFrequencia() {
         try {
-            frequenciaDAO.incrementarPresenca(frequenciaAtual.getCodigoIrmao());
-            JOptionPane.showMessageDialog(this, "Presença registrada com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-            carregarFrequenciaSelecionada();
+            Frequencia frequencia = new Frequencia();
+            frequencia.setNomeIrmao(frequenciaFormPanel.getNomeField().getText());
+            frequencia.setGrau(frequenciaFormPanel.getGrauField().getText());
+            frequencia.setNumeroPresencas(Integer.parseInt(frequenciaFormPanel.getPresencasField().getText()));
+            frequencia.setNumeroFaltas(Integer.parseInt(frequenciaFormPanel.getFaltasField().getText()));
+            frequencia.setNumeroSecoes(Integer.parseInt(frequenciaFormPanel.getTotalField().getText()));
+            
+            if (frequenciaAtual == null) {
+                frequenciaDAO.save(frequencia);
+            } else {
+                frequencia.setId(frequenciaAtual.getId());
+                frequenciaDAO.save(frequencia);
+            }
+            
+            JOptionPane.showMessageDialog(this, "Frequência salva com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+            limparFormulario();
             refreshData();
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao registrar presença: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Erro ao salvar frequência: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Erro: Preencha os campos numéricos corretamente", "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
     
-    private void registrarFalta() {
-        if (frequenciaAtual == null) {
-            JOptionPane.showMessageDialog(this, "Selecione um irmão para registrar falta!", "Aviso", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        try {
-            frequenciaDAO.incrementarFalta(frequenciaAtual.getCodigoIrmao());
-            JOptionPane.showMessageDialog(this, "Falta registrada com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-            carregarFrequenciaSelecionada();
-            refreshData();
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao registrar falta: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+    private void excluirFrequencia() {
+        if (frequenciaAtual != null) {
+            int option = JOptionPane.showConfirmDialog(this, "Deseja realmente excluir este registro?", "Confirmação", JOptionPane.YES_NO_OPTION);
+            if (option == JOptionPane.YES_OPTION) {
+                try {
+                    frequenciaDAO.delete(frequenciaAtual.getId());
+                    JOptionPane.showMessageDialog(this, "Registro excluído com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+                    limparFormulario();
+                    refreshData();
+                } catch (SQLException e) {
+                    JOptionPane.showMessageDialog(this, "Erro ao excluir registro: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+                }
+            }
         }
     }
     
     private void limparFormulario() {
         frequenciaAtual = null;
-        nomeField.setText("");
-        grauField.setText("");
-        presencasField.setText("");
-        faltasField.setText("");
-        totalField.setText("");
-        percentualLabel.setText("0.00%");
-        nomeField.requestFocus();
-        atualizarBotoesAcao();
-    }
-    
-    private void salvarFrequencia() {
-        try {
-            if (nomeField.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Nome do irmão é obrigatório!", "Erro", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            
-            if (grauField.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Grau do irmão é obrigatório!", "Erro", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            
-            Frequencia frequencia = frequenciaAtual != null ? frequenciaAtual : new Frequencia();
-            frequencia.setNomeIrmao(nomeField.getText().trim());
-            frequencia.setGrau(grauField.getText().trim());
-            
-            // Se é novo registro, inicializa com zero presenças e faltas
-            if (frequenciaAtual == null) {
-                frequencia.setNumeroPresencas(0);
-                frequencia.setNumeroFaltas(0);
-                frequencia.setNumeroSecoes(0);
-            }
-            
-            frequenciaDAO.save(frequencia);
-            
-            JOptionPane.showMessageDialog(this, "Frequência salva com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-            limparFormulario();
-            refreshData();
-            
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao salvar frequência: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-    
-    private void excluirFrequencia() {
-        if (frequenciaAtual == null) {
-            JOptionPane.showMessageDialog(this, "Selecione um registro para excluir!", "Aviso", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        int opcao = JOptionPane.showConfirmDialog(this, 
-            "Deseja realmente excluir o registro de frequência do irmão " + frequenciaAtual.getNomeIrmao() + "?", 
-            "Confirmar Exclusão", JOptionPane.YES_NO_OPTION);
-        
-        if (opcao == JOptionPane.YES_OPTION) {
-            try {
-                frequenciaDAO.delete(frequenciaAtual.getId());
-                JOptionPane.showMessageDialog(this, "Registro excluído com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-                limparFormulario();
-                refreshData();
-            } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(this, "Erro ao excluir registro: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-    }
-    
-    private void atualizarBotoesAcao() {
-        boolean temSelecao = frequenciaAtual != null;
-        
-        // Habilitar/desabilitar botões baseado na seleção
-        salvarButton.setEnabled(!temSelecao); // Habilitar para novo registro
-        excluirButton.setEnabled(temSelecao);  // Habilitar se tem seleção
-        registrarPresencaButton.setEnabled(temSelecao);
-        registrarFaltaButton.setEnabled(temSelecao);
+        frequenciaFormPanel.clearForm();
+        frequenciaTable.clearSelection();
     }
     
     private void carregarFrequenciaSelecionada() {
         int selectedRow = frequenciaTable.getSelectedRow();
         if (selectedRow >= 0) {
-            Long id = (Long) tableModel.getValueAt(selectedRow, 0);
             try {
+                Long id = (Long) tableModel.getValueAt(selectedRow, 0);
                 frequenciaAtual = frequenciaDAO.findById(id);
                 if (frequenciaAtual != null) {
-                    nomeField.setText(frequenciaAtual.getNomeIrmao());
-                    grauField.setText(frequenciaAtual.getGrau());
-                    presencasField.setText(String.valueOf(frequenciaAtual.getNumeroPresencas()));
-                    faltasField.setText(String.valueOf(frequenciaAtual.getNumeroFaltas()));
-                    totalField.setText(String.valueOf(frequenciaAtual.getNumeroSecoes()));
-                    percentualLabel.setText(String.format("%.2f%%", frequenciaAtual.getPercentualPresenca()));
-                    
-                    // Alterar cor do percentual baseado no valor
-                    double percentual = frequenciaAtual.getPercentualPresenca();
-                    if (percentual < 75) {
-                        percentualLabel.setForeground(Color.RED);
-                    } else if (percentual < 85) {
-                        percentualLabel.setForeground(Color.ORANGE);
-                    } else {
-                        percentualLabel.setForeground(Color.BLUE);
-                    }
-                    atualizarBotoesAcao();
+                    frequenciaFormPanel.getNomeField().setText(frequenciaAtual.getNomeIrmao());
+                    frequenciaFormPanel.getGrauField().setText(frequenciaAtual.getGrau());
+                    frequenciaFormPanel.getPresencasField().setText(String.valueOf(frequenciaAtual.getNumeroPresencas()));
+                    frequenciaFormPanel.getFaltasField().setText(String.valueOf(frequenciaAtual.getNumeroFaltas()));
+                    frequenciaFormPanel.getTotalField().setText(String.valueOf(frequenciaAtual.getNumeroSecoes()));
                 }
-            } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(this, "Erro ao carregar frequência: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, "Erro ao carregar registro: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+    
+    private void pesquisarFrequencias() {
+        String termo = pesquisarField.getText().trim();
+        if (termo.isEmpty()) {
+            refreshData();
+        } else {
+            try {
+                List<Frequencia> frequencias = frequenciaDAO.findAll();
+                List<Frequencia> frequenciasFiltradas = frequencias.stream()
+                    .filter(f -> f.getNomeIrmao() != null && f.getNomeIrmao().toLowerCase().contains(termo.toLowerCase()))
+                    .toList();
+                atualizarTabela(frequenciasFiltradas);
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, "Erro ao pesquisar: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+    
+    private void registrarPresenca() {
+        if (frequenciaAtual != null) {
+            try {
+                frequenciaAtual.setNumeroPresencas(frequenciaAtual.getNumeroPresencas() + 1);
+                frequenciaAtual.setNumeroSecoes(frequenciaAtual.getNumeroSecoes() + 1);
+                frequenciaDAO.save(frequenciaAtual);
+                JOptionPane.showMessageDialog(this, "Presença registrada com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+                carregarFrequenciaSelecionada();
+                refreshData();
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, "Erro ao registrar presença: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
             }
         } else {
-            // Se não há seleção, limpa o formulário
-            limparFormulario();
+            JOptionPane.showMessageDialog(this, "Selecione um registro para registrar presença", "Aviso", JOptionPane.WARNING_MESSAGE);
+        }
+    }
+    
+    private void registrarFalta() {
+        if (frequenciaAtual != null) {
+            try {
+                frequenciaAtual.setNumeroFaltas(frequenciaAtual.getNumeroFaltas() + 1);
+                frequenciaAtual.setNumeroSecoes(frequenciaAtual.getNumeroSecoes() + 1);
+                frequenciaDAO.save(frequenciaAtual);
+                JOptionPane.showMessageDialog(this, "Falta registrada com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+                carregarFrequenciaSelecionada();
+                refreshData();
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, "Erro ao registrar falta: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Selecione um registro para registrar falta", "Aviso", JOptionPane.WARNING_MESSAGE);
         }
     }
     
     public void refreshData() {
         try {
             List<Frequencia> frequencias = frequenciaDAO.findAll();
-            tableModel.setRowCount(0);
-            
-            for (Frequencia frequencia : frequencias) {
-                Object[] row = {
-                    frequencia.getId(),
-                    frequencia.getNomeIrmao(),
-                    frequencia.getGrau(),
-                    frequencia.getNumeroPresencas(),
-                    frequencia.getNumeroFaltas(),
-                    frequencia.getNumeroSecoes(),
-                    String.format("%.1f%%", frequencia.getPercentualPresenca())
-                };
-                tableModel.addRow(row);
+            atualizarTabela(frequencias);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Erro ao carregar dados: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void atualizarTabela(List<Frequencia> frequencias) {
+        tableModel.setRowCount(0);
+        for (Frequencia frequencia : frequencias) {
+            double percentual = 0.0;
+            if (frequencia.getNumeroSecoes() > 0) {
+                percentual = (double) frequencia.getNumeroPresencas() / frequencia.getNumeroSecoes() * 100;
             }
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao carregar frequências: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            
+            Object[] row = {
+                frequencia.getId(),
+                frequencia.getNomeIrmao(),
+                frequencia.getGrau(),
+                frequencia.getNumeroPresencas(),
+                frequencia.getNumeroFaltas(),
+                frequencia.getNumeroSecoes(),
+                String.format("%.1f%%", percentual)
+            };
+            tableModel.addRow(row);
         }
     }
 }

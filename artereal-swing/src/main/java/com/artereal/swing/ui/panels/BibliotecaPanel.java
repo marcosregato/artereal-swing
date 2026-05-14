@@ -2,14 +2,14 @@ package com.artereal.swing.ui.panels;
 
 import com.artereal.swing.dao.BibliotecaDAO;
 import com.artereal.swing.model.Biblioteca;
-import com.artereal.swing.ui.components.MasonicLogo;
+import com.artereal.swing.ui.layout.PadraoLayout;
+import com.artereal.swing.ui.panels.biblioteca.BibliotecaFormPanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
@@ -27,17 +27,10 @@ public class BibliotecaPanel extends JPanel {
     private DefaultTableModel tableModel;
     private JTable bibliotecaTable;
     private Biblioteca bibliotecaAtual;
+    private BibliotecaFormPanel bibliotecaFormPanel;
     
-    // Formulário
-    private JTextField codigoField;
+    // Formulário - campos movidos para BibliotecaFormPanel
     private JComboBox<String> tipoCombo;
-    private JTextField tituloField;
-    private JTextField autorField;
-    private JTextField isbnField;
-    private JTextField editoraField;
-    private JTextField anoPublicacaoField;
-    private JTextField categoriaField;
-    private JTextField localizacaoField;
     private JComboBox<String> statusCombo;
     
     // Campos para empréstimo
@@ -47,8 +40,6 @@ public class BibliotecaPanel extends JPanel {
     private JTextField dataDevolucaoRealField;
     private JTextField responsavelEmprestimoField;
     private JTextField multaField;
-    
-    private JTextArea observacoesArea;
     
     // Botões
     private JButton salvarButton;
@@ -90,45 +81,41 @@ public class BibliotecaPanel extends JPanel {
         };
         bibliotecaTable = new JTable(tableModel);
         
-        // Formulário
-        codigoField = new JTextField(10);
-        codigoField.setEditable(false);
-        
+        // Formulário - campos movidos para BibliotecaFormPanel
         tipoCombo = new JComboBox<>(new String[]{"LIVRO", "EMPRESTIMO"});
-        tituloField = new JTextField(40);
-        autorField = new JTextField(30);
-        isbnField = new JTextField(15);
-        editoraField = new JTextField(25);
-        anoPublicacaoField = new JTextField(6);
-        categoriaField = new JTextField(20);
-        localizacaoField = new JTextField(15);
-        
         statusCombo = new JComboBox<>(new String[]{
             "DISPONIVEL", "EMPRESTADO", "EM_MANUTENCAO", "BAIXADO"
         });
         
         // Campos para empréstimo
-        nomeLeitorField = new JTextField(30);
-        dataEmprestimoField = new JTextField(10);
-        dataDevolucaoPrevistaField = new JTextField(10);
-        dataDevolucaoRealField = new JTextField(10);
-        responsavelEmprestimoField = new JTextField(25);
-        multaField = new JTextField(10);
+        nomeLeitorField = new JTextField();
+        dataEmprestimoField = new JTextField();
+        dataDevolucaoPrevistaField = new JTextField();
+        dataDevolucaoRealField = new JTextField();
+        responsavelEmprestimoField = new JTextField();
+        multaField = new JTextField();
         
-        observacoesArea = new JTextArea(3, 40);
-        observacoesArea.setLineWrap(true);
-        observacoesArea.setWrapStyleWord(true);
-        
-        // Botões
-        salvarButton = new JButton("Salvar");
-        novoButton = new JButton("Novo");
-        editarButton = new JButton("Editar");
-        excluirButton = new JButton("Excluir");
-        limparButton = new JButton("Limpar");
-        pesquisarButton = new JButton("Pesquisar");
-        emprestarButton = new JButton("Emprestar");
-        devolverButton = new JButton("Devolver");
+        // Botões usando PadraoLayout com cores pastéis
+        salvarButton = PadraoLayout.criarBotaoSalvar();
+        novoButton = PadraoLayout.criarBotaoNovo();
+        editarButton = PadraoLayout.criarBotaoEditar();
+        excluirButton = PadraoLayout.criarBotaoExcluir();
+        limparButton = PadraoLayout.criarBotaoLimpar();
+        pesquisarButton = PadraoLayout.criarBotaoPesquisar();
+        emprestarButton = PadraoLayout.criarBotao("Emprestar", new Color(255, 218, 185)); // Laranja pastel
+        devolverButton = PadraoLayout.criarBotao("Devolver", new Color(152, 251, 152)); // Verde menta pastel
         pesquisarField = new JTextField(20);
+        PadraoLayout.estilizarCampoTexto(pesquisarField);
+        pesquisarField.setEditable(true);
+        pesquisarField.setEnabled(true);
+        
+        // Inicializar formulário otimizado
+        bibliotecaFormPanel = new BibliotecaFormPanel();
+        
+        // Aplicar cores pastéis nos botões usando PadraoLayout
+        PadraoLayout.aplicarCoresPastelBotoesPrincipais(salvarButton, novoButton, editarButton, excluirButton, limparButton);
+        PadraoLayout.aplicarCoresPastelBotao(emprestarButton, "editar"); // Usa cor de editar para emprestar
+        PadraoLayout.aplicarCoresPastelBotao(devolverButton, "salvar"); // Usa cor de salvar para devolver
         
         // Labels de estatísticas
         totalLivrosLabel = new JLabel("0");
@@ -138,520 +125,53 @@ public class BibliotecaPanel extends JPanel {
     }
     
     private void setupLayout() {
-        setLayout(new BorderLayout());
-        setBackground(new Color(240, 240, 245));
+        // Aplicar estilização padrão ao painel principal
+        PadraoLayout.estilizarPainelPrincipal(this);
         
-        // Header com título
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(139, 69, 19)); // Marrom biblioteca
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
-        
-        JLabel titleLabel = new JLabel("📚 Gestão da Biblioteca", SwingConstants.LEFT);
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        titleLabel.setForeground(Color.WHITE);
-        
-        JLabel subtitleLabel = new JLabel("Catálogo de livros, empréstimos e controle de acervo", SwingConstants.LEFT);
-        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        subtitleLabel.setForeground(new Color(220, 220, 230));
-        
-        // Adicionar logo maçônico discreto
-        JLabel logoLabel = MasonicLogo.createLogoLabel(32);
-        logoLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
-        
-        JPanel titleContainer = new JPanel(new GridLayout(2, 1, 0, 5));
-        titleContainer.setBackground(new Color(139, 69, 19));
-        titleContainer.add(titleLabel);
-        titleContainer.add(subtitleLabel);
-        
-        JPanel headerContent = new JPanel(new BorderLayout());
-        headerContent.setBackground(new Color(139, 69, 19));
-        headerContent.add(logoLabel, BorderLayout.WEST);
-        headerContent.add(titleContainer, BorderLayout.CENTER);
-        
-        headerPanel.add(headerContent, BorderLayout.CENTER);
+        // Header estilizado usando PadraoLayout
+        JPanel headerPanel = PadraoLayout.criarHeader("📚 Biblioteca Maçônica", "Gestão de livros e empréstimos");
         add(headerPanel, BorderLayout.NORTH);
         
-        // Painel principal com split
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        splitPane.setDividerLocation(650);
-        splitPane.setResizeWeight(0.6);
+        // Painel principal usando PadraoLayout
+        JPanel mainPanel = PadraoLayout.criarPainelPrincipal();
         
-        // Painel esquerdo - Tabela e estatísticas
-        JPanel leftPanel = new JPanel(new BorderLayout());
-        leftPanel.setBackground(Color.WHITE);
-        leftPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        // Painel de busca no topo
+        JPanel buscaPanel = PadraoLayout.criarPainelPesquisa(pesquisarField, pesquisarButton);
+        mainPanel.add(buscaPanel, BorderLayout.NORTH);
         
-        // Painel de pesquisa melhorado
-        JPanel pesquisaPanel = new JPanel(new BorderLayout());
-        pesquisaPanel.setBackground(new Color(245, 245, 250));
-        pesquisaPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(200, 200, 210)),
-            BorderFactory.createEmptyBorder(10, 15, 10, 15)
-        ));
+        // Painel do conteúdo com split vertical (Formulário acima, Tabela abaixo)
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBackground(PadraoLayout.COR_FUNDO);
         
-        JPanel searchContainer = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        searchContainer.setBackground(new Color(245, 245, 250));
+        // Painel de formulário otimizado usando BibliotecaFormPanel
+        JPanel formPanel = new JPanel(new BorderLayout());
+        formPanel.setBackground(PadraoLayout.COR_PAINEL);
+        formPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
         
-        JLabel searchLabel = new JLabel("🔍 Pesquisar:");
-        searchLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        searchLabel.setForeground(new Color(100, 100, 120));
+        // Usar o formulário otimizado
+        formPanel.add(bibliotecaFormPanel, BorderLayout.CENTER);
         
-        pesquisarField.setPreferredSize(new Dimension(200, 30));
-        pesquisarField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
+        // Painel de tabela usando PadraoLayout
+        JPanel tabelaPanel = new JPanel(new BorderLayout());
+        tabelaPanel.setBackground(PadraoLayout.COR_PAINEL);
+        tabelaPanel.setBorder(PadraoLayout.BORDA_CONTEUDO);
         
-        pesquisarButton.setBackground(new Color(221, 160, 221)); // Lila pastel suave
-        pesquisarButton.setForeground(new Color(102, 51, 153));
-        pesquisarButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        pesquisarButton.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(221, 160, 221), 2),
-            BorderFactory.createEmptyBorder(8, 15, 8, 15)
-        ));
-        pesquisarButton.setFocusPainted(false);
-        
-        searchContainer.add(searchLabel);
-        searchContainer.add(pesquisarField);
-        searchContainer.add(pesquisarButton);
-        pesquisaPanel.add(searchContainer, BorderLayout.CENTER);
-        
-        // Painel de estatísticas melhorado
-        JPanel estatisticasPanel = new JPanel(new GridLayout(2, 2, 15, 10));
-        estatisticasPanel.setBackground(new Color(245, 245, 250));
-        estatisticasPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(200, 200, 210)),
-            BorderFactory.createEmptyBorder(15, 20, 15, 20)
-        ));
-        
-        // Card Total Livros
-        JPanel totalPanel = new JPanel(new BorderLayout());
-        totalPanel.setBackground(new Color(230, 240, 255));
-        totalPanel.setBorder(BorderFactory.createLineBorder(new Color(70, 130, 180), 2));
-        JLabel totalTitleLabel = new JLabel("📖 Total Livros", SwingConstants.CENTER);
-        totalTitleLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        totalTitleLabel.setForeground(new Color(70, 130, 180));
-        totalLivrosLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        totalLivrosLabel.setForeground(new Color(70, 130, 180));
-        totalPanel.add(totalTitleLabel, BorderLayout.NORTH);
-        totalPanel.add(totalLivrosLabel, BorderLayout.CENTER);
-        
-        // Card Disponíveis
-        JPanel disponiveisPanel = new JPanel(new BorderLayout());
-        disponiveisPanel.setBackground(new Color(220, 255, 220));
-        disponiveisPanel.setBorder(BorderFactory.createLineBorder(new Color(46, 125, 50), 2));
-        JLabel disponiveisTitleLabel = new JLabel("✅ Disponíveis", SwingConstants.CENTER);
-        disponiveisTitleLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        disponiveisTitleLabel.setForeground(new Color(46, 125, 50));
-        livrosDisponiveisLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        livrosDisponiveisLabel.setForeground(new Color(46, 125, 50));
-        disponiveisPanel.add(disponiveisTitleLabel, BorderLayout.NORTH);
-        disponiveisPanel.add(livrosDisponiveisLabel, BorderLayout.CENTER);
-        
-        // Card Empréstimos Ativos
-        JPanel ativosPanel = new JPanel(new BorderLayout());
-        ativosPanel.setBackground(new Color(255, 248, 220));
-        ativosPanel.setBorder(BorderFactory.createLineBorder(new Color(255, 193, 7), 2));
-        JLabel ativosTitleLabel = new JLabel("📚 Empréstimos Ativos", SwingConstants.CENTER);
-        ativosTitleLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        ativosTitleLabel.setForeground(new Color(255, 193, 7));
-        emprestimosAtivosLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        emprestimosAtivosLabel.setForeground(new Color(255, 193, 7));
-        ativosPanel.add(ativosTitleLabel, BorderLayout.NORTH);
-        ativosPanel.add(emprestimosAtivosLabel, BorderLayout.CENTER);
-        
-        // Card Empréstimos Atrasados
-        JPanel atrasadosPanel = new JPanel(new BorderLayout());
-        atrasadosPanel.setBackground(new Color(255, 220, 220));
-        atrasadosPanel.setBorder(BorderFactory.createLineBorder(new Color(220, 53, 69), 2));
-        JLabel atrasadosTitleLabel = new JLabel("⚠️ Atrasados", SwingConstants.CENTER);
-        atrasadosTitleLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        atrasadosTitleLabel.setForeground(new Color(220, 53, 69));
-        emprestimosAtrasadosLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        emprestimosAtrasadosLabel.setForeground(new Color(220, 53, 69));
-        atrasadosPanel.add(atrasadosTitleLabel, BorderLayout.NORTH);
-        atrasadosPanel.add(emprestimosAtrasadosLabel, BorderLayout.CENTER);
-        
-        estatisticasPanel.add(totalPanel);
-        estatisticasPanel.add(disponiveisPanel);
-        estatisticasPanel.add(ativosPanel);
-        estatisticasPanel.add(atrasadosPanel);
-        
-        JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.add(pesquisaPanel, BorderLayout.NORTH);
-        topPanel.add(estatisticasPanel, BorderLayout.CENTER);
-        
-        // Tabela estilizada
+        // Tabela estilizada usando PadraoLayout
+        PadraoLayout.configurarTabela(bibliotecaTable);
         JScrollPane tableScrollPane = new JScrollPane(bibliotecaTable);
-        tableScrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 210)));
-        tableScrollPane.getViewport().setBackground(Color.WHITE);
+        tabelaPanel.add(tableScrollPane, BorderLayout.CENTER);
         
-        bibliotecaTable.setRowHeight(25);
-        bibliotecaTable.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        bibliotecaTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
-        bibliotecaTable.getTableHeader().setBackground(new Color(139, 69, 19));
-        bibliotecaTable.getTableHeader().setForeground(Color.WHITE);
-        bibliotecaTable.setSelectionBackground(new Color(255, 218, 185));
-        bibliotecaTable.setSelectionForeground(Color.BLACK);
+        // Split vertical: Formulário acima (60%), Tabela abaixo (40%)
+        JSplitPane verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formPanel, tabelaPanel);
+        verticalSplitPane.setDividerLocation(400);
+        verticalSplitPane.setResizeWeight(0.6);
         
-        leftPanel.add(topPanel, BorderLayout.NORTH);
-        leftPanel.add(tableScrollPane, BorderLayout.CENTER);
+        contentPanel.add(verticalSplitPane, BorderLayout.CENTER);
         
-        // Painel direito - Formulário
-        JPanel rightPanel = new JPanel(new BorderLayout());
-        rightPanel.setBackground(Color.WHITE);
-        rightPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 10));
+        // Adicionar contentPanel ao mainPanel
+        mainPanel.add(contentPanel, BorderLayout.CENTER);
         
-        // Título do formulário
-        JPanel formHeaderPanel = new JPanel(new BorderLayout());
-        formHeaderPanel.setBackground(new Color(245, 245, 250));
-        formHeaderPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
-        
-        JLabel formTitleLabel = new JLabel("📝 Detalhes do Livro", SwingConstants.LEFT);
-        formTitleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        formTitleLabel.setForeground(new Color(139, 69, 19));
-        
-        formHeaderPanel.add(formTitleLabel, BorderLayout.CENTER);
-        rightPanel.add(formHeaderPanel, BorderLayout.NORTH);
-        
-        // Formulário em grid
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBackground(Color.WHITE);
-        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 8, 8, 8);
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        
-        // Estilizar labels
-        Font labelFont = new Font("Segoe UI", Font.BOLD, 12);
-        Color labelColor = new Color(139, 69, 19);
-        
-        // Código
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 1;
-        JLabel codigoLabel = new JLabel("🔢 Código:");
-        codigoLabel.setFont(labelFont);
-        codigoLabel.setForeground(labelColor);
-        formPanel.add(codigoLabel, gbc);
-        gbc.gridx = 1; gbc.gridwidth = 2;
-        codigoField.setEditable(false);
-        codigoField.setBackground(new Color(240, 240, 245));
-        codigoField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(codigoField, gbc);
-        
-        // Tipo
-        gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 1;
-        JLabel tipoLabel = new JLabel("📂 Tipo:");
-        tipoLabel.setFont(labelFont);
-        tipoLabel.setForeground(labelColor);
-        formPanel.add(tipoLabel, gbc);
-        gbc.gridx = 1; gbc.gridwidth = 2;
-        tipoCombo.setBackground(Color.WHITE);
-        tipoCombo.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(tipoCombo, gbc);
-        
-        // Título
-        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 1;
-        JLabel tituloLabel = new JLabel("📖 Título:");
-        tituloLabel.setFont(labelFont);
-        tituloLabel.setForeground(labelColor);
-        formPanel.add(tituloLabel, gbc);
-        gbc.gridx = 1; gbc.gridwidth = 3;
-        tituloField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(tituloField, gbc);
-        
-        // Autor
-        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 1;
-        JLabel autorLabel = new JLabel("✍️ Autor:");
-        autorLabel.setFont(labelFont);
-        autorLabel.setForeground(labelColor);
-        formPanel.add(autorLabel, gbc);
-        gbc.gridx = 1; gbc.gridwidth = 2;
-        autorField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(autorField, gbc);
-        
-        // ISBN
-        gbc.gridx = 3; gbc.gridy = 3; gbc.gridwidth = 1;
-        JLabel isbnLabel = new JLabel("📋 ISBN:");
-        isbnLabel.setFont(labelFont);
-        isbnLabel.setForeground(labelColor);
-        formPanel.add(isbnLabel, gbc);
-        gbc.gridx = 4;
-        isbnField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(isbnField, gbc);
-        
-        // Editora
-        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 1;
-        JLabel editoraLabel = new JLabel("🏢 Editora:");
-        editoraLabel.setFont(labelFont);
-        editoraLabel.setForeground(labelColor);
-        formPanel.add(editoraLabel, gbc);
-        gbc.gridx = 1;
-        editoraField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(editoraField, gbc);
-        
-        // Ano Publicação
-        gbc.gridx = 2; gbc.gridy = 4; gbc.gridwidth = 1;
-        JLabel anoLabel = new JLabel("📅 Ano:");
-        anoLabel.setFont(labelFont);
-        anoLabel.setForeground(labelColor);
-        formPanel.add(anoLabel, gbc);
-        gbc.gridx = 3;
-        anoPublicacaoField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(anoPublicacaoField, gbc);
-        
-        // Categoria
-        gbc.gridx = 4; gbc.gridy = 4; gbc.gridwidth = 1;
-        JLabel categoriaLabel = new JLabel("🏷️ Categoria:");
-        categoriaLabel.setFont(labelFont);
-        categoriaLabel.setForeground(labelColor);
-        formPanel.add(categoriaLabel, gbc);
-        gbc.gridx = 5;
-        categoriaField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(categoriaField, gbc);
-        
-        // Localização
-        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 1;
-        JLabel localizacaoLabel = new JLabel("📍 Localização:");
-        localizacaoLabel.setFont(labelFont);
-        localizacaoLabel.setForeground(labelColor);
-        formPanel.add(localizacaoLabel, gbc);
-        gbc.gridx = 1;
-        localizacaoField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(localizacaoField, gbc);
-        
-        // Status
-        gbc.gridx = 2; gbc.gridy = 5; gbc.gridwidth = 1;
-        JLabel statusLabel = new JLabel("✅ Status:");
-        statusLabel.setFont(labelFont);
-        statusLabel.setForeground(labelColor);
-        formPanel.add(statusLabel, gbc);
-        gbc.gridx = 3;
-        statusCombo.setBackground(Color.WHITE);
-        statusCombo.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(statusCombo, gbc);
-        
-        // Campos para empréstimo
-        gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 6; gbc.fill = GridBagConstraints.HORIZONTAL;
-        JLabel emprestimoTitleLabel = new JLabel("📚 DADOS DE EMPRÉSTIMO", SwingConstants.CENTER);
-        emprestimoTitleLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        emprestimoTitleLabel.setForeground(new Color(139, 69, 19));
-        emprestimoTitleLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 5, 0));
-        formPanel.add(emprestimoTitleLabel, gbc);
-        
-        gbc.gridy = 7; gbc.gridwidth = 1; gbc.fill = GridBagConstraints.HORIZONTAL;
-        JLabel leitorLabel = new JLabel("👤 Nome Leitor:");
-        leitorLabel.setFont(labelFont);
-        leitorLabel.setForeground(labelColor);
-        formPanel.add(leitorLabel, gbc);
-        gbc.gridx = 1; gbc.gridwidth = 3;
-        nomeLeitorField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(nomeLeitorField, gbc);
-        
-        gbc.gridx = 4; gbc.gridy = 7; gbc.gridwidth = 1;
-        JLabel dataEmprestimoLabel = new JLabel("📆 Data Empréstimo:");
-        dataEmprestimoLabel.setFont(labelFont);
-        dataEmprestimoLabel.setForeground(labelColor);
-        formPanel.add(dataEmprestimoLabel, gbc);
-        gbc.gridx = 5;
-        dataEmprestimoField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(dataEmprestimoField, gbc);
-        
-        gbc.gridx = 0; gbc.gridy = 8;
-        JLabel devolucaoPrevistaLabel = new JLabel("📅 Devolução Prevista:");
-        devolucaoPrevistaLabel.setFont(labelFont);
-        devolucaoPrevistaLabel.setForeground(labelColor);
-        formPanel.add(devolucaoPrevistaLabel, gbc);
-        gbc.gridx = 1;
-        dataDevolucaoPrevistaField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(dataDevolucaoPrevistaField, gbc);
-        
-        gbc.gridx = 2; gbc.gridy = 8;
-        JLabel devolucaoRealLabel = new JLabel("✅ Devolução Real:");
-        devolucaoRealLabel.setFont(labelFont);
-        devolucaoRealLabel.setForeground(labelColor);
-        formPanel.add(devolucaoRealLabel, gbc);
-        gbc.gridx = 3;
-        dataDevolucaoRealField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(dataDevolucaoRealField, gbc);
-        
-        gbc.gridx = 4; gbc.gridy = 8; gbc.gridwidth = 1;
-        JLabel responsavelLabel = new JLabel("👨‍💼 Responsável:");
-        responsavelLabel.setFont(labelFont);
-        responsavelLabel.setForeground(labelColor);
-        formPanel.add(responsavelLabel, gbc);
-        gbc.gridx = 5;
-        responsavelEmprestimoField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(responsavelEmprestimoField, gbc);
-        
-        gbc.gridx = 0; gbc.gridy = 9; gbc.gridwidth = 1;
-        JLabel multaLabel = new JLabel("💰 Multa (R$):");
-        multaLabel.setFont(labelFont);
-        multaLabel.setForeground(labelColor);
-        formPanel.add(multaLabel, gbc);
-        gbc.gridx = 1;
-        multaField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        formPanel.add(multaField, gbc);
-        
-        // Observações
-        gbc.gridx = 0; gbc.gridy = 10; gbc.gridwidth = 1;
-        JLabel observacoesLabel = new JLabel("📝 Observações:");
-        observacoesLabel.setFont(labelFont);
-        observacoesLabel.setForeground(labelColor);
-        formPanel.add(observacoesLabel, gbc);
-        gbc.gridx = 1; gbc.gridwidth = 5; gbc.gridy = 11;
-        gbc.fill = GridBagConstraints.BOTH;
-        observacoesArea.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 180, 190)),
-            BorderFactory.createEmptyBorder(5, 8, 5, 8)
-        ));
-        JScrollPane observacoesScroll = new JScrollPane(observacoesArea);
-        observacoesScroll.setPreferredSize(new Dimension(400, 60));
-        formPanel.add(observacoesScroll, gbc);
-        
-        // Botões do formulário estilizados
-        gbc.gridx = 0; gbc.gridy = 12; gbc.gridwidth = 6; gbc.fill = GridBagConstraints.HORIZONTAL;
-        JPanel botoesFormPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 15));
-        botoesFormPanel.setBackground(Color.WHITE);
-        
-        // Estilizar botões com cores pastéis
-        salvarButton.setBackground(new Color(144, 238, 144)); // Verde pastel suave
-        salvarButton.setForeground(new Color(34, 89, 34));
-        salvarButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        salvarButton.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(144, 238, 144), 2),
-            BorderFactory.createEmptyBorder(10, 20, 10, 20)
-        ));
-        salvarButton.setFocusPainted(false);
-        salvarButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        novoButton.setBackground(new Color(173, 216, 230)); // Azul pastel suave
-        novoButton.setForeground(new Color(25, 84, 123));
-        novoButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        novoButton.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(173, 216, 230), 2),
-            BorderFactory.createEmptyBorder(10, 20, 10, 20)
-        ));
-        novoButton.setFocusPainted(false);
-        novoButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        editarButton.setBackground(new Color(255, 239, 213)); // Amarelo pastel suave
-        editarButton.setForeground(new Color(180, 140, 45));
-        editarButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        editarButton.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(255, 239, 213), 2),
-            BorderFactory.createEmptyBorder(10, 20, 10, 20)
-        ));
-        editarButton.setFocusPainted(false);
-        editarButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        excluirButton.setBackground(new Color(255, 182, 193)); // Rosa pastel suave
-        excluirButton.setForeground(new Color(180, 82, 92));
-        excluirButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        excluirButton.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(255, 182, 193), 2),
-            BorderFactory.createEmptyBorder(10, 20, 10, 20)
-        ));
-        excluirButton.setFocusPainted(false);
-        excluirButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        limparButton.setBackground(new Color(211, 211, 211)); // Cinza pastel suave
-        limparButton.setForeground(new Color(84, 84, 84));
-        limparButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        limparButton.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(211, 211, 211), 2),
-            BorderFactory.createEmptyBorder(10, 20, 10, 20)
-        ));
-        limparButton.setFocusPainted(false);
-        limparButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        emprestarButton.setBackground(new Color(176, 224, 230)); // Azul-bebê pastel
-        emprestarButton.setForeground(new Color(38, 84, 124));
-        emprestarButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        emprestarButton.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(176, 224, 230), 2),
-            BorderFactory.createEmptyBorder(10, 20, 10, 20)
-        ));
-        emprestarButton.setFocusPainted(false);
-        emprestarButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        devolverButton.setBackground(new Color(152, 251, 152)); // Verde-claro pastel
-        devolverButton.setForeground(new Color(34, 139, 34));
-        devolverButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        devolverButton.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(152, 251, 152), 2),
-            BorderFactory.createEmptyBorder(10, 20, 10, 20)
-        ));
-        devolverButton.setFocusPainted(false);
-        devolverButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        botoesFormPanel.add(salvarButton);
-        botoesFormPanel.add(novoButton);
-        botoesFormPanel.add(editarButton);
-        botoesFormPanel.add(excluirButton);
-        botoesFormPanel.add(limparButton);
-        botoesFormPanel.add(emprestarButton);
-        botoesFormPanel.add(devolverButton);
-        
-        formPanel.add(botoesFormPanel, gbc);
-        
-        rightPanel.add(new JScrollPane(formPanel), BorderLayout.CENTER);
-        
-        // Configurar split pane
-        splitPane.setLeftComponent(leftPanel);
-        splitPane.setRightComponent(rightPanel);
-        splitPane.setDividerLocation(650);
-        splitPane.setResizeWeight(0.6);
-        
-        add(splitPane, BorderLayout.CENTER);
+        add(mainPanel, BorderLayout.CENTER);
     }
     
     private void setupEvents() {
@@ -690,12 +210,12 @@ public class BibliotecaPanel extends JPanel {
         boolean isLivro = "LIVRO".equals(tipo);
         
         // Habilitar/desabilitar campos
-        autorField.setEnabled(isLivro);
-        isbnField.setEnabled(isLivro);
-        editoraField.setEnabled(isLivro);
-        anoPublicacaoField.setEnabled(isLivro);
-        categoriaField.setEnabled(isLivro);
-        localizacaoField.setEnabled(isLivro);
+        bibliotecaFormPanel.getAutorField().setEnabled(isLivro);
+        bibliotecaFormPanel.getIsbnField().setEnabled(isLivro);
+        bibliotecaFormPanel.getEditoraField().setEnabled(isLivro);
+        bibliotecaFormPanel.getAnoField().setEnabled(isLivro);
+        bibliotecaFormPanel.getCategoriaField().setEnabled(isLivro);
+        bibliotecaFormPanel.getLocalizacaoField().setEnabled(isLivro);
         
         nomeLeitorField.setEnabled(!isLivro);
         dataEmprestimoField.setEnabled(!isLivro);
@@ -713,33 +233,33 @@ public class BibliotecaPanel extends JPanel {
             responsavelEmprestimoField.setText("");
             multaField.setText("0.00");
         } else {
-            autorField.setText("");
-            isbnField.setText("");
-            editoraField.setText("");
-            anoPublicacaoField.setText("");
-            categoriaField.setText("");
-            localizacaoField.setText("");
+            bibliotecaFormPanel.getAutorField().setText("");
+            bibliotecaFormPanel.getIsbnField().setText("");
+            bibliotecaFormPanel.getEditoraField().setText("");
+            bibliotecaFormPanel.getAnoField().setText("");
+            bibliotecaFormPanel.getCategoriaField().setText("");
+            bibliotecaFormPanel.getLocalizacaoField().setText("");
         }
     }
     
     private void salvarItem() {
         try {
-            if (tituloField.getText().trim().isEmpty()) {
+            if (bibliotecaFormPanel.getTituloField().getText().trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Título é obrigatório!", "Erro", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
             Biblioteca biblioteca = bibliotecaAtual != null ? bibliotecaAtual : new Biblioteca();
             biblioteca.setTipo((String) tipoCombo.getSelectedItem());
-            biblioteca.setTitulo(tituloField.getText().trim());
-            biblioteca.setAutor(autorField.getText().trim());
-            biblioteca.setIsbn(isbnField.getText().trim());
-            biblioteca.setEditora(editoraField.getText().trim());
-            biblioteca.setAnoPublicacao(anoPublicacaoField.getText().trim());
-            biblioteca.setCategoria(categoriaField.getText().trim());
-            biblioteca.setLocalizacao(localizacaoField.getText().trim());
+            biblioteca.setTitulo(bibliotecaFormPanel.getTituloField().getText().trim());
+            biblioteca.setAutor(bibliotecaFormPanel.getAutorField().getText().trim());
+            biblioteca.setIsbn(bibliotecaFormPanel.getIsbnField().getText().trim());
+            biblioteca.setEditora(bibliotecaFormPanel.getEditoraField().getText().trim());
+            biblioteca.setAnoPublicacao(bibliotecaFormPanel.getAnoField().getText().trim());
+            biblioteca.setCategoria(bibliotecaFormPanel.getCategoriaField().getText().trim());
+            biblioteca.setLocalizacao(bibliotecaFormPanel.getLocalizacaoField().getText().trim());
             biblioteca.setStatus((String) statusCombo.getSelectedItem());
-            biblioteca.setObservacoes(observacoesArea.getText().trim());
+            biblioteca.setObservacoes(bibliotecaFormPanel.getObservacoesArea().getText().trim());
             
             // Dados de empréstimo
             biblioteca.setNomeLeitor(nomeLeitorField.getText().trim());
@@ -794,24 +314,19 @@ public class BibliotecaPanel extends JPanel {
     
     private void limparFormulario() {
         bibliotecaAtual = null;
-        codigoField.setText("");
-        tipoCombo.setSelectedIndex(0);
-        tituloField.setText("");
-        autorField.setText("");
-        isbnField.setText("");
-        editoraField.setText("");
-        anoPublicacaoField.setText("");
-        categoriaField.setText("");
-        localizacaoField.setText("");
+        bibliotecaFormPanel.clearForm();
         statusCombo.setSelectedIndex(0);
+        
+        // Limpar campos de empréstimo
         nomeLeitorField.setText("");
         dataEmprestimoField.setText("");
         dataDevolucaoPrevistaField.setText("");
         dataDevolucaoRealField.setText("");
         responsavelEmprestimoField.setText("");
         multaField.setText("0.00");
-        observacoesArea.setText("");
-        tituloField.requestFocus();
+        
+        bibliotecaTable.clearSelection();
+        bibliotecaFormPanel.getTituloField().requestFocus();
         atualizarCamposPorTipo();
         atualizarBotoesAcao();
     }
@@ -881,15 +396,15 @@ public class BibliotecaPanel extends JPanel {
             try {
                 bibliotecaAtual = bibliotecaDAO.findById(id);
                 if (bibliotecaAtual != null) {
-                    codigoField.setText(String.valueOf(bibliotecaAtual.getId()));
+                    bibliotecaFormPanel.getCodigoField().setText(String.valueOf(bibliotecaAtual.getId()));
                     tipoCombo.setSelectedItem(bibliotecaAtual.getTipo());
-                    tituloField.setText(bibliotecaAtual.getTitulo());
-                    autorField.setText(bibliotecaAtual.getAutor());
-                    isbnField.setText(bibliotecaAtual.getIsbn());
-                    editoraField.setText(bibliotecaAtual.getEditora());
-                    anoPublicacaoField.setText(bibliotecaAtual.getAnoPublicacao());
-                    categoriaField.setText(bibliotecaAtual.getCategoria());
-                    localizacaoField.setText(bibliotecaAtual.getLocalizacao());
+                    bibliotecaFormPanel.getTituloField().setText(bibliotecaAtual.getTitulo());
+                    bibliotecaFormPanel.getAutorField().setText(bibliotecaAtual.getAutor());
+                    bibliotecaFormPanel.getIsbnField().setText(bibliotecaAtual.getIsbn());
+                    bibliotecaFormPanel.getEditoraField().setText(bibliotecaAtual.getEditora());
+                    bibliotecaFormPanel.getAnoField().setText(bibliotecaAtual.getAnoPublicacao());
+                    bibliotecaFormPanel.getCategoriaField().setText(bibliotecaAtual.getCategoria());
+                    bibliotecaFormPanel.getLocalizacaoField().setText(bibliotecaAtual.getLocalizacao());
                     statusCombo.setSelectedItem(bibliotecaAtual.getStatus());
                     nomeLeitorField.setText(bibliotecaAtual.getNomeLeitor());
                     dataEmprestimoField.setText(bibliotecaAtual.getDataEmprestimo() != null ? bibliotecaAtual.getDataEmprestimo().format(DATE_FORMATTER) : "");
@@ -897,7 +412,7 @@ public class BibliotecaPanel extends JPanel {
                     dataDevolucaoRealField.setText(bibliotecaAtual.getDataDevolucaoReal() != null ? bibliotecaAtual.getDataDevolucaoReal().format(DATE_FORMATTER) : "");
                     responsavelEmprestimoField.setText(bibliotecaAtual.getResponsavelEmprestimo());
                     multaField.setText(bibliotecaAtual.getMulta() != null ? bibliotecaAtual.getMulta().toString() : "0.00");
-                    observacoesArea.setText(bibliotecaAtual.getObservacoes());
+                    bibliotecaFormPanel.getObservacoesArea().setText(bibliotecaAtual.getObservacoes());
                     atualizarCamposPorTipo();
                     atualizarBotoesAcao();
                 }
@@ -949,8 +464,8 @@ public class BibliotecaPanel extends JPanel {
         formPanel.add(responsavelField, gbc);
         
         JPanel buttonPanel = new JPanel(new FlowLayout());
-        JButton confirmarButton = new JButton("Confirmar");
-        JButton cancelarButton = new JButton("Cancelar");
+        JButton confirmarButton = PadraoLayout.criarBotao("Confirmar", new Color(152, 251, 152)); // Verde menta
+        JButton cancelarButton = PadraoLayout.criarBotao("Cancelar", new Color(255, 182, 193)); // Rosa pastel
         
         buttonPanel.add(confirmarButton);
         buttonPanel.add(cancelarButton);

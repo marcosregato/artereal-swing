@@ -5,7 +5,7 @@ import java.time.LocalDate;
 /**
  * Modelo de dados para Candidatos e Profanos
  */
-public class Candidato {
+public class Candidato extends SimpleModel {
     
     private Long id;
     private String nome;
@@ -144,10 +144,5 @@ public class Candidato {
     
     public boolean isRejeitado() {
         return "REJEITADO".equals(status);
-    }
-    
-    @Override
-    public String toString() {
-        return nome + " - " + status + " (" + cidade + "/" + estado + ")";
     }
 }

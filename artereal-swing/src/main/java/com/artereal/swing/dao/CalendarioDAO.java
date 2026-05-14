@@ -4,7 +4,10 @@ import com.artereal.swing.database.DatabaseManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,8 +24,17 @@ public class CalendarioDAO {
      */
     public void save(String descricao, String dataInforme, String tipoEvento, String local, String horario, Long codigoIrmao) throws SQLException {
         String sql = """
-            INSERT OR REPLACE INTO calendario (descricao, data_informe, tipo_evento, status, local, horario, codigo_irmao, updated_at)
+            INSERT INTO calendario (descricao, data_informe, tipo_evento, status, local, horario, codigo_irmao, updated_at)
             VALUES (?, ?, ?, 'PROGRAMADO', ?, ?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT (id) DO UPDATE SET
+                descricao = EXCLUDED.descricao,
+                data_informe = EXCLUDED.data_informe,
+                tipo_evento = EXCLUDED.tipo_evento,
+                status = EXCLUDED.status,
+                local = EXCLUDED.local,
+                horario = EXCLUDED.horario,
+                codigo_irmao = EXCLUDED.codigo_irmao,
+                updated_at = CURRENT_TIMESTAMP
             """;
         
         try (Connection conn = DatabaseManager.getInstance().getConnection();
@@ -36,8 +48,6 @@ public class CalendarioDAO {
             stmt.setObject(6, codigoIrmao);
             
             stmt.executeUpdate();
-            conn.commit();
-            
             logger.debug("Evento salvo no calendário: {}", descricao);
         }
     }
@@ -158,8 +168,8 @@ public class CalendarioDAO {
         String sql = """
             SELECT id, descricao, data_informe, tipo_evento, status, local, horario, codigo_irmao
             FROM calendario 
-            WHERE data_informe BETWEEN CURRENT_DATE AND DATE(CURRENT_DATE, '+{} days')
-            ORDER BY data_informe
+            WHERE CAST(data_informe AS DATE) BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '{} days'
+            ORDER BY CAST(data_informe AS DATE)
             """.replace("{}", String.valueOf(dias));
         
         try (Connection conn = DatabaseManager.getInstance().getConnection();
@@ -192,7 +202,7 @@ public class CalendarioDAO {
         String sql = """
             SELECT id, descricao, data_informe, tipo_evento, status, local, horario, codigo_irmao
             FROM calendario 
-            WHERE data_informe = CURRENT_DATE
+            WHERE CAST(data_informe AS DATE) = CURRENT_DATE
             ORDER BY horario
             """;
         
@@ -229,8 +239,6 @@ public class CalendarioDAO {
             
             stmt.setLong(1, id);
             stmt.executeUpdate();
-            conn.commit();
-            
             logger.debug("Evento realizado: ID {}", id);
         }
     }
@@ -246,8 +254,6 @@ public class CalendarioDAO {
             
             stmt.setLong(1, id);
             stmt.executeUpdate();
-            conn.commit();
-            
             logger.debug("Evento cancelado: ID {}", id);
         }
     }
@@ -263,8 +269,6 @@ public class CalendarioDAO {
             
             stmt.setLong(1, id);
             stmt.executeUpdate();
-            conn.commit();
-            
             logger.debug("Evento excluído: ID {}", id);
         }
     }
@@ -308,10 +312,10 @@ public class CalendarioDAO {
         String sql = "SELECT COUNT(*) FROM calendario WHERE status = ?";
         
         try (Connection conn = DatabaseManager.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setString(1, status);
+            ResultSet rs = stmt.executeQuery();
             
             if (rs.next()) {
                 return rs.getInt(1);

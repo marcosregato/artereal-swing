@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 /**
  * Modelo de dados para Sessão Maçônica
  */
-public class Sessao {
+public class Sessao extends SimpleModel {
     
     private Long id;
     private String tipo; // MAGNA, BRANCA, ELEICAO, INSTRUCAO, etc.
@@ -80,9 +80,4 @@ public class Sessao {
     
     public String getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(String updatedAt) { this.updatedAt = updatedAt; }
-    
-    @Override
-    public String toString() {
-        return tipo + " - " + (dataHora != null ? dataHora.toString() : "Sem data");
-    }
 }

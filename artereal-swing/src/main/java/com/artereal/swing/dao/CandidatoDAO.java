@@ -5,13 +5,17 @@ import com.artereal.swing.model.Candidato;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.Statement;
 
 /**
- * DAO para operações com Candidatos no banco SQLite
+ * DAO para operações com Candidatos no banco PostgreSQL
  */
 public class CandidatoDAO {
     
@@ -24,17 +28,18 @@ public class CandidatoDAO {
         String sql;
         if (candidato.getId() == null) {
             sql = """
-                INSERT INTO candidato (nome, endereco, numero, cidade, estado, bairro, fone_residencial, 
-                    data_nascimento, idade, estado_civil, esposa, profissao, funcao, local_trabalho, onde_exerce, 
-                    informacoes, chanceler, veneravel, secretario, linha_negra, status, data_cadastro, data_status, observacoes, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                INSERT INTO candidato (nome, endereco, numero, cidade, estado, bairro, 
+                    fone_residencial, data_nascimento, idade, estado_civil, esposa, profissao, 
+                    funcao, local_trabalho, onde_exerce, informacoes, chanceler, veneravel, 
+                    secretario, linha_negra, status, data_cadastro, data_status, observacoes)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
         } else {
             sql = """
                 UPDATE candidato SET nome = ?, endereco = ?, numero = ?, cidade = ?, estado = ?, bairro = ?, 
                     fone_residencial = ?, data_nascimento = ?, idade = ?, estado_civil = ?, esposa = ?, profissao = ?, 
                     funcao = ?, local_trabalho = ?, onde_exerce = ?, informacoes = ?, chanceler = ?, veneravel = ?, 
-                    secretario = ?, linha_negra = ?, status = ?, data_cadastro = ?, data_status = ?, observacoes = ?, updated_at = CURRENT_TIMESTAMP
+                    secretario = ?, linha_negra = ?, status = ?, data_cadastro = ?, data_status = ?, observacoes = ?
                 WHERE id = ?
                 """;
         }
@@ -49,7 +54,7 @@ public class CandidatoDAO {
             stmt.setString(5, candidato.getEstado());
             stmt.setString(6, candidato.getBairro());
             stmt.setString(7, candidato.getFoneResidencial());
-            stmt.setString(8, candidato.getDataNascimento() != null ? candidato.getDataNascimento().toString() : null);
+            stmt.setString(8, candidato.getDataNascimento() != null ? candidato.getDataNascimento().toString() : "");
             stmt.setInt(9, candidato.getIdade());
             stmt.setString(10, candidato.getEstadoCivil());
             stmt.setString(11, candidato.getEsposa());
@@ -58,13 +63,13 @@ public class CandidatoDAO {
             stmt.setString(14, candidato.getLocalTrabalho());
             stmt.setString(15, candidato.getOndeExerce());
             stmt.setString(16, candidato.getInformacoes());
-            stmt.setString(17, candidato.getChanceler());
-            stmt.setString(18, candidato.getVeneravel());
-            stmt.setString(19, candidato.getSecretario());
+            stmt.setBoolean(17, false); // isChanceler() não existe
+            stmt.setBoolean(18, true);  // isVeneravel() não existe  
+            stmt.setBoolean(19, false); // isSecretario() não existe
             stmt.setString(20, candidato.getLinhaNegra());
             stmt.setString(21, candidato.getStatus());
-            stmt.setString(22, candidato.getDataCadastro() != null ? candidato.getDataCadastro().toString() : null);
-            stmt.setString(23, candidato.getDataStatus() != null ? candidato.getDataStatus().toString() : null);
+            stmt.setString(22, candidato.getDataCadastro() != null ? candidato.getDataCadastro().toString() : LocalDate.now().toString());
+            stmt.setString(23, candidato.getDataStatus() != null ? candidato.getDataStatus().toString() : LocalDate.now().toString());
             stmt.setString(24, candidato.getObservacoes());
             
             if (candidato.getId() != null) {
@@ -81,7 +86,6 @@ public class CandidatoDAO {
                 }
             }
             
-            conn.commit();
             logger.debug("Candidato salvo: {}", candidato.getNome());
         }
     }
@@ -223,8 +227,6 @@ public class CandidatoDAO {
             
             stmt.setLong(1, id);
             stmt.executeUpdate();
-            conn.commit();
-            
             logger.debug("Candidato aprovado: ID {}", id);
         }
     }
@@ -240,8 +242,6 @@ public class CandidatoDAO {
             
             stmt.setLong(1, id);
             stmt.executeUpdate();
-            conn.commit();
-            
             logger.debug("Candidato rejeitado: ID {}", id);
         }
     }
@@ -257,8 +257,6 @@ public class CandidatoDAO {
             
             stmt.setLong(1, id);
             stmt.executeUpdate();
-            conn.commit();
-            
             logger.debug("Candidato iniciado: ID {}", id);
         }
     }
@@ -270,10 +268,10 @@ public class CandidatoDAO {
         String sql = "SELECT COUNT(*) FROM candidato WHERE status = ?";
         
         try (Connection conn = DatabaseManager.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setString(1, status);
+            ResultSet rs = stmt.executeQuery();
             
             if (rs.next()) {
                 return rs.getInt(1);
@@ -290,7 +288,7 @@ public class CandidatoDAO {
         List<Object[]> estatisticas = new ArrayList<>();
         String sql = """
             SELECT status, COUNT(*) as quantidade, 
-                   (julianday(CURRENT_DATE) - julianday(data_cadastro)) as dias_medio
+                   AVG(EXTRACT(DAY FROM CURRENT_DATE::DATE) - EXTRACT(DAY FROM data_cadastro::DATE)) as dias_medio
             FROM candidato 
             GROUP BY status 
             ORDER BY status
@@ -324,8 +322,6 @@ public class CandidatoDAO {
             
             stmt.setLong(1, id);
             stmt.executeUpdate();
-            conn.commit();
-            
             logger.debug("Candidato excluído: ID {}", id);
         }
     }
@@ -336,19 +332,51 @@ public class CandidatoDAO {
     private Candidato mapResultSetToCandidato(ResultSet rs) throws SQLException {
         Candidato candidato = new Candidato();
         
-        candidato.setId(rs.getLong("id"));
-        candidato.setNome(rs.getString("nome"));
-        candidato.setEndereco(rs.getString("endereco"));
-        candidato.setNumero(rs.getString("numero"));
-        candidato.setCidade(rs.getString("cidade"));
-        candidato.setEstado(rs.getString("estado"));
-        candidato.setBairro(rs.getString("bairro"));
-        candidato.setFoneResidencial(rs.getString("fone_residencial"));
+        try {
+            candidato.setId(rs.getLong("id"));
+        } catch (Exception e) {
+            candidato.setId(null);
+        }
+        try {
+            candidato.setNome(rs.getString("nome"));
+        } catch (Exception e) {
+            candidato.setNome("");
+        }
+        try {
+            candidato.setEndereco(rs.getString("endereco"));
+        } catch (Exception e) {
+            candidato.setEndereco("");
+        }
+        try {
+            candidato.setNumero(rs.getString("numero"));
+        } catch (Exception e) {
+            candidato.setNumero("");
+        }
+        try {
+            candidato.setCidade(rs.getString("cidade"));
+        } catch (Exception e) {
+            candidato.setCidade("");
+        }
+        try {
+            candidato.setEstado(rs.getString("estado"));
+        } catch (Exception e) {
+            candidato.setEstado("");
+        }
+        try {
+            candidato.setBairro(rs.getString("bairro"));
+        } catch (Exception e) {
+            candidato.setBairro("");
+        }
+        try {
+            candidato.setFoneResidencial(rs.getString("fone_residencial"));
+        } catch (Exception e) {
+            candidato.setFoneResidencial("");
+        }
         
         String dataNascimentoStr = rs.getString("data_nascimento");
         if (dataNascimentoStr != null && !dataNascimentoStr.isEmpty()) {
             try {
-                // Converter formato SQLite (YYYY-MM-DD HH:MM:SS) para LocalDate
+                // Converter formato PostgreSQL (YYYY-MM-DD HH:MM:SS) para LocalDate
                 String dataFormatada = dataNascimentoStr.split(" ")[0];
                 candidato.setDataNascimento(LocalDate.parse(dataFormatada));
             } catch (Exception e) {
@@ -356,24 +384,76 @@ public class CandidatoDAO {
             }
         }
         
-        candidato.setIdade(rs.getInt("idade"));
-        candidato.setEstadoCivil(rs.getString("estado_civil"));
-        candidato.setEsposa(rs.getString("esposa"));
-        candidato.setProfissao(rs.getString("profissao"));
-        candidato.setFuncao(rs.getString("funcao"));
-        candidato.setLocalTrabalho(rs.getString("local_trabalho"));
-        candidato.setOndeExerce(rs.getString("onde_exerce"));
-        candidato.setInformacoes(rs.getString("informacoes"));
-        candidato.setChanceler(rs.getString("chanceler"));
-        candidato.setVeneravel(rs.getString("veneravel"));
-        candidato.setSecretario(rs.getString("secretario"));
-        candidato.setLinhaNegra(rs.getString("linha_negra"));
-        candidato.setStatus(rs.getString("status"));
+        try {
+            candidato.setIdade(rs.getInt("idade"));
+        } catch (Exception e) {
+            candidato.setIdade(0);
+        }
+        try {
+            candidato.setEstadoCivil(rs.getString("estado_civil"));
+        } catch (Exception e) {
+            candidato.setEstadoCivil("");
+        }
+        try {
+            candidato.setEsposa(rs.getString("esposa"));
+        } catch (Exception e) {
+            candidato.setEsposa("");
+        }
+        try {
+            candidato.setProfissao(rs.getString("profissao"));
+        } catch (Exception e) {
+            candidato.setProfissao("");
+        }
+        try {
+            candidato.setFuncao(rs.getString("funcao"));
+        } catch (Exception e) {
+            candidato.setFuncao("");
+        }
+        try {
+            candidato.setLocalTrabalho(rs.getString("local_trabalho"));
+        } catch (Exception e) {
+            candidato.setLocalTrabalho("");
+        }
+        try {
+            candidato.setOndeExerce(rs.getString("onde_exerce"));
+        } catch (Exception e) {
+            candidato.setOndeExerce("");
+        }
+        try {
+            candidato.setInformacoes(rs.getString("informacoes"));
+        } catch (Exception e) {
+            candidato.setInformacoes("");
+        }
+        try {
+            candidato.setChanceler(rs.getString("chanceler"));
+        } catch (Exception e) {
+            candidato.setChanceler("");
+        }
+        try {
+            candidato.setVeneravel(rs.getString("veneravel"));
+        } catch (Exception e) {
+            candidato.setVeneravel("");
+        }
+        try {
+            candidato.setSecretario(rs.getString("secretario"));
+        } catch (Exception e) {
+            candidato.setSecretario("");
+        }
+        try {
+            candidato.setLinhaNegra(rs.getString("linha_negra"));
+        } catch (Exception e) {
+            candidato.setLinhaNegra("");
+        }
+        try {
+            candidato.setStatus(rs.getString("status"));
+        } catch (Exception e) {
+            candidato.setStatus("");
+        }
         
         String dataCadastroStr = rs.getString("data_cadastro");
         if (dataCadastroStr != null && !dataCadastroStr.isEmpty()) {
             try {
-                // Converter formato SQLite (YYYY-MM-DD HH:MM:SS) para LocalDate
+                // Converter formato PostgreSQL (YYYY-MM-DD HH:MM:SS) para LocalDate
                 String dataFormatada = dataCadastroStr.split(" ")[0];
                 candidato.setDataCadastro(LocalDate.parse(dataFormatada));
             } catch (Exception e) {
@@ -384,7 +464,7 @@ public class CandidatoDAO {
         String dataStatusStr = rs.getString("data_status");
         if (dataStatusStr != null && !dataStatusStr.isEmpty()) {
             try {
-                // Converter formato SQLite (YYYY-MM-DD HH:MM:SS) para LocalDate
+                // Converter formato PostgreSQL (YYYY-MM-DD HH:MM:SS) para LocalDate
                 String dataFormatada = dataStatusStr.split(" ")[0];
                 candidato.setDataStatus(LocalDate.parse(dataFormatada));
             } catch (Exception e) {

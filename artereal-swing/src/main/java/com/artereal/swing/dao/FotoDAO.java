@@ -5,7 +5,10 @@ import com.artereal.swing.model.Foto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,34 +27,48 @@ public class FotoDAO {
         String sql;
         if (foto.getId() == null) {
             sql = """
-                INSERT INTO foto (codigo, foto, descricao, data_foto, tipo_foto, ativo, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                INSERT INTO foto (titulo, descricao, caminho_arquivo, nome_arquivo, categoria, evento, 
+                    data_foto, data_upload, usuario_upload, tags, tamanho_arquivo, formato_arquivo, ativo, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?, ?, ?, ?, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                 """;
         } else {
             sql = """
-                UPDATE foto SET foto = ?, descricao = ?, data_foto = ?, tipo_foto = ?, 
-                    ativo = ?, updated_at = CURRENT_TIMESTAMP
-                WHERE codigo = ?
+                UPDATE foto SET titulo = ?, descricao = ?, caminho_arquivo = ?, nome_arquivo = ?, 
+                    categoria = ?, evento = ?, data_foto = ?, usuario_upload = ?, tags = ?, 
+                    tamanho_arquivo = ?, formato_arquivo = ?, ativo = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
                 """;
         }
         
         try (Connection conn = DatabaseManager.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement stmt = conn.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
             
             if (foto.getId() == null) {
-                stmt.setInt(1, (int)(System.currentTimeMillis() % 1000000)); // Gerar código único
-                stmt.setString(2, foto.getCaminhoArquivo());
-                stmt.setString(3, foto.getDescricao());
-                stmt.setString(4, foto.getDataFoto() != null ? foto.getDataFoto().toString() : null);
-                stmt.setString(5, foto.getCategoria() != null ? foto.getCategoria() : "IRMAO");
-                stmt.setBoolean(6, foto.isAtivo());
-            } else {
-                stmt.setString(1, foto.getCaminhoArquivo());
+                stmt.setString(1, foto.getTitulo() != null ? foto.getTitulo() : foto.getDescricao());
                 stmt.setString(2, foto.getDescricao());
-                stmt.setString(3, foto.getDataFoto() != null ? foto.getDataFoto().toString() : null);
-                stmt.setString(4, foto.getCategoria() != null ? foto.getCategoria() : "IRMAO");
-                stmt.setBoolean(5, foto.isAtivo());
-                stmt.setInt(6, foto.getId().intValue());
+                stmt.setString(3, foto.getCaminhoArquivo());
+                stmt.setString(4, foto.getNomeArquivo() != null ? foto.getNomeArquivo() : "foto.jpg");
+                stmt.setString(5, foto.getCategoria() != null ? foto.getCategoria() : "OUTRA");
+                stmt.setString(6, null); // evento
+                stmt.setString(7, foto.getDataFoto() != null ? foto.getDataFoto().toString() : null);
+                stmt.setString(8, foto.getUsuarioUpload() != null ? foto.getUsuarioUpload() : "admin");
+                stmt.setString(9, null); // tags
+                stmt.setDouble(10, foto.getTamanhoArquivo() != null ? foto.getTamanhoArquivo() : 0.0);
+                stmt.setString(11, foto.getFormatoArquivo() != null ? foto.getFormatoArquivo() : "jpg");
+            } else {
+                stmt.setString(1, foto.getTitulo() != null ? foto.getTitulo() : foto.getDescricao());
+                stmt.setString(2, foto.getDescricao());
+                stmt.setString(3, foto.getCaminhoArquivo());
+                stmt.setString(4, foto.getNomeArquivo() != null ? foto.getNomeArquivo() : "foto.jpg");
+                stmt.setString(5, foto.getCategoria() != null ? foto.getCategoria() : "OUTRA");
+                stmt.setString(6, null); // evento
+                stmt.setString(7, foto.getDataFoto() != null ? foto.getDataFoto().toString() : null);
+                stmt.setString(8, foto.getUsuarioUpload() != null ? foto.getUsuarioUpload() : "admin");
+                stmt.setString(9, null); // tags
+                stmt.setDouble(10, foto.getTamanhoArquivo() != null ? foto.getTamanhoArquivo() : 0.0);
+                stmt.setString(11, foto.getFormatoArquivo() != null ? foto.getFormatoArquivo() : "jpg");
+                stmt.setInt(12, foto.isAtivo() ? 1 : 0);
+                stmt.setLong(13, foto.getId());
             }
             
             int rowsAffected = stmt.executeUpdate();
@@ -64,7 +81,6 @@ public class FotoDAO {
                 }
             }
             
-            conn.commit();
             logger.debug("Foto salva: {}", foto.getTitulo());
         }
     }
@@ -73,7 +89,7 @@ public class FotoDAO {
      * Busca foto por código (ID)
      */
     public Foto findById(Long id) throws SQLException {
-        String sql = "SELECT * FROM foto WHERE codigo = ? AND ativo = 1";
+        String sql = "SELECT * FROM foto WHERE id = ? AND ativo = 1";
         
         try (Connection conn = DatabaseManager.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -114,7 +130,7 @@ public class FotoDAO {
      */
     public List<Foto> findByCategoria(String categoria) throws SQLException {
         List<Foto> fotos = new ArrayList<>();
-        String sql = "SELECT * FROM foto WHERE tipo_foto = ? AND ativo = 1 ORDER BY created_at DESC";
+        String sql = "SELECT * FROM foto WHERE categoria = ? AND ativo = 1 ORDER BY created_at DESC";
         
         try (Connection conn = DatabaseManager.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -155,11 +171,11 @@ public class FotoDAO {
     public List<Object[]> getEstatisticas() throws SQLException {
         List<Object[]> estatisticas = new ArrayList<>();
         String sql = """
-            SELECT tipo_foto, COUNT(*) as quantidade
+            SELECT categoria, COUNT(*) as quantidade
             FROM foto 
             WHERE ativo = 1 
-            GROUP BY tipo_foto 
-            ORDER BY tipo_foto
+            GROUP BY categoria 
+            ORDER BY categoria
             """;
         
         try (Connection conn = DatabaseManager.getInstance().getConnection();
@@ -168,7 +184,7 @@ public class FotoDAO {
             
             while (rs.next()) {
                 Object[] estatistica = {
-                    rs.getString("tipo_foto"),
+                    rs.getString("categoria"),
                     rs.getInt("quantidade")
                 };
                 estatisticas.add(estatistica);
@@ -182,15 +198,13 @@ public class FotoDAO {
      * Exclui (desativa) uma foto
      */
     public void delete(Long id) throws SQLException {
-        String sql = "UPDATE foto SET ativo = 0 WHERE codigo = ?";
+        String sql = "UPDATE foto SET ativo = 0 WHERE id = ?";
         
         try (Connection conn = DatabaseManager.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setLong(1, id);
             stmt.executeUpdate();
-            conn.commit();
-            
             logger.debug("Foto desativada: ID {}", id);
         }
     }
@@ -201,11 +215,12 @@ public class FotoDAO {
     private Foto mapResultSetToFoto(ResultSet rs) throws SQLException {
         Foto foto = new Foto();
         
-        foto.setId(rs.getLong("codigo"));
-        foto.setCaminhoArquivo(rs.getString("foto"));
+        foto.setId(rs.getLong("id"));
+        foto.setTitulo(rs.getString("titulo"));
         foto.setDescricao(rs.getString("descricao"));
-        foto.setCategoria(rs.getString("tipo_foto"));
-        foto.setAtivo(rs.getBoolean("ativo"));
+        foto.setCaminhoArquivo(rs.getString("caminho_arquivo"));
+        foto.setCategoria(rs.getString("categoria"));
+        foto.setAtivo(rs.getInt("ativo") == 1);
         
         String dataFotoStr = rs.getString("data_foto");
         if (dataFotoStr != null && !dataFotoStr.isEmpty()) {
@@ -213,9 +228,6 @@ public class FotoDAO {
             String dataFormatada = dataFotoStr.replace(" ", "T");
             foto.setDataFoto(LocalDateTime.parse(dataFormatada));
         }
-        
-        // Para compatibilidade, usar a descrição como título
-        foto.setTitulo(rs.getString("descricao") != null ? rs.getString("descricao") : "Foto sem título");
         
         return foto;
     }

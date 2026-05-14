@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 /**
  * Modelo de dados para Configurações Globais do Sistema
  */
-public class Configuracao {
+public class Configuracao extends SimpleModel {
     
     private Long id;
     private String chave;
@@ -93,10 +93,5 @@ public class Configuracao {
     
     public void setValorAsDouble(double valor) {
         this.valor = String.valueOf(valor);
-    }
-    
-    @Override
-    public String toString() {
-        return descricao + " (" + chave + "): " + valor;
     }
 }

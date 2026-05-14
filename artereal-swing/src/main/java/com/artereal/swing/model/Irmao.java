@@ -5,7 +5,7 @@ import java.time.LocalDate;
 /**
  * Modelo de dados para Irmão (versão Swing sem JPA)
  */
-public class Irmao {
+public class Irmao extends SimpleModel {
     
     private Long id;
     private String nome;
@@ -104,9 +104,4 @@ public class Irmao {
     
     public String getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(String updatedAt) { this.updatedAt = updatedAt; }
-    
-    @Override
-    public String toString() {
-        return nome + " (" + grau + ")";
-    }
 }

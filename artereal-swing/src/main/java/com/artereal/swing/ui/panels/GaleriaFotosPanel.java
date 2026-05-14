@@ -2,12 +2,12 @@ package com.artereal.swing.ui.panels;
 
 import com.artereal.swing.dao.FotoDAO;
 import com.artereal.swing.model.Foto;
+import com.artereal.swing.ui.layout.PadraoLayout;
+import com.artereal.swing.ui.panels.galeria.GaleriaFotosFormPanel;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -21,12 +21,6 @@ public class GaleriaFotosPanel extends JPanel {
     private FotoDAO fotoDAO;
     private DefaultTableModel tableModel;
     private JTable fotosTable;
-    private JTextField tituloField;
-    private JTextField descricaoField;
-    private JTextField caminhoField;
-    private JTextField eventoField;
-    private JTextField tagsField;
-    private JComboBox<String> categoriaComboBox;
     private JButton salvarButton;
     private JButton novoButton;
     private JButton excluirButton;
@@ -34,6 +28,7 @@ public class GaleriaFotosPanel extends JPanel {
     private JButton visualizarButton;
     private JButton relatorioButton;
     private Foto fotoAtual;
+    private GaleriaFotosFormPanel galeriaFotosFormPanel;
     
     public GaleriaFotosPanel() {
         fotoDAO = new FotoDAO();
@@ -53,36 +48,54 @@ public class GaleriaFotosPanel extends JPanel {
         };
         fotosTable = new JTable(tableModel);
         
-        // Formulário
-        descricaoField = new JTextField(40);
-        caminhoField = new JTextField(50);
-        caminhoField.setEditable(false);
-        categoriaComboBox = new JComboBox<>(new String[]{
-            "IRMAO", "LOJA", "SESSAO", "EVENTO", "DOCUMENTO", "OUTRA"
-        });
+        // Inicializar formulário otimizado
+        galeriaFotosFormPanel = new GaleriaFotosFormPanel();
         
-        // Botões
-        salvarButton = new JButton("Salvar");
-        novoButton = new JButton("Novo");
-        excluirButton = new JButton("Excluir");
-        selecionarArquivoButton = new JButton("Selecionar Arquivo");
-        visualizarButton = new JButton("Visualizar");
-        relatorioButton = new JButton("Relatório");
+        // Botões usando PadraoLayout com cores pastéis
+        salvarButton = PadraoLayout.criarBotaoSalvar();
+        novoButton = PadraoLayout.criarBotaoNovo();
+        excluirButton = PadraoLayout.criarBotaoExcluir();
+        selecionarArquivoButton = PadraoLayout.criarBotao("Selecionar Arquivo", new Color(173, 216, 230)); // Azul pastel
+        visualizarButton = PadraoLayout.criarBotao("Visualizar", new Color(255, 250, 205)); // Amarelo pastel
+        relatorioButton = PadraoLayout.criarBotao("Relatório", new Color(200, 200, 255)); // Azul claro
         
         fotoAtual = null;
     }
     
     private void setupLayout() {
-        setLayout(new BorderLayout());
+        // Aplicar layout padrão usando PadraoLayout
+        // Aplicar estilização padrão ao painel principal
+        PadraoLayout.estilizarPainelPrincipal(this);
         
-        // Título
-        JLabel titleLabel = new JLabel("Galeria de Fotos", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+        // Header estilizado usando PadraoLayout
+        JPanel headerPanel = PadraoLayout.criarHeader("🖼️ Galeria de Fotos", "Álbum de fotos e eventos maçônicos");
+        add(headerPanel, BorderLayout.NORTH);
         
-        // Painel de estatísticas
-        JPanel statsPanel = new JPanel(new GridLayout(1, 3, 10, 10));
-        statsPanel.setBorder(BorderFactory.createTitledBorder("Estatísticas da Galeria"));
+        // Painel principal usando PadraoLayout
+        JPanel mainPanel = PadraoLayout.criarPainelPrincipal();
+        
+        // Painel de busca no topo
+        JTextField pesquisarField = new JTextField(20);
+        JButton pesquisarButton = PadraoLayout.criarBotaoPesquisar();
+        JPanel buscaPanel = PadraoLayout.criarPainelPesquisa(pesquisarField, pesquisarButton);
+        mainPanel.add(buscaPanel, BorderLayout.NORTH);
+        
+        // Painel do conteúdo com split vertical (Formulário acima, Tabela abaixo)
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBackground(PadraoLayout.COR_FUNDO);
+        
+        // Painel de formulário otimizado usando GaleriaFotosFormPanel
+        JPanel formPanel = PadraoLayout.criarGrupoFormulario("📸 Dados da Foto");
+        JPanel formContainer = new JPanel(new BorderLayout());
+        formContainer.setBackground(Color.WHITE);
+        
+        // Usar o formulário otimizado
+        formContainer.add(galeriaFotosFormPanel, BorderLayout.CENTER);
+        
+        // Painel de estatísticas no formulário
+        JPanel statsPanel = new JPanel(new GridLayout(1, 3, 10, 5));
+        statsPanel.setBackground(Color.WHITE);
+        statsPanel.setBorder(BorderFactory.createTitledBorder("📊 Estatísticas de Fotos"));
         
         try {
             List<Object[]> estatisticas = fotoDAO.getEstatisticas();
@@ -91,11 +104,11 @@ public class GaleriaFotosPanel extends JPanel {
             // Total de fotos
             JPanel totalPanel = new JPanel(new BorderLayout());
             totalPanel.setBorder(BorderFactory.createEtchedBorder());
-            JLabel totalLabel = new JLabel("Total de Fotos", SwingConstants.CENTER);
+            JLabel totalLabel = new JLabel("Total", SwingConstants.CENTER);
             totalLabel.setForeground(Color.BLUE);
             totalPanel.add(totalLabel, BorderLayout.NORTH);
             JLabel totalValorLabel = new JLabel(String.valueOf(totalFotos), SwingConstants.CENTER);
-            totalValorLabel.setFont(new Font("Arial", Font.BOLD, 24));
+            totalValorLabel.setFont(new Font("Arial", Font.BOLD, 16));
             totalPanel.add(totalValorLabel, BorderLayout.CENTER);
             statsPanel.add(totalPanel);
             
@@ -103,26 +116,29 @@ public class GaleriaFotosPanel extends JPanel {
             for (Object[] est : estatisticas) {
                 String categoria = (String) est[0];
                 int quantidade = (Integer) est[1];
-                double tamanho = (Double) est[2];
                 
                 JPanel catPanel = new JPanel(new BorderLayout());
                 catPanel.setBorder(BorderFactory.createEtchedBorder());
                 
                 Color color = Color.BLACK;
                 switch (categoria) {
-                    case "SESSAO_MAGNA": color = Color.BLUE; break;
-                    case "SESSAO_BRANCA": color = Color.GREEN; break;
-                    case "CERIMONIA_INICIACAO": color = Color.MAGENTA; break;
-                    default: color = Color.DARK_GRAY; break;
+                    case "IRMAO": color = Color.BLUE; break;
+                    case "LOJA": color = Color.GREEN; break;
+                    case "SESSAO": color = Color.MAGENTA; break;
+                    case "EVENTO": color = Color.RED; break;
+                    case "DOCUMENTO": color = Color.ORANGE; break;
+                    case "OUTRA": color = Color.DARK_GRAY; break;
                 }
                 
                 JLabel catLabel = new JLabel(categoria.replace("_", " "), SwingConstants.CENTER);
                 catLabel.setForeground(color);
+                catLabel.setFont(new Font("Segoe UI", Font.BOLD, 10));
                 catPanel.add(catLabel, BorderLayout.NORTH);
                 
-                JLabel detalhesLabel = new JLabel(String.format("%d fotos\n%.1f MB", quantidade, tamanho / (1024 * 1024)), SwingConstants.CENTER);
-                detalhesLabel.setFont(new Font("Arial", Font.PLAIN, 10));
-                catPanel.add(detalhesLabel, BorderLayout.CENTER);
+                JLabel quantLabel = new JLabel(String.valueOf(quantidade), SwingConstants.CENTER);
+                quantLabel.setFont(new Font("Arial", Font.BOLD, 14));
+                quantLabel.setForeground(color);
+                catPanel.add(quantLabel, BorderLayout.CENTER);
                 
                 statsPanel.add(catPanel);
             }
@@ -130,67 +146,41 @@ public class GaleriaFotosPanel extends JPanel {
             statsPanel.add(new JLabel("Erro ao carregar estatísticas"));
         }
         
-        // Painel de formulário
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBorder(BorderFactory.createTitledBorder("Dados da Foto"));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.anchor = GridBagConstraints.WEST;
+        // Painel de botões
+        JPanel botoesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        botoesPanel.setBackground(Color.WHITE);
+        botoesPanel.add(salvarButton);
+        botoesPanel.add(novoButton);
+        botoesPanel.add(excluirButton);
+        botoesPanel.add(visualizarButton);
+        botoesPanel.add(selecionarArquivoButton);
         
-        // Descrição e Categoria
-        gbc.gridx = 0; gbc.gridy = 0;
-        formPanel.add(new JLabel("Descrição:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        JPanel descCatPanel = new JPanel(new BorderLayout());
-        descCatPanel.add(descricaoField, BorderLayout.CENTER);
-        descCatPanel.add(new JLabel("Categoria:"), BorderLayout.WEST);
-        descCatPanel.add(categoriaComboBox, BorderLayout.EAST);
-        formPanel.add(descCatPanel, gbc);
+        formContainer.add(statsPanel, BorderLayout.NORTH);
+        formContainer.add(botoesPanel, BorderLayout.SOUTH);
         
-        // Arquivo
-        gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Arquivo:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        JPanel arquivoPanel = new JPanel(new BorderLayout());
-        arquivoPanel.add(caminhoField, BorderLayout.CENTER);
-        arquivoPanel.add(selecionarArquivoButton, BorderLayout.EAST);
-        formPanel.add(arquivoPanel, gbc);
+        formPanel.add(formContainer, BorderLayout.CENTER);
         
-        // Botões do formulário
-        JPanel botoesFormPanel = new JPanel(new FlowLayout());
-        botoesFormPanel.add(salvarButton);
-        botoesFormPanel.add(novoButton);
-        botoesFormPanel.add(excluirButton);
+        // Painel de tabela usando PadraoLayout
+        JPanel tabelaPanel = PadraoLayout.criarGrupoFormulario("🖼️ Fotos Cadastradas");
+        PadraoLayout.configurarTabela(fotosTable);
+        JScrollPane tableScrollPane = new JScrollPane(fotosTable);
         
-        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        formPanel.add(botoesFormPanel, gbc);
+        tabelaPanel.add(tableScrollPane, BorderLayout.CENTER);
         
-        // Botões de ações
-        JPanel acoesPanel = new JPanel(new FlowLayout());
-        acoesPanel.setBorder(BorderFactory.createTitledBorder("Ações da Foto"));
-        acoesPanel.add(visualizarButton);
-        acoesPanel.add(relatorioButton);
+        // Split vertical: Formulário acima (60%), Tabela abaixo (40%)
+        JSplitPane verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formPanel, tabelaPanel);
+        verticalSplitPane.setDividerLocation(400);
+        verticalSplitPane.setResizeWeight(0.6);
         
-        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        formPanel.add(acoesPanel, gbc);
+        contentPanel.add(verticalSplitPane, BorderLayout.CENTER);
         
-        // Painel da tabela
-        JPanel tabelaPanel = new JPanel(new BorderLayout());
-        tabelaPanel.setBorder(BorderFactory.createTitledBorder("Fotos Cadastradas"));
-        tabelaPanel.add(new JScrollPane(fotosTable), BorderLayout.CENTER);
+        // Adicionar contentPanel ao mainPanel
+        mainPanel.add(contentPanel, BorderLayout.CENTER);
         
-        // Layout principal
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formPanel, tabelaPanel);
-        splitPane.setDividerLocation(350);
-        
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.add(splitPane, BorderLayout.CENTER);
-        
-        add(titleLabel, BorderLayout.NORTH);
-        add(statsPanel, BorderLayout.CENTER);
-        add(mainPanel, BorderLayout.SOUTH);
+        add(mainPanel, BorderLayout.CENTER);
     }
     
+        
     private void setupEvents() {
         salvarButton.addActionListener(e -> salvarFoto());
         novoButton.addActionListener(e -> limparFormulario());
@@ -209,20 +199,20 @@ public class GaleriaFotosPanel extends JPanel {
     
     private void salvarFoto() {
         try {
-            if (descricaoField.getText().trim().isEmpty()) {
+            if (galeriaFotosFormPanel.getDescricaoField().getText().trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Descrição é obrigatória!", "Erro", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
-            if (caminhoField.getText().trim().isEmpty()) {
+            if (galeriaFotosFormPanel.getCaminhoField().getText().trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Selecione um arquivo de imagem!", "Erro", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
             Foto foto = fotoAtual != null ? fotoAtual : new Foto();
-            foto.setDescricao(descricaoField.getText().trim());
-            foto.setCaminhoArquivo(caminhoField.getText().trim());
-            foto.setCategoria((String) categoriaComboBox.getSelectedItem());
+            foto.setDescricao(galeriaFotosFormPanel.getDescricaoField().getText().trim());
+            foto.setCaminhoArquivo(galeriaFotosFormPanel.getCaminhoField().getText().trim());
+            foto.setCategoria((String) galeriaFotosFormPanel.getCategoriaComboBox().getSelectedItem());
             foto.setDataFoto(LocalDateTime.now());
             
             fotoDAO.save(foto);
@@ -238,10 +228,9 @@ public class GaleriaFotosPanel extends JPanel {
     
     private void limparFormulario() {
         fotoAtual = null;
-        descricaoField.setText("");
-        caminhoField.setText("");
-        categoriaComboBox.setSelectedItem("IRMAO");
-        descricaoField.requestFocus();
+        galeriaFotosFormPanel.clearForm();
+        galeriaFotosFormPanel.getCategoriaComboBox().setSelectedItem("IRMAO");
+        galeriaFotosFormPanel.getDescricaoField().requestFocus();
         atualizarBotoesAcao();
     }
     
@@ -276,16 +265,16 @@ public class GaleriaFotosPanel extends JPanel {
         
         if (resultado == JFileChooser.APPROVE_OPTION) {
             File arquivoSelecionado = fileChooser.getSelectedFile();
-            caminhoField.setText(arquivoSelecionado.getAbsolutePath());
+            galeriaFotosFormPanel.getCaminhoField().setText(arquivoSelecionado.getAbsolutePath());
             
             // Preencher descrição com nome do arquivo se estiver vazia
-            if (descricaoField.getText().trim().isEmpty()) {
+            if (galeriaFotosFormPanel.getDescricaoField().getText().trim().isEmpty()) {
                 String nomeSemExtensao = arquivoSelecionado.getName();
                 int pontoIndex = nomeSemExtensao.lastIndexOf('.');
                 if (pontoIndex > 0) {
                     nomeSemExtensao = nomeSemExtensao.substring(0, pontoIndex);
                 }
-                descricaoField.setText(nomeSemExtensao);
+                galeriaFotosFormPanel.getDescricaoField().setText(nomeSemExtensao);
             }
         }
     }
@@ -367,9 +356,9 @@ public class GaleriaFotosPanel extends JPanel {
             try {
                 fotoAtual = fotoDAO.findById(id);
                 if (fotoAtual != null) {
-                    descricaoField.setText(fotoAtual.getDescricao());
-                    caminhoField.setText(fotoAtual.getCaminhoArquivo());
-                    categoriaComboBox.setSelectedItem(fotoAtual.getCategoria());
+                    galeriaFotosFormPanel.getDescricaoField().setText(fotoAtual.getDescricao());
+                    galeriaFotosFormPanel.getCaminhoField().setText(fotoAtual.getCaminhoArquivo());
+                    galeriaFotosFormPanel.getCategoriaComboBox().setSelectedItem(fotoAtual.getCategoria());
                     atualizarBotoesAcao();
                 }
             } catch (SQLException ex) {
@@ -383,11 +372,6 @@ public class GaleriaFotosPanel extends JPanel {
         
         visualizarButton.setEnabled(temFoto);
         excluirButton.setEnabled(temFoto);
-    }
-    
-    private String getFileExtension(String fileName) {
-        int lastDot = fileName.lastIndexOf('.');
-        return (lastDot == -1) ? "" : fileName.substring(lastDot + 1).toLowerCase();
     }
     
     public void refreshData() {

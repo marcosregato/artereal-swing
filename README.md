@@ -116,7 +116,7 @@ mvn exec:java -Dexec.mainClass="com.artereal.swing.ArteRealSwingApplication"
 
 Após a inicialização, use as credenciais padrão:
 
-- **Usuário:** `Administrador`
+- **Usuário:** `admin`
 - **Senha:** `admin123`
 
 ## 📋 Módulos Principais

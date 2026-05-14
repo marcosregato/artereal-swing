@@ -5,11 +5,15 @@ import com.artereal.swing.model.Sessao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.Statement;
 
 /**
  * DAO para gerenciamento de Sessões Maçônicas
@@ -28,17 +32,13 @@ public class SessaoDAO {
         String sql;
         if (sessao.getId() == null) {
             sql = """
-                INSERT INTO sessao (tipo, data_hora, local, presidente, secretario, tesoureiro, 
-                    orador, tema, pauta, observacoes, status, quantidade_presentes, 
-                    quantidade_visitantes, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                INSERT INTO sessao (data, tipo, descricao, pauta, realizada, created_at, updated_at)
+                VALUES (?, ?, ?, ?, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                 """;
         } else {
             sql = """
-                UPDATE sessao SET tipo = ?, data_hora = ?, local = ?, presidente = ?, 
-                    secretario = ?, tesoureiro = ?, orador = ?, tema = ?, pauta = ?, 
-                    observacoes = ?, status = ?, quantidade_presentes = ?, quantidade_visitantes = ?, 
-                    updated_at = CURRENT_TIMESTAMP
+                UPDATE sessao SET data = ?, tipo = ?, descricao = ?, pauta = ?, 
+                    realizada = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
                 """;
         }
@@ -46,22 +46,14 @@ public class SessaoDAO {
         try (Connection conn = dbManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
-            stmt.setString(1, sessao.getTipo());
-            stmt.setString(2, sessao.getDataHora() != null ? sessao.getDataHora().format(formatter) : null);
-            stmt.setString(3, sessao.getLocal());
-            stmt.setString(4, sessao.getPresidente());
-            stmt.setString(5, sessao.getSecretario());
-            stmt.setString(6, sessao.getTesoureiro());
-            stmt.setString(7, sessao.getOrador());
-            stmt.setString(8, sessao.getTema());
-            stmt.setString(9, sessao.getPauta());
-            stmt.setString(10, sessao.getObservacoes());
-            stmt.setString(11, sessao.getStatus());
-            stmt.setInt(12, sessao.getQuantidadePresentes());
-            stmt.setInt(13, sessao.getQuantidadeVisitantes());
+            stmt.setString(1, sessao.getDataHora() != null ? sessao.getDataHora().format(formatter) : null);
+            stmt.setString(2, sessao.getTipo());
+            stmt.setString(3, sessao.getObservacoes());
+            stmt.setString(4, sessao.getPauta());
             
             if (sessao.getId() != null) {
-                stmt.setLong(14, sessao.getId());
+                stmt.setInt(5, sessao.getStatus() != null && sessao.getStatus().equals("REALIZADA") ? 1 : 0);
+                stmt.setLong(6, sessao.getId());
             }
             
             int affectedRows = stmt.executeUpdate();
@@ -208,12 +200,22 @@ public class SessaoDAO {
         }
         
         sessao.setPauta(rs.getString("descricao"));
-        sessao.setQuantidadePresentes(rs.getInt("presenca"));
+        try {
+            sessao.setQuantidadePresentes(rs.getInt("quantidade_presentes"));
+        } catch (Exception e) {
+            // Se coluna não existir, usar valor padrão
+            sessao.setQuantidadePresentes(0);
+        }
         // Campo 'realizada' não existe no modelo, vamos usar 'status'
         boolean realizada = rs.getBoolean("realizada");
         sessao.setStatus(realizada ? "REALIZADA" : "PROGRAMADA");
         // Usar coluna 'ata' em vez de 'observacoes' que não existe
-        sessao.setObservacoes(rs.getString("ata"));
+        try {
+            sessao.setObservacoes(rs.getString("ata"));
+        } catch (Exception e) {
+            // Se coluna não existir, usar valor padrão
+            sessao.setObservacoes("");
+        }
         
         logger.debug("Sessao mapeada: ID={}, Tipo={}, Data={}, Presenças={}, Status={}", 
                     sessao.getId(), sessao.getTipo(), sessao.getDataHora(), 

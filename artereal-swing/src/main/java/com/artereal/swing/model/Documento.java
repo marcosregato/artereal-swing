@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 /**
  * Modelo de dados para Gestão Documental
  */
-public class Documento {
+public class Documento extends SimpleModel {
     
     private Long id;
     private Long codigoIrmao;
@@ -121,11 +121,5 @@ public class Documento {
     public void cancelar() {
         this.status = "CANCELADO";
         this.ativo = false;
-    }
-    
-    @Override
-    public String toString() {
-        return String.format("%s - %s (%s) - %s", 
-                           nomeArquivo, tipo, status, codigoIrmao);
     }
 }

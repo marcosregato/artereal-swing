@@ -5,10 +5,14 @@ import com.artereal.swing.model.Cheque;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.Statement;
 
 /**
  * DAO para operações com Cheques
@@ -59,7 +63,7 @@ public class ChequeDAO {
             stmt.setString(15, cheque.getLancamentoDebito());
             stmt.setString(16, cheque.getNumeroNota());
             stmt.setObject(17, cheque.getCodigoVendedor());
-            stmt.setBoolean(18, cheque.isAtivo());
+            stmt.setInt(18, cheque.isAtivo() ? 1 : 0);
             
             if (cheque.getId() != null) {
                 stmt.setLong(19, cheque.getId());
@@ -75,7 +79,6 @@ public class ChequeDAO {
                 }
             }
             
-            conn.commit();
             logger.debug("Cheque salvo: {}", cheque.getSacado());
         }
     }
@@ -149,8 +152,8 @@ public class ChequeDAO {
         List<Cheque> cheques = new ArrayList<>();
         String sql = """
             SELECT * FROM cheque 
-            WHERE data_vencimento < CURRENT_DATE AND situacao = 'ABERTO' AND ativo = 1 
-            ORDER BY data_vencimento
+            WHERE CAST(data_vencimento AS DATE) < CURRENT_DATE AND situacao = 'ABERTO' AND ativo = 1 
+            ORDER BY CAST(data_vencimento AS DATE)
             """;
         
         try (Connection conn = DatabaseManager.getInstance().getConnection();
@@ -172,9 +175,9 @@ public class ChequeDAO {
         List<Cheque> cheques = new ArrayList<>();
         String sql = """
             SELECT * FROM cheque 
-            WHERE data_vencimento BETWEEN CURRENT_DATE AND DATE(CURRENT_DATE, '+{} days') 
+            WHERE CAST(data_vencimento AS DATE) BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '{} days' 
             AND situacao = 'ABERTO' AND ativo = 1 
-            ORDER BY data_vencimento
+            ORDER BY CAST(data_vencimento AS DATE)
             """.replace("{}", String.valueOf(dias));
         
         try (Connection conn = DatabaseManager.getInstance().getConnection();
@@ -255,8 +258,6 @@ public class ChequeDAO {
             stmt.setLong(3, id);
             
             stmt.executeUpdate();
-            conn.commit();
-            
             logger.debug("Cheque compensado: ID {}, Valor: {}", id, valorPago);
         }
     }
@@ -275,8 +276,6 @@ public class ChequeDAO {
             
             stmt.setLong(1, id);
             stmt.executeUpdate();
-            conn.commit();
-            
             logger.debug("Cheque cancelado: ID {}", id);
         }
     }
@@ -295,8 +294,6 @@ public class ChequeDAO {
             
             stmt.setLong(1, id);
             stmt.executeUpdate();
-            conn.commit();
-            
             logger.debug("Cheque devolvido: ID {}", id);
         }
     }
@@ -366,8 +363,6 @@ public class ChequeDAO {
             
             stmt.setLong(1, id);
             stmt.executeUpdate();
-            conn.commit();
-            
             logger.debug("Cheque desativado: ID {}", id);
         }
     }
@@ -379,10 +374,10 @@ public class ChequeDAO {
         String sql = "SELECT COUNT(*) FROM cheque WHERE situacao = ? AND ativo = 1";
         
         try (Connection conn = DatabaseManager.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setString(1, situacao);
+            ResultSet rs = stmt.executeQuery();
             
             if (rs.next()) {
                 return rs.getInt(1);
