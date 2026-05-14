@@ -6,7 +6,7 @@ Sistema desktop para gestão administrativa de lojas maçônicas, desenvolvido c
 
 Esta é a versão desktop do sistema ArteReal, criada a partir da engenharia reversa do sistema FoxPro original. Oferece interface nativa e banco de dados local para instalação em computadores individuais.
 
-**Versão Atual**: 2.2.0
+**Versão Atual**: 2.3.0
 
 ## 🏗️ Arquitetura
 
@@ -123,7 +123,7 @@ mvn test
 mvn package -DskipTests
 
 # Execução
-java -jar target/artereal-swing-2.2.0-jar-with-dependencies.jar
+java -jar target/artereal-swing-2.3.0-jar-with-dependencies.jar
 ```
 
 ### Script Automático
@@ -320,6 +320,6 @@ Este projeto é desenvolvido para uso em lojas maçônicas e segue os princípio
 
 **ArteReal Masonic Lodge Management System - Versão Swing**
 
-*Versão 2.2.0 - Arquitetura Hexagonal com DDD*
+*Versão 2.3.0 - Arquitetura Hexagonal com DDD*
 
 *Sistema desktop moderno para gestão maçônica tradicional com arquitetura escalável e testável*
